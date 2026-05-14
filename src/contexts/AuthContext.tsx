@@ -108,8 +108,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({
           email,
           password,
-          name:    metadata.full_name,
-          company: metadata.company,
+          full_name: metadata.full_name,
+          company:   metadata.company,
         }),
       });
 
