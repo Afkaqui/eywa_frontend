@@ -1,4 +1,3 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
 import type { DiagnosticQuestion, DiagnosticResult } from '@/lib/types/database';
 
 export interface DiagnosticResultRow {
@@ -12,37 +11,37 @@ export interface DiagnosticResultRow {
   created_at: string;
 }
 
+async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(path, { credentials: 'include', ...init });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err?.error ?? `Request failed: ${res.status}`);
+  }
+  return res.json();
+}
+
 export class DiagnosticRepository {
-  constructor(private supabase: SupabaseClient) {}
-
   async getQuestions(): Promise<DiagnosticQuestion[]> {
-    const { data, error } = await this.supabase
-      .from('diagnostic_questions')
-      .select('*, diagnostic_options(*)')
-      .order('sort_order', { ascending: true });
-
-    if (error) throw error;
-    return data || [];
+    return apiFetch<DiagnosticQuestion[]>('/api/proxy/diagnostic/questions');
   }
 
-  async getLatestResult(userId: string): Promise<DiagnosticResultRow | null> {
-    const { data, error } = await this.supabase
-      .from('diagnostic_results')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data;
+  // userId kept for API compatibility but the backend resolves from JWT
+  async getLatestResult(_userId?: string): Promise<DiagnosticResultRow | null> {
+    try {
+      const results = await apiFetch<DiagnosticResultRow[]>('/api/proxy/diagnostic/results');
+      if (!Array.isArray(results) || results.length === 0) return null;
+      // Results are ordered desc by created_at on the backend
+      return results[0];
+    } catch {
+      return null;
+    }
   }
 
   async saveResult(result: Omit<DiagnosticResultRow, 'id' | 'created_at'>): Promise<void> {
-    const { error } = await this.supabase
-      .from('diagnostic_results')
-      .insert(result);
-
-    if (error) throw error;
+    await apiFetch<void>('/api/proxy/diagnostic/results', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(result),
+    });
   }
 }

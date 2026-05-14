@@ -9,6 +9,10 @@ const nextConfig = {
       },
     ],
   },
+  // Variables de entorno expuestas al servidor (no al browser)
+  env: {
+    BACKEND_URL: process.env.BACKEND_URL,
+  },
 };
 
 module.exports = nextConfig;

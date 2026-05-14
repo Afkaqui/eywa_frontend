@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSupabase } from '@/lib/supabase/use-supabase';
 import { CourseRepository } from '@/lib/repositories/course-repository';
 import { CourseService } from '@/lib/services/course-service';
 import {
@@ -49,10 +48,9 @@ export function EdutechDashboard() {
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [enrolling, setEnrolling] = useState(false);
 
-  const supabase = useSupabase();
   const courseService = useMemo(
-    () => new CourseService(new CourseRepository(supabase)),
-    [supabase]
+    () => new CourseService(new CourseRepository()),
+    []
   );
 
   // Load courses and enrollments via service

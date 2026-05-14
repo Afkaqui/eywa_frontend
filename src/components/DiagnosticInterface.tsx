@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ArrowLeft, Check, CheckCircle2, Loader2, RefreshCw, TrendingUp, Award, FileText } from 'lucide-react';
-import { useSupabase } from '@/lib/supabase/use-supabase';
 import { DiagnosticRepository } from '@/lib/repositories/diagnostic-repository';
 import { getScoreLevel } from '@/lib/constants/scoring';
 import type { DiagnosticQuestion } from '@/lib/types/database';
@@ -56,8 +55,7 @@ interface DiagnosticInterfaceProps {
 }
 
 export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProps) {
-  const supabase = useSupabase();
-  const diagnosticRepo = useMemo(() => new DiagnosticRepository(supabase), [supabase]);
+  const diagnosticRepo = useMemo(() => new DiagnosticRepository(), []);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<{[key: number]: string}>({});
   const [isProcessing, setIsProcessing] = useState(false);

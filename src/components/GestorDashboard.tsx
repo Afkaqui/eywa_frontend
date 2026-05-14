@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Database, Plus, Pencil, Trash2, X, Search, Loader2, BarChart3, FileText } from 'lucide-react';
-import { useSupabase } from '@/lib/supabase/use-supabase';
 import { PortfolioRepository } from '@/lib/repositories/portfolio-repository';
+import { DiagnosticRepository } from '@/lib/repositories/diagnostic-repository';
 import type { PortfolioCompany, DiagnosticQuestion, DiagnosticOption } from '@/lib/types/database';
 
 type Tab = 'portfolio' | 'questions';
@@ -58,8 +58,7 @@ export function GestorDashboard() {
 /* ═══════════════════════ PORTFOLIO MANAGER ═══════════════════════ */
 
 function PortfolioManager() {
-  const supabase = useSupabase();
-  const portfolioRepo = useMemo(() => new PortfolioRepository(supabase), [supabase]);
+  const portfolioRepo = useMemo(() => new PortfolioRepository(), []);
   const [companies, setCompanies] = useState<PortfolioCompany[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -288,7 +287,7 @@ function PortfolioManager() {
 /* ═══════════════════════ QUESTIONS MANAGER ═══════════════════════ */
 
 function QuestionsManager() {
-  const supabase = useSupabase();
+  const diagnosticRepo = useMemo(() => new DiagnosticRepository(), []);
   const [questions, setQuestions] = useState<DiagnosticQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -300,13 +299,12 @@ function QuestionsManager() {
   const [options, setOptions] = useState<{ label: string; value: string; score: number; sort_order: number }[]>([]);
 
   const fetchQuestions = useCallback(async () => {
-    const { data } = await supabase
-      .from('diagnostic_questions')
-      .select('*, diagnostic_options(*)')
-      .order('sort_order');
-    if (data) setQuestions(data);
+    try {
+      const data = await diagnosticRepo.getQuestions();
+      setQuestions(data);
+    } catch { /* handle error */ }
     setLoading(false);
-  }, [supabase]);
+  }, [diagnosticRepo]);
 
   useEffect(() => { fetchQuestions(); }, [fetchQuestions]);
 
@@ -331,28 +329,35 @@ function QuestionsManager() {
   };
 
   const handleSave = async () => {
-    if (editing) {
-      await supabase.from('diagnostic_questions').update(form).eq('id', editing.id);
-      await supabase.from('diagnostic_options').delete().eq('question_id', editing.id);
-      if (options.length > 0) {
-        await supabase.from('diagnostic_options').insert(
-          options.map(o => ({ ...o, question_id: editing.id }))
-        );
+    try {
+      const payload = { ...form, options };
+      if (editing) {
+        await fetch(`/api/proxy/diagnostic/questions/${editing.id}`, {
+          method: 'PATCH',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        await fetch('/api/proxy/diagnostic/questions', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
       }
-    } else {
-      const { data: newQ } = await supabase.from('diagnostic_questions').insert(form).select().single();
-      if (newQ && options.length > 0) {
-        await supabase.from('diagnostic_options').insert(
-          options.map(o => ({ ...o, question_id: newQ.id }))
-        );
-      }
-    }
+    } catch { /* handle error */ }
     setShowModal(false);
     fetchQuestions();
   };
 
   const handleDelete = async (id: string) => {
-    await supabase.from('diagnostic_questions').delete().eq('id', id);
+    try {
+      await fetch(`/api/proxy/diagnostic/questions/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+    } catch { /* handle error */ }
     fetchQuestions();
   };
 

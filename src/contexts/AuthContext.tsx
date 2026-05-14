@@ -1,182 +1,156 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
-import type { User, Session } from '@supabase/supabase-js';
-import type { Profile } from '@/lib/types/database';
-import { ProfileRepository } from '@/lib/repositories/profile-repository';
+import {
+  createContext,
+  useContext,
+  useCallback,
+  useMemo,
+} from 'react';
+import {
+  useSession,
+  signIn as nextAuthSignIn,
+  signOut as nextAuthSignOut,
+} from 'next-auth/react';
+import type { Profile, UserRole, UserPlan } from '@/lib/types/database';
+
+// ── Tipos ────────────────────────────────────────────────────────────────────
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string | null;
+  image?: string | null;
+  role: UserRole;
+  plan: UserPlan;
+  company: string | null;
+}
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   profile: Profile | null;
-  session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string, metadata: { full_name: string; company: string }) => Promise<{ error: string | null }>;
+  signUp: (
+    email: string,
+    password: string,
+    metadata: { full_name: string; company: string }
+  ) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
 
+// ── Contexto ─────────────────────────────────────────────────────────────────
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// ── Provider ─────────────────────────────────────────────────────────────────
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [authReady, setAuthReady] = useState(false);
-  const currentUserId = useRef<string | null>(null);
+  const { data: session, status, update } = useSession();
 
-  const supabase = useMemo(() => createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  ), []);
+  const loading = status === 'loading';
 
-  const profileRepo = useMemo(() => new ProfileRepository(supabase), [supabase]);
-
-  // Step 1: Listen for auth state changes ONLY - don't load profile here
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, newSession) => {
-        console.log('[Auth] Event:', event, 'User:', newSession?.user?.email ?? 'none');
-
-        if (event === 'SIGNED_OUT') {
-          currentUserId.current = null;
-          setUser(null);
-          setProfile(null);
-          setSession(null);
-          setAuthReady(true);
-          setLoading(false);
-          return;
-        }
-
-        if (newSession?.user) {
-          // Only update state if user actually changed - prevents loops
-          if (currentUserId.current !== newSession.user.id) {
-            currentUserId.current = newSession.user.id;
-            setUser(newSession.user);
-            setSession(newSession);
-            setAuthReady(true);
-          } else {
-            // Same user, just update session silently (token refresh)
-            setSession(newSession);
-          }
-        } else if (event === 'INITIAL_SESSION') {
-          // No session = not logged in
-          setAuthReady(true);
-          setLoading(false);
-        }
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe();
+  // Construye AuthUser desde la sesión de Auth.js
+  const user = useMemo<AuthUser | null>(() => {
+    if (!session?.user) return null;
+    const s = session.user;
+    return {
+      id:      s.id,
+      email:   s.email ?? '',
+      name:    s.name  ?? null,
+      image:   s.image ?? null,
+      role:    s.role  ?? 'user',
+      plan:    s.plan  ?? 'free',
+      company: s.company ?? null,
     };
-  }, [supabase]);
+  }, [session]);
 
-  // Step 2: Load profile AFTER auth is ready and user exists
-  // This runs in a separate effect so the session is fully established
-  useEffect(() => {
-    if (!authReady) return;
-    if (!user) {
-      setProfile(null);
-      setLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-
-    const loadProfile = async () => {
-      // Small delay to ensure session cookies are fully propagated
-      await new Promise(r => setTimeout(r, 100));
-      if (cancelled) return;
-
-      try {
-        const data = await profileRepo.getById(user.id);
-        console.log('[Auth] Profile load - data:', data?.email);
-
-        if (cancelled) return;
-
-        if (data) {
-          setProfile(data);
-          setLoading(false);
-        } else {
-          // No profile exists - might not be created yet
-          setProfile(null);
-          setLoading(false);
-        }
-      } catch (err) {
-        // RLS might have blocked - retry once after a longer delay
-        console.log('[Auth] Profile query error, retrying...');
-        await new Promise(r => setTimeout(r, 500));
-        if (cancelled) return;
-
-        try {
-          const retryData = await profileRepo.getById(user.id);
-          if (!cancelled) {
-            setProfile(retryData);
-            setLoading(false);
-          }
-        } catch {
-          if (!cancelled) {
-            setProfile(null);
-            setLoading(false);
-          }
-        }
-      }
+  // Construye Profile desde la sesión (evita un fetch extra)
+  const profile = useMemo<Profile | null>(() => {
+    if (!user) return null;
+    return {
+      id:         user.id,
+      email:      user.email,
+      full_name:  user.name,
+      company:    user.company,
+      role:       user.role,
+      plan:       user.plan,
+      created_at: '',
+      updated_at: '',
     };
+  }, [user]);
 
-    loadProfile();
-
-    return () => { cancelled = true; };
-  }, [authReady, user, supabase]);
-
-  const refreshProfile = useCallback(async () => {
-    if (!user) return;
-    try {
-      const data = await profileRepo.getById(user.id);
-      setProfile(data);
-    } catch {
-      setProfile(null);
-    }
-  }, [user, profileRepo]);
-
+  // ── signIn con Credentials ─────────────────────────────────────────────────
   const signIn = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error?.message ?? null };
-  }, [supabase]);
+    try {
+      const result = await nextAuthSignIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
+      if (result?.error) return { error: 'Credenciales incorrectas' };
+      return { error: null };
+    } catch {
+      return { error: 'Error al iniciar sesión' };
+    }
+  }, []);
 
+  // ── signUp: llama al backend via proxy y luego inicia sesión ──────────────
   const signUp = useCallback(async (
     email: string,
     password: string,
     metadata: { full_name: string; company: string }
   ) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: metadata },
-    });
-    if (error) return { error: error.message };
-    return { error: null };
-  }, [supabase]);
+    try {
+      const res = await fetch('/api/proxy/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          password,
+          name:    metadata.full_name,
+          company: metadata.company,
+        }),
+      });
 
-  const handleSignOut = useCallback(async () => {
-    setUser(null);
-    setProfile(null);
-    setSession(null);
-    setLoading(false);
-    try { await supabase.auth.signOut(); } catch { /* ignore */ }
-  }, [supabase]);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        return { error: data?.error ?? 'Error al registrarse' };
+      }
+
+      // Registro exitoso → iniciar sesión automáticamente
+      const loginResult = await nextAuthSignIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
+      if (loginResult?.error) return { error: 'Registro exitoso, pero no se pudo iniciar sesión' };
+      return { error: null };
+    } catch {
+      return { error: 'Error de red al registrarse' };
+    }
+  }, []);
+
+  // ── signOut ───────────────────────────────────────────────────────────────
+  const signOut = useCallback(async () => {
+    await nextAuthSignOut({ redirect: false });
+  }, []);
+
+  // ── refreshProfile: fuerza actualización de la sesión ─────────────────────
+  const refreshProfile = useCallback(async () => {
+    await update();
+  }, [update]);
 
   return (
-    <AuthContext.Provider value={{
-      user, profile, session, loading,
-      signIn, signUp, signOut: handleSignOut, refreshProfile,
-    }}>
+    <AuthContext.Provider
+      value={{ user, profile, loading, signIn, signUp, signOut, refreshProfile }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
+
+// ── Hook ──────────────────────────────────────────────────────────────────────
 
 export function useAuth() {
   const context = useContext(AuthContext);

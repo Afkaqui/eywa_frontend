@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSupabase } from '@/lib/supabase/use-supabase';
 import { DiagnosticRepository } from '@/lib/repositories/diagnostic-repository';
 import { DiagnosticService } from '@/lib/services/diagnostic-service';
 import { hasMinimumRole } from '@/lib/constants/roles';
@@ -32,10 +31,9 @@ export default function Page() {
   const [currentView, setCurrentView] = useState<ViewType>('hero');
   const [diagnosticResult, setDiagnosticResult] = useState<DiagnosticResult | null>(null);
 
-  const supabase = useSupabase();
   const diagnosticService = useMemo(
-    () => new DiagnosticService(new DiagnosticRepository(supabase)),
-    [supabase]
+    () => new DiagnosticService(new DiagnosticRepository()),
+    []
   );
 
   // Load latest diagnostic result (non-blocking)

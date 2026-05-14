@@ -2,15 +2,13 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Search, Filter, Download, TrendingUp, AlertCircle, X, FileText, Calendar, CheckSquare, Loader2 } from 'lucide-react';
-import { useSupabase } from '@/lib/supabase/use-supabase';
 import { PortfolioRepository } from '@/lib/repositories/portfolio-repository';
 import type { PortfolioCompany } from '@/lib/types/database';
 
 const logo = "/logo.png";
 
 export function InvestorPortfolio() {
-  const supabase = useSupabase();
-  const portfolioRepo = useMemo(() => new PortfolioRepository(supabase), [supabase]);
+  const portfolioRepo = useMemo(() => new PortfolioRepository(), []);
   const [companies, setCompanies] = useState<PortfolioCompany[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [showReportModal, setShowReportModal] = useState(false);

@@ -1,45 +1,38 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
 import type { PortfolioCompany } from '@/lib/types/database';
 
+async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(path, { credentials: 'include', ...init });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err?.error ?? `Request failed: ${res.status}`);
+  }
+  return res.json();
+}
+
 export class PortfolioRepository {
-  constructor(private supabase: SupabaseClient) {}
-
   async getAll(): Promise<PortfolioCompany[]> {
-    const { data, error } = await this.supabase
-      .from('portfolio_companies')
-      .select('*')
-      .order('score', { ascending: false });
-
-    if (error) throw error;
-    return data || [];
+    return apiFetch<PortfolioCompany[]>('/api/proxy/portfolio');
   }
 
   async create(company: Omit<PortfolioCompany, 'id' | 'created_at' | 'updated_at'>): Promise<PortfolioCompany> {
-    const { data, error } = await this.supabase
-      .from('portfolio_companies')
-      .insert(company)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    return apiFetch<PortfolioCompany>('/api/proxy/portfolio', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(company),
+    });
   }
 
   async update(id: string, updates: Partial<PortfolioCompany>): Promise<void> {
-    const { error } = await this.supabase
-      .from('portfolio_companies')
-      .update(updates)
-      .eq('id', id);
-
-    if (error) throw error;
+    await apiFetch<void>(`/api/proxy/portfolio/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
   }
 
   async delete(id: string): Promise<void> {
-    const { error } = await this.supabase
-      .from('portfolio_companies')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
+    await apiFetch<void>(`/api/proxy/portfolio/${id}`, {
+      method: 'DELETE',
+    });
   }
 }

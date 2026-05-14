@@ -1,32 +1,20 @@
-import { createServerClient } from '@supabase/ssr';
+import { auth } from '@/auth';
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
 
-export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({ request });
+export default auth((req) => {
+  const { nextUrl, auth: session } = req;
+  const isLoggedIn = !!session?.user;
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            request.cookies.set(name, value);
-            response.cookies.set(name, value, options);
-          });
-        },
-      },
-    }
-  );
+  // Rutas públicas que no requieren autenticación
+  const publicPaths = ['/', '/login', '/register', '/api/auth'];
+  const isPublic = publicPaths.some((p) => nextUrl.pathname.startsWith(p));
 
-  await supabase.auth.getSession();
+  if (!isLoggedIn && !isPublic) {
+    return NextResponse.redirect(new URL('/', nextUrl));
+  }
 
-  return response;
-}
+  return NextResponse.next();
+});
 
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|opengraph-image|.*\\.png$).*)'],
