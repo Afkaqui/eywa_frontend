@@ -40,7 +40,7 @@ export function hasMinimumRole(userRole: UserRole, requiredRole: UserRole): bool
 }
 
 export const API_ROUTES = {
-  ADMIN_USERS: '/api/admin/users',
-  ADMIN_USER_ROLE: (id: string) => `/api/admin/users/${id}/role`,
-  ADMIN_USER_PLAN: (id: string) => `/api/admin/users/${id}/plan`,
+  ADMIN_USERS: '/api/proxy/users',
+  ADMIN_USER_ROLE: (id: string) => `/api/proxy/users/${id}/role`,
+  ADMIN_USER_PLAN: (id: string) => `/api/proxy/users/${id}/plan`,
 } as const;
