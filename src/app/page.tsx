@@ -67,7 +67,7 @@ export default function Page() {
       <NavigationSidebar
         currentView={currentView}
         userRole={role}
-        userName={profile?.full_name || 'Usuario'}
+        userName={profile?.fullName || 'Usuario'}
         userEmail={profile?.email || ''}
         onNavigate={(view) => setCurrentView(view as ViewType)}
         onLogout={signOut}

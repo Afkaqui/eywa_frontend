@@ -71,12 +71,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return {
       id:         user.id,
       email:      user.email,
-      full_name:  user.name,
+      fullName:   user.name,
       company:    user.company,
       role:       user.role,
       plan:       user.plan,
-      created_at: '',
-      updated_at: '',
+      createdAt:  '',
+      updatedAt:  '',
     };
   }, [user]);
 
