@@ -12,10 +12,15 @@ export function SuperAdminDashboard() {
   const [updating, setUpdating] = useState<string | null>(null);
 
   const fetchUsers = useCallback(async () => {
-    const res = await fetch(API_ROUTES.ADMIN_USERS);
-    const data = await res.json();
-    if (data.profiles) setProfiles(data.profiles);
-    setLoading(false);
+    try {
+      const res = await fetch(API_ROUTES.ADMIN_USERS);
+      const data = await res.json();
+      if (data.profiles) setProfiles(data.profiles);
+    } catch {
+      // backend no disponible — mantener lista vacía
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);

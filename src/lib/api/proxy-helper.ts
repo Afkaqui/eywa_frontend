@@ -32,6 +32,7 @@ export async function proxyToBackend(
         'Authorization': `Bearer ${token.backendToken}`,
       },
       body: init?.body ? JSON.stringify(init.body) : undefined,
+      signal: AbortSignal.timeout(8000),
     });
 
     const data = await res.json().catch(() => ({}));
