@@ -4,12 +4,12 @@ export type UserPlan = 'free' | 'premium';
 export interface Profile {
   id: string;
   email: string;
-  full_name: string | null;
+  fullName: string | null;
   company: string | null;
   role: UserRole;
   plan: UserPlan;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface PortfolioCompany {

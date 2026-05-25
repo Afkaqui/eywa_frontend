@@ -39,7 +39,7 @@ export function AdminDashboard() {
 
   const filtered = profiles.filter(p => {
     const matchesSearch = p.email.toLowerCase().includes(search.toLowerCase()) ||
-      (p.full_name || '').toLowerCase().includes(search.toLowerCase());
+      (p.fullName || '').toLowerCase().includes(search.toLowerCase());
     const matchesPlan = filterPlan === 'all' || p.plan === filterPlan;
     return matchesSearch && matchesPlan;
   });
@@ -130,7 +130,7 @@ export function AdminDashboard() {
                   {filtered.map((profile) => (
                     <tr key={profile.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="py-3 px-4">
-                        <div className="font-medium text-gray-900">{profile.full_name || '—'}</div>
+                        <div className="font-medium text-gray-900">{profile.fullName || '—'}</div>
                         <div className="text-xs text-gray-500">{profile.email}</div>
                       </td>
                       <td className="py-3 px-4 text-gray-600">{profile.company || '—'}</td>

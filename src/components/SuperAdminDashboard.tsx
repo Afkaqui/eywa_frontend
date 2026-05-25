@@ -49,7 +49,7 @@ export function SuperAdminDashboard() {
 
   const filtered = profiles.filter(p =>
     p.email.toLowerCase().includes(search.toLowerCase()) ||
-    (p.full_name || '').toLowerCase().includes(search.toLowerCase())
+    (p.fullName || '').toLowerCase().includes(search.toLowerCase())
   );
 
   const stats = {
@@ -128,7 +128,7 @@ export function SuperAdminDashboard() {
                   {filtered.map((profile) => (
                     <tr key={profile.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="py-3 px-4">
-                        <div className="font-medium text-gray-900">{profile.full_name || '—'}</div>
+                        <div className="font-medium text-gray-900">{profile.fullName || '—'}</div>
                         <div className="text-xs text-gray-500">{profile.email}</div>
                       </td>
                       <td className="py-3 px-4 text-gray-600">{profile.company || '—'}</td>
@@ -160,7 +160,7 @@ export function SuperAdminDashboard() {
                         </select>
                       </td>
                       <td className="py-3 px-4 text-gray-500 text-xs">
-                        {new Date(profile.created_at).toLocaleDateString('es-ES')}
+                        {new Date(profile.createdAt).toLocaleDateString('es-ES')}
                       </td>
                     </tr>
                   ))}
