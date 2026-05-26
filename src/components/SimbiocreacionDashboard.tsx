@@ -131,50 +131,70 @@ function NetworkGraph({
   physicsForce    = 0.04,
   physicsDistance = 40,
   physicsOrder    = 0.003,
+  onNodeClick,
 }: {
   item: Simbiocreacion;
   physicsForce?: number;
   physicsDistance?: number;
   physicsOrder?: number;
+  onNodeClick?: (node: GraphNode) => void;
 }) {
-  const svgRef = useRef<SVGSVGElement>(null);
+  const svgRef    = useRef<SVGSVGElement>(null);
   const [dims, setDims] = useState({ w: 800, h: 480 });
-  const animRef = useRef<number>(0);
-  const nodesRef = useRef<GraphNode[]>([]);
-  const edgesRef = useRef<GraphEdge[]>([]);
+  const animRef   = useRef<number>(0);
+  const nodesRef  = useRef<GraphNode[]>([]);
+  const edgesRef  = useRef<GraphEdge[]>([]);
   const [tick, setTick] = useState(0);
 
-  // Physics refs (avoid re-starting animation on every slider change)
-  const forceRef    = useRef(physicsForce);
-  const distRef     = useRef(physicsDistance);
-  const orderRef    = useRef(physicsOrder);
-
+  // Physics refs
+  const forceRef  = useRef(physicsForce);
+  const distRef   = useRef(physicsDistance);
+  const orderRef  = useRef(physicsOrder);
   useEffect(() => { forceRef.current = physicsForce; },    [physicsForce]);
   useEffect(() => { distRef.current  = physicsDistance; }, [physicsDistance]);
   useEffect(() => { orderRef.current = physicsOrder; },    [physicsOrder]);
 
+  // View transform (pan + zoom)
+  const [vt, setVt] = useState({ x: 0, y: 0, scale: 1 });
+  const vtRef = useRef({ x: 0, y: 0, scale: 1 });
+  const updateVt = useCallback((next: typeof vt) => { vtRef.current = next; setVt(next); }, []);
+
+  // Interaction state (drag node / pan background)
+  const inter = useRef({
+    mode: 'idle' as 'idle' | 'drag' | 'pan',
+    nodeId: '',
+    startCX: 0, startCY: 0,
+    startNX: 0, startNY: 0,
+    startTX: 0, startTY: 0,
+    moved: false,
+  });
+  // Node being dragged is pinned (not affected by forces)
+  const pinnedRef = useRef<string | null>(null);
+
+  // ResizeObserver
   useEffect(() => {
     const el = svgRef.current?.parentElement;
     if (!el) return;
-    const ro = new ResizeObserver(entries => {
-      const e = entries[0];
-      setDims({ w: e.contentRect.width, h: Math.max(420, e.contentRect.height) });
+    const ro = new ResizeObserver(es => {
+      const r = es[0].contentRect;
+      setDims({ w: r.width, h: Math.max(420, r.height) });
     });
     ro.observe(el);
     setDims({ w: el.clientWidth, h: Math.max(420, el.clientHeight) });
     return () => ro.disconnect();
   }, []);
 
+  // Rebuild graph when item/dims change
   useEffect(() => {
     const { nodes, edges } = buildGraph(item, dims.w, dims.h);
     nodesRef.current = nodes;
     edgesRef.current = edges;
   }, [item, dims]);
 
+  // Physics loop
   useEffect(() => {
     const cx = dims.w / 2; const cy = dims.h / 2;
     let frame = 0;
-
     const step = () => {
       const nodes = nodesRef.current;
       const edges = edgesRef.current;
@@ -182,77 +202,150 @@ function NetworkGraph({
 
       for (let i = 0; i < nodes.length; i++) {
         for (let j = i + 1; j < nodes.length; j++) {
-          const dx = nodes[j].x - nodes[i].x;
-          const dy = nodes[j].y - nodes[i].y;
-          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-          const minDist = nodes[i].r + nodes[j].r + 18;
-          if (dist < minDist) {
-            const f = (minDist - dist) / dist * 0.12;
-            nodes[i].vx -= dx * f; nodes[i].vy -= dy * f;
-            nodes[j].vx += dx * f; nodes[j].vy += dy * f;
+          const dx = nodes[j].x - nodes[i].x; const dy = nodes[j].y - nodes[i].y;
+          const d = Math.sqrt(dx*dx + dy*dy) || 1;
+          const min = nodes[i].r + nodes[j].r + 18;
+          if (d < min) {
+            const f = (min - d) / d * 0.12;
+            nodes[i].vx -= dx*f; nodes[i].vy -= dy*f;
+            nodes[j].vx += dx*f; nodes[j].vy += dy*f;
           }
         }
       }
-
-      const nodeMap = Object.fromEntries(nodes.map(n => [n.id, n]));
+      const nmap = Object.fromEntries(nodes.map(n => [n.id, n]));
       for (const e of edges) {
-        const a = nodeMap[e.from]; const b = nodeMap[e.to];
-        if (!a || !b) continue;
-        const dx = b.x - a.x; const dy = b.y - a.y;
-        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-        const targetDist = a.r + b.r + distRef.current;
-        const f = (dist - targetDist) / dist * forceRef.current;
-        a.vx += dx * f; a.vy += dy * f;
-        b.vx -= dx * f; b.vy -= dy * f;
+        const a = nmap[e.from]; const b = nmap[e.to]; if (!a || !b) continue;
+        const dx = b.x-a.x; const dy = b.y-a.y;
+        const d = Math.sqrt(dx*dx + dy*dy) || 1;
+        const tgt = a.r + b.r + distRef.current;
+        const f = (d - tgt) / d * forceRef.current;
+        a.vx += dx*f; a.vy += dy*f; b.vx -= dx*f; b.vy -= dy*f;
       }
-
       for (const n of nodes) {
         if (n.type === 'center') { n.x = cx; n.y = cy; n.vx = 0; n.vy = 0; continue; }
+        if (n.id === pinnedRef.current) { n.vx = 0; n.vy = 0; continue; }
         n.vx += (cx - n.x) * orderRef.current;
         n.vy += (cy - n.y) * orderRef.current;
         n.vx *= 0.85; n.vy *= 0.85;
         n.x += n.vx; n.y += n.vy;
-        n.x = Math.max(n.r + 4, Math.min(dims.w - n.r - 4, n.x));
-        n.y = Math.max(n.r + 4, Math.min(dims.h - n.r - 4, n.y));
+        n.x = Math.max(n.r+4, Math.min(dims.w-n.r-4, n.x));
+        n.y = Math.max(n.r+4, Math.min(dims.h-n.r-4, n.y));
       }
       frame++;
-      if (frame % 3 === 0) setTick(t => t + 1);
+      if (frame % 3 === 0) setTick(t => t+1);
       animRef.current = requestAnimationFrame(step);
     };
-
     animRef.current = requestAnimationFrame(step);
     return () => cancelAnimationFrame(animRef.current);
   }, [dims]);
+
+  // Non-passive wheel listener (needed to preventDefault scroll)
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 1.12 : 0.88;
+      const rect = svg.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      const prev = vtRef.current;
+      const next = {
+        scale: Math.max(0.15, Math.min(6, prev.scale * delta)),
+        x: mx - (mx - prev.x) * delta,
+        y: my - (my - prev.y) * delta,
+      };
+      updateVt(next);
+    };
+    svg.addEventListener('wheel', onWheel, { passive: false });
+    return () => svg.removeEventListener('wheel', onWheel);
+  }, [updateVt]);
+
+  // Mouse handlers
+  const handleNodeDown = (e: React.MouseEvent, node: GraphNode) => {
+    e.stopPropagation();
+    inter.current = { mode: 'drag', nodeId: node.id, startCX: e.clientX, startCY: e.clientY,
+      startNX: node.x, startNY: node.y, startTX: 0, startTY: 0, moved: false };
+    pinnedRef.current = node.id;
+  };
+
+  const handleBgDown = (e: React.MouseEvent) => {
+    inter.current = { mode: 'pan', nodeId: '', startCX: e.clientX, startCY: e.clientY,
+      startNX: 0, startNY: 0, startTX: vtRef.current.x, startTY: vtRef.current.y, moved: false };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    const it = inter.current;
+    if (it.mode === 'idle') return;
+    const dx = e.clientX - it.startCX; const dy = e.clientY - it.startCY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) it.moved = true;
+
+    if (it.mode === 'drag') {
+      const node = nodesRef.current.find(n => n.id === it.nodeId);
+      if (node) {
+        node.x = it.startNX + dx / vtRef.current.scale;
+        node.y = it.startNY + dy / vtRef.current.scale;
+        setTick(t => t+1);
+      }
+    } else if (it.mode === 'pan') {
+      updateVt({ ...vtRef.current, x: it.startTX + dx, y: it.startTY + dy });
+    }
+  };
+
+  const handleMouseUp = () => {
+    const it = inter.current;
+    if (!it.moved && it.mode === 'drag' && onNodeClick) {
+      const node = nodesRef.current.find(n => n.id === it.nodeId);
+      if (node) onNodeClick(node);
+    }
+    pinnedRef.current = null;
+    inter.current.mode = 'idle';
+  };
 
   const nodes = nodesRef.current;
   const edges = edgesRef.current;
   const nodeMap = Object.fromEntries(nodes.map(n => [n.id, n]));
   void tick;
 
+  const cursor = inter.current.mode === 'pan' ? 'cursor-grabbing'
+    : inter.current.mode === 'drag' ? 'cursor-grabbing' : 'cursor-grab';
+
   return (
-    <svg ref={svgRef} width={dims.w} height={dims.h} className="select-none">
-      {edges.map((e, i) => {
-        const a = nodeMap[e.from]; const b = nodeMap[e.to];
-        if (!a || !b) return null;
-        return <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y}
-          stroke="#cbd5e1" strokeWidth={1.5} strokeOpacity={0.7} />;
-      })}
-      {nodes.map(n => (
-        <g key={n.id}>
-          <circle cx={n.x} cy={n.y} r={n.r} fill={n.color}
-            fillOpacity={n.type === 'person' ? 0.45 : 0.92}
-            stroke={n.type === 'center' ? '#fff' : n.color}
-            strokeWidth={n.type === 'center' ? 3 : 0} />
-          {n.type !== 'person' && (
-            <text x={n.x} y={n.y} textAnchor="middle" dominantBaseline="middle"
-              fill="white" fontSize={n.type === 'center' ? 9 : n.type === 'category' ? 8 : 7}
-              fontWeight={n.type === 'center' ? '700' : '500'}
-              style={{ pointerEvents: 'none' }}>
-              {n.label.length > 12 ? n.label.slice(0, 11) + '…' : n.label}
-            </text>
-          )}
-        </g>
-      ))}
+    <svg ref={svgRef} width={dims.w} height={dims.h}
+      className={`select-none ${cursor}`}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}>
+      <g transform={`translate(${vt.x},${vt.y}) scale(${vt.scale})`}>
+        {/* Background rect captures pan events */}
+        <rect x={-dims.w*2} y={-dims.h*2} width={dims.w*5} height={dims.h*5}
+          fill="transparent" onMouseDown={handleBgDown} />
+        {/* Edges */}
+        {edges.map((e, i) => {
+          const a = nodeMap[e.from]; const b = nodeMap[e.to]; if (!a || !b) return null;
+          return <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+            stroke="#cbd5e1" strokeWidth={1.5} strokeOpacity={0.7} />;
+        })}
+        {/* Nodes */}
+        {nodes.map(n => (
+          <g key={n.id} style={{ cursor: n.type !== 'person' ? 'pointer' : 'grab' }}
+            onMouseDown={e => handleNodeDown(e, n)}>
+            <circle cx={n.x} cy={n.y} r={n.r + 6} fill="transparent" />
+            <circle cx={n.x} cy={n.y} r={n.r} fill={n.color}
+              fillOpacity={n.type === 'person' ? 0.45 : 0.92}
+              stroke={n.type === 'center' ? '#fff' : 'transparent'}
+              strokeWidth={n.type === 'center' ? 3 : 0} />
+            {n.type !== 'person' && (
+              <text x={n.x} y={n.y} textAnchor="middle" dominantBaseline="middle"
+                fill="white" fontSize={n.type === 'center' ? 9 : n.type === 'category' ? 8 : 7}
+                fontWeight={n.type === 'center' ? '700' : '500'}
+                style={{ pointerEvents: 'none' }}>
+                {n.label.length > 12 ? n.label.slice(0, 11) + '…' : n.label}
+              </text>
+            )}
+          </g>
+        ))}
+      </g>
     </svg>
   );
 }
@@ -363,6 +456,18 @@ export function SimbiocreacionDashboard() {
   const [masDetalles, setMasDetalles] = useState(false);
   const [form,      setForm]      = useState({ ...EMPTY_FORM });
   const [openMenu,  setOpenMenu]  = useState<string | null>(null);
+
+  // ── Idea detail (clicking a node / idea item) ─────────────────────────────
+  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
+
+  // helper: find hierarchy chips for a tag index
+  const getTagHierarchy = useCallback((tagIdx: number, simbio: Simbiocreacion) => {
+    const cats = simbio.ods.length > 0
+      ? simbio.ods.slice(0, 4).map((o, i) => ({ id: `cat-${i}`, label: `ODS ${o}` }))
+      : [{ id: 'cat-0', label: 'Categoría 1' }, { id: 'cat-1', label: 'Categoría 2' }, { id: 'cat-2', label: 'Categoría 3' }];
+    const cat = cats[Math.floor(tagIdx / 2)] ?? cats[0];
+    return { nivel1: simbio.nombre, nivel2: cat.label };
+  }, []);
 
   // ── Panel state (detail view floating UI) ─────────────────────────────────
   const [activePanel,        setActivePanel]        = useState<ActivePanel>(null);
@@ -521,7 +626,7 @@ export function SimbiocreacionDashboard() {
     });
   }, [explora, exploraFilter]);
 
-  const goLista = () => { setSubView('lista'); setSelected(null); setActivePanel(null); };
+  const goLista = () => { setSubView('lista'); setSelected(null); setActivePanel(null); setSelectedNode(null); };
 
   const closePanel = () => {
     setActivePanel(null);
@@ -704,7 +809,118 @@ export function SimbiocreacionDashboard() {
                   physicsForce={physicsForce}
                   physicsDistance={physicsDistance}
                   physicsOrder={physicsOrder}
+                  onNodeClick={node => {
+                    if (node.type !== 'person') setSelectedNode(node);
+                  }}
                 />
+
+                {/* ══════════════════════════════════════════════════════════ */}
+                {/* IDEA DETAIL PANEL (click on node)                          */}
+                {/* ══════════════════════════════════════════════════════════ */}
+                {selectedNode && (
+                  <div className="absolute right-4 top-16 w-72 bg-white rounded-2xl shadow-2xl z-20 overflow-hidden border border-gray-100 flex flex-col max-h-[calc(100%-5rem)]">
+                    {/* Header */}
+                    <div className="bg-pink-500 px-4 py-3 flex-shrink-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-white text-xs font-semibold leading-tight truncate">
+                          {selectedNode.type === 'center' ? 'Simbiocreación'
+                            : selectedNode.type === 'category' ? 'Categoría'
+                            : `Idea de ${selected?.nombre ?? ''}`}
+                        </p>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <button onClick={() => setSelectedNode(null)}
+                            className="text-white/80 hover:text-white transition-colors">
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Body */}
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                      {/* Title */}
+                      <h3 className="text-base font-bold text-gray-900 break-words">
+                        {selectedNode.label}
+                      </h3>
+
+                      {/* Description (from simbio if center node) */}
+                      {selectedNode.type === 'center' && selected?.descripcion && (
+                        <p className="text-sm text-gray-500 leading-relaxed">
+                          {selected.descripcion}
+                        </p>
+                      )}
+
+                      {/* Node type badge */}
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="px-2 py-0.5 rounded-full text-xs font-medium text-white"
+                          style={{ backgroundColor: selectedNode.color }}>
+                          {selectedNode.type === 'center' ? 'Centro' : selectedNode.type === 'category' ? 'Categoría' : 'Grupo'}
+                        </span>
+                        {selectedNode.type !== 'center' && selected && (
+                          <>
+                            <span className="text-gray-300 text-xs">&lt;</span>
+                            <span className="px-2 py-0.5 rounded-full border border-gray-300 text-xs text-gray-600">
+                              Nivel 1: {selected.nombre.slice(0, 14)}
+                            </span>
+                            <span className="text-gray-300 text-xs">&gt;</span>
+                          </>
+                        )}
+                      </div>
+
+                      {/* ODS chips if category */}
+                      {selectedNode.type === 'category' && selected && selected.ods.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">ODS Relacionados</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {selected.ods.map(o => {
+                              const ods = ODS_LIST.find(l => l.id === o);
+                              return (
+                                <span key={o} className="px-2 py-0.5 rounded-lg text-white text-xs font-medium"
+                                  style={{ backgroundColor: ods?.color ?? '#94a3b8' }}>ODS {o}</span>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* External links */}
+                      {selectedNode.type === 'center' && selected?.extraUrls && selected.extraUrls.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Enlaces externos</p>
+                          <ul className="space-y-1">
+                            {selected.extraUrls.map((url, i) => (
+                              <li key={i} className="text-xs text-teal-600 flex items-center gap-1">
+                                <span className="text-gray-400">•</span>
+                                <a href={url.startsWith('http') ? url : `https://${url}`}
+                                  target="_blank" rel="noopener noreferrer"
+                                  className="truncate hover:underline">{url}</a>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Comments section */}
+                      <div>
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                          0 comentarios
+                        </p>
+                        <div className="flex items-start gap-2">
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-400 to-teal-700 flex items-center justify-center flex-shrink-0">
+                            <span className="text-white text-xs font-bold">
+                              {(selected?.nombre ?? 'U')[0].toUpperCase()}
+                            </span>
+                          </div>
+                          <textarea
+                            placeholder="Escribe tu comentario..."
+                            rows={2}
+                            className="flex-1 text-xs border-0 border-b border-gray-200 bg-transparent resize-none focus:outline-none focus:border-teal-400 placeholder-gray-400 text-gray-700"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* ── 5 Floating action buttons ── */}
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-10">
@@ -873,26 +1089,48 @@ export function SimbiocreacionDashboard() {
                           </div>
                         ) : (
                           <div className="divide-y divide-gray-50">
-                            {selected.tags.map((tag, i) => (
-                              <div key={i} className="flex items-center justify-between py-3 group">
-                                <div className="flex items-center gap-2 min-w-0">
-                                  <div className="w-7 h-7 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0">
-                                    <Lightbulb className="w-3.5 h-3.5 text-pink-500" />
+                            {selected.tags.map((tag, i) => {
+                              const hier = getTagHierarchy(i, selected);
+                              const grpIdx = i;
+                              const fakeNode: GraphNode = {
+                                id: `grp-${Math.floor(i/2)}-${i%2}`,
+                                label: `G${grpIdx+1}-${tag.slice(0,8)}`,
+                                type: 'group', x: 0, y: 0, vx: 0, vy: 0, r: 22, color: '#ec4899',
+                              };
+                              return (
+                                <div key={i} className="py-3 space-y-2">
+                                  <div className="flex items-center gap-2">
+                                    {/* Idea name button */}
+                                    <button
+                                      onClick={() => { setSelectedNode(fakeNode); setActivePanel(null); }}
+                                      className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-600 text-white rounded-lg text-xs font-semibold hover:bg-teal-700 transition-colors min-w-0 max-w-[140px] truncate">
+                                      <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                                      <span className="truncate">{tag || '(vacío)'}</span>
+                                    </button>
+                                    {/* Hierarchy chips */}
+                                    <div className="flex items-center gap-1 flex-wrap">
+                                      <span className="text-gray-300 text-xs">&lt;</span>
+                                      <span className="px-1.5 py-0.5 border border-gray-300 rounded-full text-xs text-gray-500 whitespace-nowrap">
+                                        Nivel 1: {hier.nivel1.slice(0, 10)}
+                                      </span>
+                                      <span className="text-gray-300 text-xs">&gt;</span>
+                                      <span className="text-gray-300 text-xs">&lt;</span>
+                                      <span className="px-1.5 py-0.5 border border-gray-300 rounded-full text-xs text-gray-500 whitespace-nowrap">
+                                        Nivel 2: {hier.nivel2.slice(0, 10)}
+                                      </span>
+                                      <span className="text-gray-300 text-xs">&gt;</span>
+                                    </div>
                                   </div>
-                                  <span className="text-sm text-gray-800 truncate">{tag}</span>
+                                  {/* Action icons row */}
+                                  <div className="flex items-center gap-2 pl-1">
+                                    <button title="Añadir participante"
+                                      className="text-teal-500 hover:text-teal-700 transition-colors">
+                                      <Users className="w-4 h-4" />
+                                    </button>
+                                  </div>
                                 </div>
-                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                                  <button title="Enlace externo"
-                                    className="p-1 text-gray-400 hover:text-teal-600 transition-colors">
-                                    <ExternalLink className="w-3.5 h-3.5" />
-                                  </button>
-                                  <button title="Añadir participante"
-                                    className="p-1 text-gray-400 hover:text-teal-600 transition-colors">
-                                    <Users className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         )}
                       </div>
