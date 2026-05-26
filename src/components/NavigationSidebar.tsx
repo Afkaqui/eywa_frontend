@@ -15,7 +15,8 @@ import {
   Shield,
   Users,
   Database,
-  GraduationCap
+  GraduationCap,
+  Building2
 } from 'lucide-react';
 import type { UserRole } from '@/lib/types/database';
 import { ROLE_LABELS, ROLE_COLORS } from '@/lib/constants/roles';
@@ -38,6 +39,7 @@ export function NavigationSidebar({ currentView, userRole, userName, userEmail, 
     { id: 'hero', icon: LayoutDashboard, label: 'Panel Principal' },
     { id: 'diagnostic', icon: Stethoscope, label: 'Diagnóstico' },
     { id: 'validator', icon: CheckCircle, label: 'Validador de Proyectos' },
+    { id: 'organization', icon: Building2, label: 'Mi Organización' },
     { id: 'portfolio', icon: BarChart3, label: 'Portfolio' },
     { id: 'edutech', icon: GraduationCap, label: 'Academia' },
   ];

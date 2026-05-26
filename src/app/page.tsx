@@ -17,11 +17,13 @@ import { SuperAdminDashboard } from '@/components/SuperAdminDashboard';
 import { AdminDashboard } from '@/components/AdminDashboard';
 import { GestorDashboard } from '@/components/GestorDashboard';
 import { EdutechDashboard } from '@/components/EdutechDashboard';
+import { OrganizationProfile } from '@/components/OrganizationProfile';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import type { DiagnosticResult } from '@/lib/types/database';
 
 type ViewType =
   | 'hero' | 'diagnostic' | 'portfolio' | 'mobile' | 'validator' | 'edutech'
+  | 'organization'
   | 'notifications' | 'settings'
   | 'superadmin' | 'admin' | 'gestor';
 
@@ -77,6 +79,7 @@ export default function Page() {
         {currentView === 'hero' && <HeroDashboard diagnosticResult={diagnosticResult} onStartDiagnostic={() => setCurrentView('diagnostic')} />}
         {currentView === 'diagnostic' && <DiagnosticInterface onScoreComplete={(result) => { handleDiagnosticComplete(result); setCurrentView('hero'); }} />}
         {currentView === 'validator' && <ValidadorProyectos />}
+        {currentView === 'organization' && <OrganizationProfile />}
         {currentView === 'portfolio' && <InvestorPortfolio />}
         {currentView === 'mobile' && <MobileApp />}
         {currentView === 'edutech' && <EdutechDashboard />}
