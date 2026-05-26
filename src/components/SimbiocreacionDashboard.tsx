@@ -3,9 +3,10 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   Network, Plus, ChevronDown, ChevronUp, Calendar, Globe,
-  Tag, Lock, Unlock, MapPin, Clock, ExternalLink, Leaf, Trash2,
-  Pencil, Loader2, Copy, Check, Info, MoreVertical, Users,
-  BarChart2, Trophy, Search, ArrowLeft, Share2, X
+  Tag, Lock, MapPin, Clock, ExternalLink, Leaf, Trash2,
+  Pencil, Loader2, Copy, Check, MoreVertical, Users,
+  BarChart2, Trophy, Search, ArrowLeft, X,
+  Lightbulb, Settings, SlidersHorizontal,
 } from 'lucide-react';
 import { SimbiocreacionRepository } from '@/lib/repositories/simbiocreacion-repository';
 import type { Simbiocreacion } from '@/lib/types/database';
@@ -13,9 +14,10 @@ import { useAuth } from '@/contexts/AuthContext';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type MainTab = 'mis-simbios' | 'explora' | 'ranking';
-type SubView = 'lista' | 'crear' | 'editar' | 'detalle';
+type MainTab      = 'mis-simbios' | 'explora' | 'ranking';
+type SubView      = 'lista' | 'crear' | 'editar' | 'detalle';
 type ExploraFilter = 'todas' | 'proximas' | 'pasadas';
+type ActivePanel  = null | 'nueva-idea' | 'mis-ideas' | 'busquedas' | 'opciones' | 'stats';
 
 interface PublicSimbio extends Simbiocreacion {
   user?: { id: string; fullName: string | null; company: string | null };
@@ -74,11 +76,9 @@ function buildGraph(item: Simbiocreacion, width: number, height: number) {
   const nodes: GraphNode[] = [];
   const edges: GraphEdge[] = [];
 
-  // Center
   nodes.push({ id: 'root', label: item.nombre.toUpperCase(), type: 'center',
     x: cx, y: cy, vx: 0, vy: 0, r: 52, color: '#0d9488' });
 
-  // Categories (ODS selected or fallback)
   const cats = item.ods.length > 0
     ? item.ods.slice(0, 4).map((o, i) => ({
         id: `cat-${i}`, label: `ODS ${o}`,
@@ -99,7 +99,6 @@ function buildGraph(item: Simbiocreacion, width: number, height: number) {
       vx: 0, vy: 0, r: 30, color: cat.color });
     edges.push({ from: 'root', to: cat.id });
 
-    // 2 groups per category
     const groupNames = item.tags.slice(i * 2, i * 2 + 2);
     const gCount = groupNames.length > 0 ? groupNames.length : 2;
     for (let g = 0; g < gCount; g++) {
@@ -112,7 +111,6 @@ function buildGraph(item: Simbiocreacion, width: number, height: number) {
         vx: 0, vy: 0, r: 22, color: '#ec4899' });
       edges.push({ from: cat.id, to: gId });
 
-      // 2 persons per group
       for (let p = 0; p < 2; p++) {
         const pId = `prs-${i}-${g}-${p}`;
         const pAngle = gAngle + (p === 0 ? -0.45 : 0.45);
@@ -128,13 +126,32 @@ function buildGraph(item: Simbiocreacion, width: number, height: number) {
   return { nodes, edges };
 }
 
-function NetworkGraph({ item }: { item: Simbiocreacion }) {
+function NetworkGraph({
+  item,
+  physicsForce    = 0.04,
+  physicsDistance = 40,
+  physicsOrder    = 0.003,
+}: {
+  item: Simbiocreacion;
+  physicsForce?: number;
+  physicsDistance?: number;
+  physicsOrder?: number;
+}) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [dims, setDims] = useState({ w: 800, h: 480 });
   const animRef = useRef<number>(0);
   const nodesRef = useRef<GraphNode[]>([]);
   const edgesRef = useRef<GraphEdge[]>([]);
   const [tick, setTick] = useState(0);
+
+  // Physics refs (avoid re-starting animation on every slider change)
+  const forceRef    = useRef(physicsForce);
+  const distRef     = useRef(physicsDistance);
+  const orderRef    = useRef(physicsOrder);
+
+  useEffect(() => { forceRef.current = physicsForce; },    [physicsForce]);
+  useEffect(() => { distRef.current  = physicsDistance; }, [physicsDistance]);
+  useEffect(() => { orderRef.current = physicsOrder; },    [physicsOrder]);
 
   useEffect(() => {
     const el = svgRef.current?.parentElement;
@@ -154,7 +171,6 @@ function NetworkGraph({ item }: { item: Simbiocreacion }) {
     edgesRef.current = edges;
   }, [item, dims]);
 
-  // Simple force simulation
   useEffect(() => {
     const cx = dims.w / 2; const cy = dims.h / 2;
     let frame = 0;
@@ -164,7 +180,6 @@ function NetworkGraph({ item }: { item: Simbiocreacion }) {
       const edges = edgesRef.current;
       if (!nodes.length) { animRef.current = requestAnimationFrame(step); return; }
 
-      // Repulsion between nodes
       for (let i = 0; i < nodes.length; i++) {
         for (let j = i + 1; j < nodes.length; j++) {
           const dx = nodes[j].x - nodes[i].x;
@@ -178,23 +193,23 @@ function NetworkGraph({ item }: { item: Simbiocreacion }) {
           }
         }
       }
-      // Spring attraction along edges
+
       const nodeMap = Object.fromEntries(nodes.map(n => [n.id, n]));
       for (const e of edges) {
         const a = nodeMap[e.from]; const b = nodeMap[e.to];
         if (!a || !b) continue;
         const dx = b.x - a.x; const dy = b.y - a.y;
         const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-        const targetDist = a.r + b.r + 40;
-        const f = (dist - targetDist) / dist * 0.04;
+        const targetDist = a.r + b.r + distRef.current;
+        const f = (dist - targetDist) / dist * forceRef.current;
         a.vx += dx * f; a.vy += dy * f;
         b.vx -= dx * f; b.vy -= dy * f;
       }
-      // Center gravity + damping + boundary
+
       for (const n of nodes) {
         if (n.type === 'center') { n.x = cx; n.y = cy; n.vx = 0; n.vy = 0; continue; }
-        n.vx += (cx - n.x) * 0.003;
-        n.vy += (cy - n.y) * 0.003;
+        n.vx += (cx - n.x) * orderRef.current;
+        n.vy += (cy - n.y) * orderRef.current;
         n.vx *= 0.85; n.vy *= 0.85;
         n.x += n.vx; n.y += n.vy;
         n.x = Math.max(n.r + 4, Math.min(dims.w - n.r - 4, n.x));
@@ -212,18 +227,16 @@ function NetworkGraph({ item }: { item: Simbiocreacion }) {
   const nodes = nodesRef.current;
   const edges = edgesRef.current;
   const nodeMap = Object.fromEntries(nodes.map(n => [n.id, n]));
-  void tick; // trigger re-render
+  void tick;
 
   return (
     <svg ref={svgRef} width={dims.w} height={dims.h} className="select-none">
-      {/* Edges */}
       {edges.map((e, i) => {
         const a = nodeMap[e.from]; const b = nodeMap[e.to];
         if (!a || !b) return null;
         return <line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y}
           stroke="#cbd5e1" strokeWidth={1.5} strokeOpacity={0.7} />;
       })}
-      {/* Nodes */}
       {nodes.map(n => (
         <g key={n.id}>
           <circle cx={n.x} cy={n.y} r={n.r} fill={n.color}
@@ -294,12 +307,8 @@ function ExploraCard({ item }: { item: PublicSimbio }) {
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-teal-200 transition-all cursor-pointer group">
-      {hasDate && (
-        <div className="text-xs text-gray-400 uppercase tracking-wide mb-2">{dateLabel}</div>
-      )}
-      <h3 className="font-bold text-gray-900 text-sm mb-3 group-hover:text-teal-700 transition-colors line-clamp-2">
-        {item.nombre}
-      </h3>
+      {hasDate && <div className="text-xs text-gray-400 uppercase tracking-wide mb-2">{dateLabel}</div>}
+      <h3 className="font-bold text-gray-900 text-sm mb-3 group-hover:text-teal-700 transition-colors line-clamp-2">{item.nombre}</h3>
       <div className="flex items-center gap-1 mb-3">
         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-teal-700 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
           {initials}
@@ -311,15 +320,28 @@ function ExploraCard({ item }: { item: PublicSimbio }) {
           </div>
         ))}
         {item.ods.length > 3 && (
-          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 text-xs">
-            +{item.ods.length - 3}
-          </div>
+          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 text-xs">+{item.ods.length - 3}</div>
         )}
       </div>
       <div className="flex items-center gap-1 text-xs text-gray-400">
-        <Clock className="w-3 h-3" />
-        {timeAgo}
+        <Clock className="w-3 h-3" />{timeAgo}
       </div>
+    </div>
+  );
+}
+
+// ── Slider helper ─────────────────────────────────────────────────────────────
+
+function PhysicsSlider({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-gray-700 font-medium">{label}</span>
+        <span className="text-gray-400 text-xs">{value}</span>
+      </div>
+      <input type="range" min={1} max={100} value={value}
+        onChange={e => onChange(Number(e.target.value))}
+        className="w-full h-1.5 rounded-full accent-teal-600 cursor-pointer" />
     </div>
   );
 }
@@ -330,25 +352,36 @@ export function SimbiocreacionDashboard() {
   const { user } = useAuth();
   const simbiRepo = useMemo(() => new SimbiocreacionRepository(), []);
 
-  // ── State ──────────────────────────────────────────────────────────────────
-  const [mainTab,  setMainTab]  = useState<MainTab>('mis-simbios');
-  const [subView,  setSubView]  = useState<SubView>('lista');
-  const [items,    setItems]    = useState<Simbiocreacion[]>([]);
-  const [selected, setSelected] = useState<Simbiocreacion | null>(null);
-  const [loading,  setLoading]  = useState(true);
-  const [saving,   setSaving]   = useState(false);
+  // ── Core state ─────────────────────────────────────────────────────────────
+  const [mainTab,   setMainTab]   = useState<MainTab>('mis-simbios');
+  const [subView,   setSubView]   = useState<SubView>('lista');
+  const [items,     setItems]     = useState<Simbiocreacion[]>([]);
+  const [selected,  setSelected]  = useState<Simbiocreacion | null>(null);
+  const [loading,   setLoading]   = useState(true);
+  const [saving,    setSaving]    = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [masDetalles, setMasDetalles] = useState(false);
-  const [form, setForm] = useState({ ...EMPTY_FORM });
-  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [form,      setForm]      = useState({ ...EMPTY_FORM });
+  const [openMenu,  setOpenMenu]  = useState<string | null>(null);
 
-  // Explora
-  const [explora, setExplora]       = useState<PublicSimbio[]>([]);
-  const [exploraFilter, setExploraFilter] = useState<ExploraFilter>('todas');
+  // ── Panel state (detail view floating UI) ─────────────────────────────────
+  const [activePanel,        setActivePanel]        = useState<ActivePanel>(null);
+  const [busquedasTab,       setBusquedasTab]        = useState<'grupos' | 'participantes'>('grupos');
+  const [nuevaIdeaConfirmed, setNuevaIdeaConfirmed] = useState(false);
+  const [nuevaIdeaName,      setNuevaIdeaName]      = useState('');
+  const [addingIdea,         setAddingIdea]         = useState(false);
+  // Physics sliders (0–100)
+  const [sliderForce,    setSliderForce]    = useState(50);
+  const [sliderDistance, setSliderDistance] = useState(50);
+  const [sliderOrder,    setSliderOrder]    = useState(50);
+
+  // ── Explora ────────────────────────────────────────────────────────────────
+  const [explora,        setExplora]        = useState<PublicSimbio[]>([]);
+  const [exploraFilter,  setExploraFilter]  = useState<ExploraFilter>('todas');
   const [exploraLoading, setExploraLoading] = useState(false);
 
-  // Ranking
-  const [ranking, setRanking]       = useState<RankingEntry[]>([]);
+  // ── Ranking ────────────────────────────────────────────────────────────────
+  const [ranking,        setRanking]        = useState<RankingEntry[]>([]);
   const [rankingLoading, setRankingLoading] = useState(false);
 
   // ── Load own simbiocreaciones ──────────────────────────────────────────────
@@ -356,7 +389,6 @@ export function SimbiocreacionDashboard() {
     try { setItems(await simbiRepo.getAll()); } catch { /* */ }
     finally { setLoading(false); }
   }, [simbiRepo]);
-
   useEffect(() => { loadItems(); }, [loadItems]);
 
   // ── Load Explora ───────────────────────────────────────────────────────────
@@ -379,19 +411,14 @@ export function SimbiocreacionDashboard() {
       .finally(() => setRankingLoading(false));
   }, [mainTab]);
 
+  // ── Form helpers ───────────────────────────────────────────────────────────
   const set = (key: keyof typeof form, value: unknown) =>
     setForm(prev => ({ ...prev, [key]: value }));
-
   const toggleOds = (id: number) =>
-    setForm(prev => ({
-      ...prev,
-      ods: prev.ods.includes(id) ? prev.ods.filter(o => o !== id) : [...prev.ods, id],
-    }));
-
+    setForm(prev => ({ ...prev, ods: prev.ods.includes(id) ? prev.ods.filter(o => o !== id) : [...prev.ods, id] }));
   const parseTags = (s: string) => s.split(',').map(t => t.trim()).filter(Boolean);
 
   const openCrear = () => { setForm({ ...EMPTY_FORM }); setMasDetalles(false); setEditingId(null); setSubView('crear'); };
-
   const openEditar = (item: Simbiocreacion) => {
     setForm({
       nombre: item.nombre, lugar: item.lugar ?? '', fecha: item.fecha ?? '',
@@ -402,8 +429,10 @@ export function SimbiocreacionDashboard() {
     });
     setMasDetalles(false); setEditingId(item.id); setSubView('editar'); setOpenMenu(null);
   };
-
-  const openDetalle = (item: Simbiocreacion) => { setSelected(item); setSubView('detalle'); setOpenMenu(null); };
+  const openDetalle = (item: Simbiocreacion) => {
+    setSelected(item); setSubView('detalle');
+    setOpenMenu(null); setActivePanel(null);
+  };
 
   const handleGuardar = async () => {
     if (!form.nombre.trim()) return;
@@ -427,12 +456,61 @@ export function SimbiocreacionDashboard() {
     setOpenMenu(null);
   };
 
-  // ── Stats ──────────────────────────────────────────────────────────────────
-  const totalIdeas = items.reduce((s, i) => s + i.tags.length, 0);
-  const totalOds = new Set(items.flatMap(i => i.ods)).size;
-  const puntaje = items.length * 10 + totalIdeas * 5;
+  // ── Add idea (Nueva idea button) ───────────────────────────────────────────
+  const handleAddIdea = async () => {
+    if (!nuevaIdeaName.trim() || !selected) return;
+    setAddingIdea(true);
+    const newTags = [...selected.tags, nuevaIdeaName.trim()];
+    try {
+      await simbiRepo.update(selected.id, { tags: newTags });
+      const updated = { ...selected, tags: newTags };
+      setSelected(updated);
+      setItems(prev => prev.map(i => i.id === selected.id ? updated : i));
+      setNuevaIdeaName('');
+      setNuevaIdeaConfirmed(false);
+      setActivePanel(null);
+    } catch { /* */ } finally { setAddingIdea(false); }
+  };
 
-  // ── Explora filter ─────────────────────────────────────────────────────────
+  // ── Derived: groups list for Búsquedas panel ───────────────────────────────
+  const graphGrupos = useMemo(() => {
+    if (!selected) return [];
+    type GrupoItem = { id: string; label: string; nodos: number };
+    const result: GrupoItem[] = [];
+
+    const cats = selected.ods.length > 0
+      ? selected.ods.slice(0, 4).map((o, i) => ({ id: `cat-${i}`, label: `ODS ${o}` }))
+      : [{ id: 'cat-0', label: 'Categoría 1' }, { id: 'cat-1', label: 'Categoría 2' }, { id: 'cat-2', label: 'Categoría 3' }];
+
+    result.push({ id: 'root', label: selected.nombre, nodos: cats.length });
+
+    cats.forEach((cat, i) => {
+      const groupTags = selected.tags.slice(i * 2, i * 2 + 2);
+      const gCount = Math.max(groupTags.length, 2);
+      result.push({ id: cat.id, label: cat.label, nodos: gCount });
+      for (let g = 0; g < gCount; g++) {
+        const gLabel = groupTags[g] ? `G${i * 2 + g + 1}-${groupTags[g]}` : `G${i * 2 + g + 1}`;
+        result.push({ id: `grp-${i}-${g}`, label: gLabel, nodos: 2 });
+      }
+    });
+    return result;
+  }, [selected]);
+
+  // ── Physics values mapped from 0–100 sliders ──────────────────────────────
+  const physicsForce    = 0.01 + (sliderForce    / 100) * 0.09;   // 0.01–0.10
+  const physicsDistance = 10  + (sliderDistance  / 100) * 100;    // 10–110
+  const physicsOrder    = 0.001 + (sliderOrder   / 100) * 0.015;  // 0.001–0.016
+
+  // ── Stats derived from selected ────────────────────────────────────────────
+  const statsParticipantes = selected ? selected.tags.length * 2 : 0;
+  const statsIdeas         = selected ? selected.tags.length : 0;
+  const statsOds           = selected ? selected.ods.length : 0;
+
+  // ── Other derived ──────────────────────────────────────────────────────────
+  const totalIdeas = items.reduce((s, i) => s + i.tags.length, 0);
+  const totalOds   = new Set(items.flatMap(i => i.ods)).size;
+  const puntaje    = items.length * 10 + totalIdeas * 5;
+
   const filteredExplora = useMemo(() => {
     const now = Date.now();
     return explora.filter(e => {
@@ -443,8 +521,13 @@ export function SimbiocreacionDashboard() {
     });
   }, [explora, exploraFilter]);
 
-  // ── Back to lista ──────────────────────────────────────────────────────────
-  const goLista = () => { setSubView('lista'); setSelected(null); };
+  const goLista = () => { setSubView('lista'); setSelected(null); setActivePanel(null); };
+
+  const closePanel = () => {
+    setActivePanel(null);
+    setNuevaIdeaConfirmed(false);
+    setNuevaIdeaName('');
+  };
 
   // ─────────────────────────────────────────────────────────────────────────
   // RENDER
@@ -457,16 +540,13 @@ export function SimbiocreacionDashboard() {
       <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center gap-2 py-0">
 
-          {/* Back breadcrumb (only in sub-views) */}
           {subView !== 'lista' && mainTab === 'mis-simbios' && (
             <button onClick={goLista}
               className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 pr-4 border-r border-gray-200 mr-2 py-4 transition-colors">
-              <ArrowLeft className="w-4 h-4" />
-              Mis Simbios
+              <ArrowLeft className="w-4 h-4" />Mis Simbios
             </button>
           )}
 
-          {/* Tabs */}
           {(subView === 'lista' || mainTab !== 'mis-simbios') && (
             <div className="flex gap-0 flex-1">
               {([
@@ -477,18 +557,14 @@ export function SimbiocreacionDashboard() {
                 <button key={id}
                   onClick={() => { setMainTab(id); if (id === 'mis-simbios') setSubView('lista'); }}
                   className={`flex items-center gap-2 px-5 py-4 text-sm font-medium border-b-2 transition-all ${
-                    mainTab === id
-                      ? 'border-teal-600 text-teal-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-900'
+                    mainTab === id ? 'border-teal-600 text-teal-600' : 'border-transparent text-gray-500 hover:text-gray-900'
                   }`}>
-                  <Icon className="w-4 h-4" />
-                  {label}
+                  <Icon className="w-4 h-4" />{label}
                 </button>
               ))}
             </div>
           )}
 
-          {/* Right: sub-view title */}
           {subView !== 'lista' && mainTab === 'mis-simbios' && (
             <div className="flex-1 flex items-center py-4">
               <span className="font-semibold text-gray-900 text-sm">
@@ -519,16 +595,13 @@ export function SimbiocreacionDashboard() {
           {/* ── LISTA ── */}
           {subView === 'lista' && (
             <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-
-              {/* Stats row */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-                <StatCard label="Puntaje"                  value={puntaje}        accent="bg-gradient-to-br from-pink-500 to-rose-600" />
-                <StatCard label="Total Simbiocreaciones"   value={items.length}   accent="bg-gradient-to-br from-pink-400 to-pink-500" />
-                <StatCard label="Total Ideas / Tags"       value={totalIdeas}     accent="bg-gradient-to-br from-pink-300 to-pink-400" />
-                <StatCard label="ODS Relacionados"         value={totalOds}       accent="bg-gradient-to-br from-pink-200 to-pink-300" />
+                <StatCard label="Puntaje"                value={puntaje}      accent="bg-gradient-to-br from-pink-500 to-rose-600" />
+                <StatCard label="Total Simbiocreaciones" value={items.length} accent="bg-gradient-to-br from-pink-400 to-pink-500" />
+                <StatCard label="Total Ideas / Tags"     value={totalIdeas}   accent="bg-gradient-to-br from-pink-300 to-pink-400" />
+                <StatCard label="ODS Relacionados"       value={totalOds}     accent="bg-gradient-to-br from-pink-200 to-pink-300" />
               </div>
 
-              {/* Section header */}
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-gray-900">Mis Simbiocreaciones</h2>
                 <button onClick={openCrear}
@@ -537,11 +610,10 @@ export function SimbiocreacionDashboard() {
                 </button>
               </div>
 
-              {/* Table header */}
               {items.length > 0 && (
                 <div className="hidden md:grid grid-cols-[1fr_140px_160px_40px] gap-4 px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                   <span>Nombre</span>
-                  <span className="text-center">Participantes</span>
+                  <span className="text-center">Grupos</span>
                   <span className="text-center">Última modificación</span>
                   <span />
                 </div>
@@ -557,9 +629,7 @@ export function SimbiocreacionDashboard() {
                     <Network className="w-8 h-8 text-teal-300" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-700 mb-2">Sin simbiocreaciones aún</h3>
-                  <p className="text-sm text-gray-400 mb-6">
-                    Crea tu primera sesión de co-creación colaborativa.
-                  </p>
+                  <p className="text-sm text-gray-400 mb-6">Crea tu primera sesión de co-creación colaborativa.</p>
                   <button onClick={openCrear}
                     className="inline-flex items-center gap-2 px-6 py-3 bg-pink-500 text-white rounded-xl text-sm font-medium hover:bg-pink-600 transition-all">
                     <Plus className="w-4 h-4" /> Nueva simbiocreación
@@ -568,11 +638,8 @@ export function SimbiocreacionDashboard() {
               ) : (
                 <div className="space-y-2">
                   {items.map(item => (
-                    <div key={item.id}
-                      className="bg-white border border-gray-200 rounded-xl px-4 py-3 hover:shadow-sm hover:border-teal-200 transition-all">
+                    <div key={item.id} className="bg-white border border-gray-200 rounded-xl px-4 py-3 hover:shadow-sm hover:border-teal-200 transition-all">
                       <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_160px_40px] gap-2 items-center">
-
-                        {/* Name + badges + share */}
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
                             <button onClick={() => openDetalle(item)}
@@ -590,18 +657,10 @@ export function SimbiocreacionDashboard() {
                           </div>
                           <ShareRow id={item.id} />
                         </div>
-
-                        {/* Participants placeholder */}
-                        <div className="text-sm text-gray-500 text-center">
-                          {item.tags.length} grupos
-                        </div>
-
-                        {/* Date */}
+                        <div className="text-sm text-gray-500 text-center">{item.tags.length} grupos</div>
                         <div className="text-xs text-gray-400 text-center">
                           {new Date(item.updatedAt).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </div>
-
-                        {/* Actions menu */}
                         <div className="relative flex justify-end">
                           <button onClick={() => setOpenMenu(openMenu === item.id ? null : item.id)}
                             className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-all">
@@ -637,41 +696,328 @@ export function SimbiocreacionDashboard() {
           {/* ── DETALLE / RED ── */}
           {subView === 'detalle' && selected && (
             <div className="flex flex-col md:flex-row h-[calc(100vh-57px)]">
+
               {/* Network canvas */}
               <div className="flex-1 bg-[#f8f9fb] relative overflow-hidden">
-                <NetworkGraph item={selected} />
+                <NetworkGraph
+                  item={selected}
+                  physicsForce={physicsForce}
+                  physicsDistance={physicsDistance}
+                  physicsOrder={physicsOrder}
+                />
 
-                {/* Floating action buttons (left) */}
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col gap-3">
-                  {[
-                    { icon: Plus,     label: 'Nueva idea',   action: () => {} },
-                    { icon: Users,    label: 'Participantes', action: () => {} },
-                    { icon: Share2,   label: 'Compartir',    action: () => {} },
-                    { icon: BarChart2, label: 'Estadísticas', action: () => {} },
-                  ].map(({ icon: Icon, label, action }) => (
-                    <button key={label} title={label} onClick={action}
-                      className="w-10 h-10 rounded-full bg-pink-500 text-white flex items-center justify-center hover:bg-pink-600 transition-all shadow-md">
+                {/* ── 5 Floating action buttons ── */}
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-10">
+                  {([
+                    { icon: Plus,        label: 'Nueva idea',   panel: 'nueva-idea'  },
+                    { icon: Lightbulb,   label: 'Mis ideas',    panel: 'mis-ideas'   },
+                    { icon: Users,       label: 'Búsquedas',    panel: 'busquedas'   },
+                    { icon: Settings,    label: 'Opciones',     panel: 'opciones'    },
+                    { icon: BarChart2,   label: 'Stats',        panel: 'stats'       },
+                  ] as const).map(({ icon: Icon, label, panel }) => (
+                    <button key={panel} title={label}
+                      onClick={() => setActivePanel(activePanel === panel ? null : panel)}
+                      className={`w-11 h-11 rounded-full flex items-center justify-center shadow-md transition-all ${
+                        activePanel === panel
+                          ? 'bg-pink-600 text-white scale-110 ring-2 ring-pink-300'
+                          : 'bg-pink-500 text-white hover:bg-pink-600'
+                      }`}>
                       <Icon className="w-4 h-4" />
                     </button>
                   ))}
                 </div>
 
-                {/* Info overlay top-right */}
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl border border-gray-200 px-4 py-3 shadow-sm text-sm text-gray-700 space-y-1 max-w-[200px]">
+                {/* ── Info overlay top-right ── */}
+                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl border border-gray-200 px-4 py-3 shadow-sm text-sm text-gray-700 space-y-1 max-w-[200px] z-10">
                   <div className="flex items-center gap-2">
                     <Users className="w-4 h-4 text-teal-600" />
-                    <span className="font-medium">{selected.tags.length * 2 || 0} participantes</span>
+                    <span className="font-medium">{statsParticipantes} participantes</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Network className="w-4 h-4 text-pink-500" />
-                    <span className="font-medium">{selected.tags.length || 0} grupos</span>
+                    <span className="font-medium">{selected.tags.length} grupos</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Leaf className="w-4 h-4 text-emerald-500" />
                     <span className="font-medium">{selected.ods.length} ODS</span>
                   </div>
                 </div>
-              </div>
+
+                {/* ══════════════════════════════════════════════════════════ */}
+                {/* PANEL: Nueva idea (modal centrado)                         */}
+                {/* ══════════════════════════════════════════════════════════ */}
+                {activePanel === 'nueva-idea' && (
+                  <div className="absolute inset-0 flex items-center justify-center z-20">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-6 overflow-hidden">
+                      {!nuevaIdeaConfirmed ? (
+                        // Step 1: confirmación
+                        <div className="p-6">
+                          <div className="flex items-start justify-between mb-3">
+                            <h3 className="text-lg font-semibold text-gray-900">¿Agregar una nueva idea?</h3>
+                            <button onClick={closePanel} className="text-gray-400 hover:text-gray-600 flex-shrink-0 ml-2">
+                              <X className="w-5 h-5" />
+                            </button>
+                          </div>
+                          <p className="text-sm text-gray-500 mb-6">
+                            Se agregará una nueva idea (nodo) al grafo de la simbiocreación.
+                          </p>
+                          <div className="flex gap-3">
+                            <button onClick={closePanel}
+                              className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all">
+                              Cancelar
+                            </button>
+                            <button onClick={() => setNuevaIdeaConfirmed(true)}
+                              className="flex-1 px-4 py-2.5 text-sm font-medium bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-all">
+                              Confirmar
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        // Step 2: nombre de la idea
+                        <div className="p-6">
+                          <div className="flex items-start justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-gray-900">Nueva idea</h3>
+                            <button onClick={closePanel} className="text-gray-400 hover:text-gray-600 flex-shrink-0 ml-2">
+                              <X className="w-5 h-5" />
+                            </button>
+                          </div>
+                          <input
+                            autoFocus
+                            type="text"
+                            placeholder="Nombre de la nueva idea"
+                            value={nuevaIdeaName}
+                            onChange={e => setNuevaIdeaName(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') handleAddIdea(); }}
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400 mb-4"
+                          />
+                          <div className="flex gap-3">
+                            <button onClick={() => { setNuevaIdeaConfirmed(false); setNuevaIdeaName(''); }}
+                              className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all">
+                              Atrás
+                            </button>
+                            <button onClick={handleAddIdea}
+                              disabled={!nuevaIdeaName.trim() || addingIdea}
+                              className="flex-1 px-4 py-2.5 text-sm font-medium bg-pink-500 text-white rounded-xl hover:bg-pink-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2">
+                              {addingIdea ? <><Loader2 className="w-4 h-4 animate-spin" />Agregando…</> : 'Agregar'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* ══════════════════════════════════════════════════════════ */}
+                {/* PANEL: Opciones (modal centrado con sliders)               */}
+                {/* ══════════════════════════════════════════════════════════ */}
+                {activePanel === 'opciones' && (
+                  <div className="absolute inset-0 flex items-center justify-center z-20">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-6 p-6">
+                      <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-lg font-semibold text-gray-900">Opciones</h3>
+                        <button onClick={closePanel} className="text-gray-400 hover:text-gray-600">
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+                      <div className="space-y-6">
+                        <PhysicsSlider label="Fuerza"    value={sliderForce}    onChange={setSliderForce} />
+                        <PhysicsSlider label="Distancia" value={sliderDistance} onChange={setSliderDistance} />
+                        <PhysicsSlider label="Orden"     value={sliderOrder}    onChange={setSliderOrder} />
+                      </div>
+                      <button onClick={() => { setSliderForce(50); setSliderDistance(50); setSliderOrder(50); }}
+                        className="mt-6 w-full text-xs text-gray-400 hover:text-gray-600 transition-colors">
+                        Restablecer valores por defecto
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* ══════════════════════════════════════════════════════════ */}
+                {/* SIDE PANELS: Mis ideas / Búsquedas / Stats                 */}
+                {/* ══════════════════════════════════════════════════════════ */}
+                {(activePanel === 'mis-ideas' || activePanel === 'busquedas' || activePanel === 'stats') && (
+                  <div className="absolute left-0 top-0 bottom-0 w-80 bg-white shadow-2xl z-20 flex flex-col overflow-hidden border-r border-gray-100">
+
+                    {/* Panel header */}
+                    <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
+                      <div className="flex items-center gap-2">
+                        {activePanel === 'mis-ideas'  && <Lightbulb className="w-5 h-5 text-pink-500" />}
+                        {activePanel === 'busquedas'  && <Users     className="w-5 h-5 text-teal-600" />}
+                        {activePanel === 'stats'      && <BarChart2  className="w-5 h-5 text-teal-600" />}
+                        <h3 className="font-semibold text-gray-900 text-sm">
+                          {activePanel === 'mis-ideas' ? 'Mi(s) idea(s)'
+                            : activePanel === 'busquedas' ? 'Búsquedas'
+                            : 'Stats de Simbiocreación'}
+                        </h3>
+                      </div>
+                      <button onClick={closePanel} className="text-gray-400 hover:text-gray-600 transition-colors">
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    {/* ── MIS IDEAS ─────────────────────────────────────── */}
+                    {activePanel === 'mis-ideas' && (
+                      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                        {/* Nueva idea button */}
+                        <button
+                          onClick={() => { closePanel(); setTimeout(() => setActivePanel('nueva-idea'), 50); }}
+                          className="flex items-center gap-2 w-full px-4 py-2.5 bg-pink-500 text-white rounded-xl text-sm font-semibold hover:bg-pink-600 transition-all justify-center">
+                          <Plus className="w-4 h-4" /> Nueva idea
+                        </button>
+
+                        {selected.tags.length === 0 ? (
+                          <div className="text-center py-8">
+                            <Lightbulb className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+                            <p className="text-xs text-gray-400">(vacío)</p>
+                            <p className="text-xs text-gray-400 mt-1">Agrega tu primera idea</p>
+                          </div>
+                        ) : (
+                          <div className="divide-y divide-gray-50">
+                            {selected.tags.map((tag, i) => (
+                              <div key={i} className="flex items-center justify-between py-3 group">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <div className="w-7 h-7 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0">
+                                    <Lightbulb className="w-3.5 h-3.5 text-pink-500" />
+                                  </div>
+                                  <span className="text-sm text-gray-800 truncate">{tag}</span>
+                                </div>
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                                  <button title="Enlace externo"
+                                    className="p-1 text-gray-400 hover:text-teal-600 transition-colors">
+                                    <ExternalLink className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button title="Añadir participante"
+                                    className="p-1 text-gray-400 hover:text-teal-600 transition-colors">
+                                    <Users className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* ── BÚSQUEDAS ─────────────────────────────────────── */}
+                    {activePanel === 'busquedas' && (
+                      <>
+                        {/* Tabs */}
+                        <div className="flex gap-2 px-4 pt-3 pb-2 flex-shrink-0">
+                          <button onClick={() => setBusquedasTab('grupos')}
+                            className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
+                              busquedasTab === 'grupos'
+                                ? 'bg-pink-500 text-white'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}>
+                            Grupos
+                          </button>
+                          <button onClick={() => setBusquedasTab('participantes')}
+                            className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
+                              busquedasTab === 'participantes'
+                                ? 'bg-pink-500 text-white'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}>
+                            Participantes
+                          </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 overflow-y-auto px-4 pb-4">
+                          {busquedasTab === 'grupos' ? (
+                            <div className="divide-y divide-gray-50">
+                              {graphGrupos.map((g, i) => (
+                                <div key={g.id} className="flex items-center gap-3 py-3 hover:bg-gray-50 rounded-lg px-1 transition-colors cursor-pointer">
+                                  <span className="text-lg font-extrabold text-gray-300 w-6 text-center flex-shrink-0">{i + 1}</span>
+                                  <div className="min-w-0">
+                                    <div className="text-sm font-semibold text-teal-700 truncate">{g.label}</div>
+                                    <div className="text-xs text-gray-400">{g.nodos} nodo{g.nodos !== 1 ? 's' : ''}</div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            /* Participantes — placeholder (no data model yet) */
+                            <div className="text-center py-12">
+                              <Users className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+                              <p className="text-sm font-medium text-gray-500 mb-1">{statsParticipantes} participantes estimados</p>
+                              <p className="text-xs text-gray-400">La gestión individual de participantes estará disponible próximamente.</p>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+
+                    {/* ── STATS ─────────────────────────────────────────── */}
+                    {activePanel === 'stats' && (
+                      <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                        {/* Main stats */}
+                        <div className="bg-pink-50 border border-pink-100 rounded-2xl p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">Participantes</span>
+                            <span className="text-2xl font-extrabold text-pink-600">{statsParticipantes}</span>
+                          </div>
+                          <div className="h-px bg-pink-100" />
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">Ideas</span>
+                            <span className="text-2xl font-extrabold text-pink-600">{statsIdeas}</span>
+                          </div>
+                        </div>
+
+                        {/* Secondary stats */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-teal-50 border border-teal-100 rounded-xl p-3 text-center">
+                            <div className="text-xs text-teal-600 mb-1">ODS</div>
+                            <div className="text-xl font-bold text-teal-700">{statsOds}</div>
+                          </div>
+                          <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 text-center">
+                            <div className="text-xs text-gray-500 mb-1">Grupos</div>
+                            <div className="text-xl font-bold text-gray-700">{selected.tags.length}</div>
+                          </div>
+                        </div>
+
+                        {/* ODS breakdown */}
+                        {selected.ods.length > 0 && (
+                          <div>
+                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">ODS Activos</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {selected.ods.map(o => {
+                                const ods = ODS_LIST.find(l => l.id === o);
+                                return (
+                                  <span key={o} className="px-2 py-0.5 rounded-lg text-white text-xs font-semibold"
+                                    style={{ backgroundColor: ods?.color ?? '#94a3b8' }}>
+                                    {o}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Idea list */}
+                        {selected.tags.length > 0 && (
+                          <div>
+                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Ideas / Tags</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {selected.tags.map(t => (
+                                <span key={t} className="px-2.5 py-1 bg-white border border-gray-200 text-gray-700 rounded-lg text-xs">
+                                  {t}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Open in simbiocreacion.com */}
+                        <a href={`https://app.simbiocreacion.com/symbiocreation`}
+                          target="_blank" rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-pink-500 text-white text-sm font-semibold rounded-xl hover:bg-pink-600 transition-all mt-2">
+                          <ExternalLink className="w-4 h-4" /> Ver en Simbiocreación
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>{/* end network canvas */}
 
               {/* Right panel: details */}
               <div className="w-full md:w-80 bg-white border-l border-gray-200 overflow-y-auto p-5 space-y-5">
@@ -686,7 +1032,7 @@ export function SimbiocreacionDashboard() {
                   <div className="space-y-2 border-t border-gray-100 pt-4">
                     {selected.lugar && (
                       <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" /> {selected.lugar}
+                        <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />{selected.lugar}
                       </div>
                     )}
                     {selected.fecha && (
@@ -727,13 +1073,11 @@ export function SimbiocreacionDashboard() {
                   </div>
                 )}
 
-                {/* Share link */}
                 <div className="border-t border-gray-100 pt-4">
                   <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Compartir</div>
                   <ShareRow id={selected.id} />
                 </div>
 
-                {/* Edit button */}
                 <div className="border-t border-gray-100 pt-4">
                   <button onClick={() => openEditar(selected)}
                     className="flex items-center gap-2 w-full px-4 py-2.5 bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm font-medium rounded-xl transition-all">
@@ -749,7 +1093,6 @@ export function SimbiocreacionDashboard() {
             <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
               <div className="bg-white border border-pink-200 rounded-2xl p-6 md:p-8 mb-6">
 
-                {/* Nombre + Privado */}
                 <div className="flex items-end gap-4 mb-4">
                   <div className="flex-1">
                     <input type="text" placeholder="Nombre de la simbiocreación*"
@@ -883,7 +1226,6 @@ export function SimbiocreacionDashboard() {
             </div>
           </div>
 
-          {/* Filter */}
           <div className="flex gap-2 mb-7">
             {([['todas', 'Todas'], ['proximas', 'Próximas'], ['pasadas', 'Pasadas']] as const).map(([id, label]) => (
               <button key={id} onClick={() => setExploraFilter(id)}
