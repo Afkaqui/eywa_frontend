@@ -282,8 +282,8 @@ const NetworkGraph = forwardRef<GraphHandle, NetworkGraphProps>(function Network
 
       for (let i = 0; i < ns.length; i++) for (let j = i+1; j < ns.length; j++) {
         const dx = ns[j].x-ns[i].x; const dy = ns[j].y-ns[i].y;
-        const d = Math.sqrt(dx*dx+dy*dy)||1; const min = ns[i].r+ns[j].r+18;
-        if (d < min) { const f=(min-d)/d*0.12; ns[i].vx-=dx*f; ns[i].vy-=dy*f; ns[j].vx+=dx*f; ns[j].vy+=dy*f; }
+        const d = Math.sqrt(dx*dx+dy*dy)||1; const min = ns[i].r+ns[j].r+90;
+        if (d < min) { const f=(min-d)/d*0.22; ns[i].vx-=dx*f; ns[i].vy-=dy*f; ns[j].vx+=dx*f; ns[j].vy+=dy*f; }
       }
       const nm = Object.fromEntries(ns.map(n=>[n.id,n]));
       for (const e of es) {
@@ -517,9 +517,9 @@ export function SimbiocreacionDashboard() {
   const [nuevaIdeaConfirmed, setNuevaIdeaConfirmed] = useState(false);
   const [nuevaIdeaName,      setNuevaIdeaName]      = useState('');
   const [addingIdea,         setAddingIdea]         = useState(false);
-  const [sliderForce,        setSliderForce]        = useState(50);
-  const [sliderDistance,     setSliderDistance]     = useState(50);
-  const [sliderOrder,        setSliderOrder]        = useState(50);
+  const [sliderForce,        setSliderForce]        = useState(40);
+  const [sliderDistance,     setSliderDistance]     = useState(55);
+  const [sliderOrder,        setSliderOrder]        = useState(15);
 
   // ── Graph edit mode ────────────────────────────────────────────────────────
   const graphRef         = useRef<GraphHandle>(null);
