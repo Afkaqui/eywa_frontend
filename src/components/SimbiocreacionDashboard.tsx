@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Network, Plus, ChevronDown, ChevronUp, Calendar, Globe,
-  Tag, Lock, Unlock, MapPin, Clock, ExternalLink, Leaf, Trash2, Pencil
+  Tag, Lock, Unlock, MapPin, Clock, ExternalLink, Leaf, Trash2, Pencil, Loader2
 } from 'lucide-react';
+import { SimbiocreacionRepository } from '@/lib/repositories/simbiocreacion-repository';
+import type { Simbiocreacion } from '@/lib/types/database';
 
 // ODS list (Agenda 2030)
 const ODS_LIST = [
@@ -27,21 +29,6 @@ const ODS_LIST = [
   { id: 17, label: 'ODS 17 – Alianzas para lograr los objetivos' },
 ];
 
-interface Simbiocreacion {
-  id: string;
-  nombre: string;
-  lugar: string;
-  fecha: string;
-  descripcion: string;
-  privado: boolean;
-  link: string;
-  tags: string;
-  extraUrls: string;
-  ods: number[];
-  horaInicio: string;
-  createdAt: string;
-}
-
 const EMPTY_FORM = {
   nombre: '',
   lugar: '',
@@ -51,8 +38,8 @@ const EMPTY_FORM = {
   privado: false,
   establecerHora: false,
   link: '',
-  tags: '',
-  extraUrls: '',
+  tags: '',        // comma-separated string in UI
+  extraUrls: '',   // comma-separated string in UI
   ods: [] as number[],
 };
 
@@ -60,11 +47,23 @@ const inputClass =
   'w-full px-0 py-3 border-0 border-b border-gray-200 bg-transparent text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-emerald-500 transition-colors';
 
 export function SimbiocreacionDashboard() {
+  const simbiRepo = useMemo(() => new SimbiocreacionRepository(), []);
+
   const [vista, setVista] = useState<'lista' | 'crear' | 'editar'>('lista');
   const [items, setItems] = useState<Simbiocreacion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [masDetalles, setMasDetalles] = useState(false);
   const [form, setForm] = useState({ ...EMPTY_FORM });
+
+  // Load from API on mount
+  useEffect(() => {
+    simbiRepo.getAll()
+      .then(data => setItems(data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [simbiRepo]);
 
   const set = (key: keyof typeof form, value: unknown) =>
     setForm(prev => ({ ...prev, [key]: value }));
@@ -86,55 +85,67 @@ export function SimbiocreacionDashboard() {
 
   const openEditar = (item: Simbiocreacion) => {
     setForm({
-      nombre: item.nombre,
-      lugar: item.lugar,
-      fecha: item.fecha,
-      horaInicio: item.horaInicio,
-      descripcion: item.descripcion,
-      privado: item.privado,
+      nombre:       item.nombre,
+      lugar:        item.lugar ?? '',
+      fecha:        item.fecha ?? '',
+      horaInicio:   item.horaInicio ?? '',
+      descripcion:  item.descripcion ?? '',
+      privado:      item.privado,
       establecerHora: !!item.horaInicio,
-      link: item.link,
-      tags: item.tags,
-      extraUrls: item.extraUrls,
-      ods: item.ods,
+      link:         item.link ?? '',
+      tags:         item.tags.join(', '),
+      extraUrls:    item.extraUrls.join(', '),
+      ods:          item.ods,
     });
     setMasDetalles(false);
     setEditingId(item.id);
     setVista('editar');
   };
 
-  const handleGuardar = () => {
+  // Parse comma-separated strings to arrays
+  const parseTags = (s: string): string[] =>
+    s.split(',').map(t => t.trim()).filter(Boolean);
+
+  const handleGuardar = async () => {
     if (!form.nombre.trim()) return;
+    setSaving(true);
 
-    if (editingId) {
-      setItems(prev => prev.map(it =>
-        it.id === editingId
-          ? { ...it, ...form, horaInicio: form.establecerHora ? form.horaInicio : '', ods: form.ods }
-          : it
-      ));
-    } else {
-      const nueva: Simbiocreacion = {
-        id: crypto.randomUUID(),
-        nombre: form.nombre,
-        lugar: form.lugar,
-        fecha: form.fecha,
-        horaInicio: form.establecerHora ? form.horaInicio : '',
-        descripcion: form.descripcion,
-        privado: form.privado,
-        link: form.link,
-        tags: form.tags,
-        extraUrls: form.extraUrls,
-        ods: form.ods,
-        createdAt: new Date().toISOString(),
-      };
-      setItems(prev => [nueva, ...prev]);
+    const payload = {
+      nombre:      form.nombre,
+      privado:     form.privado,
+      lugar:       form.lugar || null,
+      fecha:       form.fecha || null,
+      horaInicio:  form.establecerHora ? (form.horaInicio || null) : null,
+      descripcion: form.descripcion || null,
+      link:        form.link || null,
+      tags:        parseTags(form.tags),
+      extraUrls:   parseTags(form.extraUrls),
+      ods:         form.ods,
+    };
+
+    try {
+      if (editingId) {
+        await simbiRepo.update(editingId, payload);
+        // refresh list
+        const updated = await simbiRepo.getAll();
+        setItems(updated);
+      } else {
+        const created = await simbiRepo.create(payload);
+        setItems(prev => [created, ...prev]);
+      }
+      setVista('lista');
+    } catch {
+      // stay on form, optionally show error
+    } finally {
+      setSaving(false);
     }
-
-    setVista('lista');
   };
 
-  const handleEliminar = (id: string) => {
-    setItems(prev => prev.filter(it => it.id !== id));
+  const handleEliminar = async (id: string) => {
+    try {
+      await simbiRepo.delete(id);
+      setItems(prev => prev.filter(it => it.id !== id));
+    } catch { /* silent */ }
   };
 
   // ── VISTA LISTA ──────────────────────────────────────────────────────────────
@@ -162,8 +173,11 @@ export function SimbiocreacionDashboard() {
             </button>
           </div>
 
-          {/* Empty state */}
-          {items.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+            </div>
+          ) : items.length === 0 ? (
             <div className="bg-white border border-gray-200 rounded-2xl p-16 text-center">
               <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Leaf className="w-8 h-8 text-teal-400" />
@@ -348,7 +362,7 @@ export function SimbiocreacionDashboard() {
               value={form.descripcion}
               onChange={e => set('descripcion', e.target.value)}
               rows={5}
-              className="w-full px-0 py-3 border-0 border-b border-gray-200 bg-gray-50 rounded-lg text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-emerald-500 transition-colors resize-y p-4"
+              className="w-full px-4 py-3 border-0 border-b border-gray-200 bg-gray-50 rounded-lg text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-emerald-500 transition-colors resize-y"
             />
           </div>
 
@@ -369,7 +383,6 @@ export function SimbiocreacionDashboard() {
           {/* Sección expandible */}
           {masDetalles && (
             <div className="space-y-4 border-t border-gray-100 pt-4">
-              {/* Link del evento */}
               <div className="flex items-center gap-2">
                 <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0" />
                 <input
@@ -381,7 +394,6 @@ export function SimbiocreacionDashboard() {
                 />
               </div>
 
-              {/* Tags */}
               <div className="flex items-center gap-2">
                 <Tag className="w-4 h-4 text-gray-400 flex-shrink-0" />
                 <input
@@ -393,7 +405,6 @@ export function SimbiocreacionDashboard() {
                 />
               </div>
 
-              {/* Extra URLs */}
               <div className="flex items-center gap-2">
                 <Globe className="w-4 h-4 text-gray-400 flex-shrink-0" />
                 <input
@@ -446,10 +457,14 @@ export function SimbiocreacionDashboard() {
           </button>
           <button
             onClick={handleGuardar}
-            disabled={!form.nombre.trim()}
-            className="px-7 py-2.5 text-sm font-medium bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            disabled={!form.nombre.trim() || saving}
+            className="flex items-center gap-2 px-7 py-2.5 text-sm font-medium bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
           >
-            {vista === 'editar' ? 'Guardar cambios' : 'Crear'}
+            {saving ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Guardando...</>
+            ) : (
+              vista === 'editar' ? 'Guardar cambios' : 'Crear'
+            )}
           </button>
         </div>
       </div>

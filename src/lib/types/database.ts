@@ -55,6 +55,43 @@ export interface DiagnosticResult {
   completedAt: string;
 }
 
+// ── Organization ──
+
+export interface Organization {
+  id: string;
+  userId: string;
+  type: string;
+  name: string;
+  description: string | null;
+  phone: string | null;
+  website: string | null;
+  country: string | null;
+  foundedYear: number | null;
+  sector: string | null;
+  employees: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ── Simbiocreacion ──
+
+export interface Simbiocreacion {
+  id: string;
+  userId: string;
+  nombre: string;
+  privado: boolean;
+  lugar: string | null;
+  fecha: string | null;
+  horaInicio: string | null;
+  descripcion: string | null;
+  link: string | null;
+  tags: string[];
+  extraUrls: string[];
+  ods: number[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 // ── Edutech ──
 
 export type CourseLevel = 'basico' | 'intermedio' | 'avanzado';

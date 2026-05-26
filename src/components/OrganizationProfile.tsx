@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from 'react';
-import { Building2, TrendingUp, GraduationCap, Cpu, ChevronRight, ChevronLeft, Check } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Building2, TrendingUp, GraduationCap, Cpu, ChevronRight, ChevronLeft, Check, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { OrganizationRepository } from '@/lib/repositories/organization-repository';
 
 type OrgType = 'empresa' | 'inversor' | 'academia' | 'proveedor' | null;
 
@@ -58,10 +59,14 @@ const SIZES = ['1–10', '11–50', '51–200', '201–500', '500+'];
 
 export function OrganizationProfile() {
   const { profile } = useAuth();
+  const orgRepo = useMemo(() => new OrganizationRepository(), []);
 
   const [step, setStep] = useState<1 | 2>(1);
   const [orgType, setOrgType] = useState<OrgType>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     name:        profile?.company || '',
     description: '',
@@ -73,10 +78,53 @@ export function OrganizationProfile() {
     founded:     '',
   });
 
-  const handleSave = () => {
-    // TODO: persistir mediante API cuando el endpoint esté disponible
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  // Load existing org on mount
+  useEffect(() => {
+    orgRepo.get()
+      .then(org => {
+        if (org) {
+          setOrgType((org.type as OrgType) ?? null);
+          setForm({
+            name:        org.name ?? '',
+            description: org.description ?? '',
+            phone:       org.phone ?? '',
+            website:     org.website ?? '',
+            country:     org.country ?? 'Perú',
+            sector:      org.sector ?? '',
+            size:        org.employees ?? '',
+            founded:     org.foundedYear?.toString() ?? '',
+          });
+          // If org already exists, skip to step 2
+          setStep(2);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [orgRepo]);
+
+  const handleSave = async () => {
+    if (!form.name || !orgType) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await orgRepo.save({
+        type:        orgType,
+        name:        form.name,
+        description: form.description || null,
+        phone:       form.phone || null,
+        website:     form.website || null,
+        country:     form.country || null,
+        foundedYear: form.founded ? parseInt(form.founded) : null,
+        sector:      form.sector || null,
+        employees:   form.size || null,
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch {
+      setError('No se pudo guardar. Intenta nuevamente.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const set = (key: keyof typeof form, value: string) =>
@@ -86,6 +134,14 @@ export function OrganizationProfile() {
     'w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white';
   const labelClass =
     'block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5';
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
@@ -106,7 +162,6 @@ export function OrganizationProfile() {
 
         {/* Step indicator */}
         <div className="flex items-center mb-8">
-          {/* Step 1 */}
           <div className={`flex items-center gap-2 ${step >= 1 ? 'text-emerald-600' : 'text-gray-400'}`}>
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold border-2 ${
               step > 1
@@ -120,7 +175,6 @@ export function OrganizationProfile() {
 
           <div className="flex-1 h-px bg-gray-200 mx-4" />
 
-          {/* Step 2 */}
           <div className={`flex items-center gap-2 ${step >= 2 ? 'text-emerald-600' : 'text-gray-400'}`}>
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold border-2 ${
               step === 2 ? 'border-emerald-500 text-emerald-600' : 'border-gray-300 text-gray-400'
@@ -180,7 +234,6 @@ export function OrganizationProfile() {
           <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-              {/* Nombre */}
               <div className="md:col-span-2">
                 <label className={labelClass}>Nombre de la organización *</label>
                 <input
@@ -192,7 +245,6 @@ export function OrganizationProfile() {
                 />
               </div>
 
-              {/* Descripción */}
               <div className="md:col-span-2">
                 <label className={labelClass}>Descripción</label>
                 <textarea
@@ -204,7 +256,6 @@ export function OrganizationProfile() {
                 />
               </div>
 
-              {/* Teléfono */}
               <div>
                 <label className={labelClass}>Teléfono de contacto</label>
                 <input
@@ -216,7 +267,6 @@ export function OrganizationProfile() {
                 />
               </div>
 
-              {/* Sitio web */}
               <div>
                 <label className={labelClass}>Sitio web</label>
                 <input
@@ -228,7 +278,6 @@ export function OrganizationProfile() {
                 />
               </div>
 
-              {/* País */}
               <div>
                 <label className={labelClass}>País</label>
                 <input
@@ -240,7 +289,6 @@ export function OrganizationProfile() {
                 />
               </div>
 
-              {/* Año de fundación */}
               <div>
                 <label className={labelClass}>Año de fundación</label>
                 <input
@@ -254,7 +302,6 @@ export function OrganizationProfile() {
                 />
               </div>
 
-              {/* Sector */}
               <div>
                 <label className={labelClass}>Sector / Industria</label>
                 <select
@@ -267,7 +314,6 @@ export function OrganizationProfile() {
                 </select>
               </div>
 
-              {/* Tamaño */}
               <div>
                 <label className={labelClass}>Número de empleados</label>
                 <select
@@ -281,7 +327,10 @@ export function OrganizationProfile() {
               </div>
             </div>
 
-            {/* Actions */}
+            {error && (
+              <p className="mt-4 text-sm text-red-600">{error}</p>
+            )}
+
             <div className="mt-8 flex items-center justify-between">
               <button
                 onClick={() => setStep(1)}
@@ -292,14 +341,16 @@ export function OrganizationProfile() {
 
               <button
                 onClick={handleSave}
-                disabled={!form.name}
+                disabled={!form.name || saving}
                 className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
                   saved
                     ? 'bg-emerald-100 text-emerald-700'
                     : 'bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed'
                 }`}
               >
-                {saved ? (
+                {saving ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Guardando...</>
+                ) : saved ? (
                   <><Check className="w-4 h-4" /> Guardado</>
                 ) : (
                   'Guardar perfil'
