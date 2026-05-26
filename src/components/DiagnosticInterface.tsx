@@ -64,29 +64,37 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
   const [diagnosticQuestions, setDiagnosticQuestions] = useState<typeof fallbackQuestions>([]);
 
   const fetchQuestions = useCallback(async () => {
-    let data: DiagnosticQuestion[] = [];
     try {
-      data = await diagnosticRepo.getQuestions();
-    } catch { /* fallback below */ }
+      const data = await diagnosticRepo.getQuestions();
 
-    if (data && data.length > 0) {
-      setDiagnosticQuestions(data.map((q: DiagnosticQuestion) => ({
-        title: q.title,
-        description: q.description,
-        options: q.diagnostic_options
-          .sort((a, b) => a.sort_order - b.sort_order)
-          .map(o => ({ label: o.label, value: o.value, score: o.score })),
-        context: {
-          title: q.context_title || q.title,
-          description: q.context_description || '',
-          impact: q.context_impact || '',
-          image: q.context_image || '',
-        },
-      })));
-    } else {
+      if (data && data.length > 0) {
+        setDiagnosticQuestions(data.map((q: DiagnosticQuestion) => {
+          // Backend (Prisma) returns camelCase `options`; legacy shape uses `diagnostic_options`
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const opts: DiagnosticQuestion['diagnostic_options'] = (q as any).options ?? q.diagnostic_options ?? [];
+          return {
+            title: q.title,
+            description: q.description,
+            options: [...opts]
+              .sort((a, b) => (a.sort_order ?? (a as any).sortOrder ?? 0) - (b.sort_order ?? (b as any).sortOrder ?? 0))
+              .map(o => ({ label: o.label, value: o.value, score: o.score })),
+            context: {
+              title: (q as any).contextTitle ?? q.context_title ?? q.title,
+              description: (q as any).contextDescription ?? q.context_description ?? '',
+              impact: (q as any).contextImpact ?? q.context_impact ?? '',
+              image: (q as any).contextImage ?? q.context_image ?? '',
+            },
+          };
+        }));
+      } else {
+        setDiagnosticQuestions(fallbackQuestions);
+      }
+    } catch {
+      // Network error or parse failure → use built-in questions
       setDiagnosticQuestions(fallbackQuestions);
+    } finally {
+      setLoadingQuestions(false);
     }
-    setLoadingQuestions(false);
   }, [diagnosticRepo]);
 
   useEffect(() => { fetchQuestions(); }, [fetchQuestions]);
