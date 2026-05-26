@@ -75,6 +75,11 @@ export interface Organization {
 
 // ── Simbiocreacion ──
 
+export interface StoredGraph {
+  nodes: Array<{ id: string; label: string; type: 'center' | 'category' | 'group' | 'person'; color: string }>;
+  edges: Array<{ from: string; to: string }>;
+}
+
 export interface Simbiocreacion {
   id: string;
   userId: string;
@@ -88,6 +93,7 @@ export interface Simbiocreacion {
   tags: string[];
   extraUrls: string[];
   ods: number[];
+  graphData?: StoredGraph | null;
   createdAt: string;
   updatedAt: string;
 }
