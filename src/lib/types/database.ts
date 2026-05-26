@@ -61,14 +61,14 @@ export interface Organization {
   id: string;
   userId: string;
   type: string;
+  institutionType: string | null;
   name: string;
   description: string | null;
   phone: string | null;
   website: string | null;
+  externalLinks: string[];
   country: string | null;
-  foundedYear: number | null;
   sector: string | null;
-  employees: string | null;
   createdAt: string;
   updatedAt: string;
 }

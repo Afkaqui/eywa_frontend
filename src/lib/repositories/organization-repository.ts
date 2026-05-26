@@ -15,7 +15,7 @@ export class OrganizationRepository {
     return data.organization ?? null;
   }
 
-  async save(payload: Omit<Organization, 'id' | 'userId' | 'createdAt' | 'updatedAt'>): Promise<Organization> {
+  async save(payload: Omit<Organization, 'id' | 'userId' | 'createdAt' | 'updatedAt'> & { externalLinks?: string[] }): Promise<Organization> {
     const data = await apiFetch<{ organization: Organization }>('/api/proxy/organization', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
