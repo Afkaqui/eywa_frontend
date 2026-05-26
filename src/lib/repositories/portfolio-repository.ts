@@ -11,10 +11,13 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
 export class PortfolioRepository {
   async getAll(): Promise<PortfolioCompany[]> {
-    return apiFetch<PortfolioCompany[]>('/api/proxy/portfolio');
+    const data = await apiFetch<{ companies?: PortfolioCompany[] } | PortfolioCompany[]>('/api/proxy/portfolio');
+    if (Array.isArray(data)) return data;
+    const obj = data as { companies?: PortfolioCompany[] };
+    return Array.isArray(obj.companies) ? obj.companies : [];
   }
 
-  async create(company: Omit<PortfolioCompany, 'id' | 'created_at' | 'updated_at'>): Promise<PortfolioCompany> {
+  async create(company: Omit<PortfolioCompany, 'id' | 'createdAt' | 'updatedAt'>): Promise<PortfolioCompany> {
     return apiFetch<PortfolioCompany>('/api/proxy/portfolio', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

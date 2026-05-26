@@ -20,11 +20,11 @@ export interface PortfolioCompany {
   status: string;
   carbon: string | null;
   trend: string | null;
-  last_audit: string | null;
+  lastAudit: string | null;
   risk: 'bajo' | 'medio' | 'alto';
-  created_by: string | null;
-  created_at: string;
-  updated_at: string;
+  createdBy: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface DiagnosticQuestion {

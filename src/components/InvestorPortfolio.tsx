@@ -205,7 +205,7 @@ export function InvestorPortfolio() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm text-gray-600">{company.last_audit}</div>
+                    <div className="text-sm text-gray-600">{company.lastAudit}</div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">

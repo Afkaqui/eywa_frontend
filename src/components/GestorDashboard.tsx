@@ -66,7 +66,7 @@ function PortfolioManager() {
   const [editing, setEditing] = useState<PortfolioCompany | null>(null);
   const [form, setForm] = useState({
     name: '', sector: '', score: 0, status: 'Pendiente',
-    carbon: '', trend: '', last_audit: '', risk: 'medio' as 'bajo' | 'medio' | 'alto',
+    carbon: '', trend: '', lastAudit: '', risk: 'medio' as 'bajo' | 'medio' | 'alto',
   });
 
   const fetchCompanies = useCallback(async () => {
@@ -81,7 +81,7 @@ function PortfolioManager() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ name: '', sector: '', score: 0, status: 'Pendiente', carbon: '', trend: '', last_audit: '', risk: 'medio' });
+    setForm({ name: '', sector: '', score: 0, status: 'Pendiente', carbon: '', trend: '', lastAudit: '', risk: 'medio' });
     setShowModal(true);
   };
 
@@ -89,7 +89,7 @@ function PortfolioManager() {
     setEditing(c);
     setForm({
       name: c.name, sector: c.sector, score: c.score, status: c.status,
-      carbon: c.carbon || '', trend: c.trend || '', last_audit: c.last_audit || '', risk: c.risk,
+      carbon: c.carbon || '', trend: c.trend || '', lastAudit: c.lastAudit || '', risk: c.risk,
     });
     setShowModal(true);
   };
@@ -99,7 +99,7 @@ function PortfolioManager() {
       if (editing) {
         await portfolioRepo.update(editing.id, form);
       } else {
-        await portfolioRepo.create(form as Omit<PortfolioCompany, 'id' | 'created_at' | 'updated_at'>);
+        await portfolioRepo.create(form as Omit<PortfolioCompany, 'id' | 'createdAt' | 'updatedAt'>);
       }
     } catch { /* handle error */ }
     setShowModal(false);
@@ -261,7 +261,7 @@ function PortfolioManager() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Última Auditoría</label>
-                  <input value={form.last_audit} onChange={e => setForm({...form, last_audit: e.target.value})} placeholder="Hace 2 dias"
+                  <input value={form.lastAudit} onChange={e => setForm({...form, lastAudit: e.target.value})} placeholder="Hace 2 dias"
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
                 </div>
               </div>
