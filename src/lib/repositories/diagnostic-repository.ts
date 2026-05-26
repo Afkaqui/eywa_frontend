@@ -22,7 +22,10 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
 export class DiagnosticRepository {
   async getQuestions(): Promise<DiagnosticQuestion[]> {
-    return apiFetch<DiagnosticQuestion[]>('/api/proxy/diagnostic/questions');
+    const data = await apiFetch<{ questions?: DiagnosticQuestion[] } | DiagnosticQuestion[]>('/api/proxy/diagnostic/questions');
+    if (Array.isArray(data)) return data;
+    const obj = data as { questions?: DiagnosticQuestion[] };
+    return Array.isArray(obj.questions) ? obj.questions : [];
   }
 
   // userId kept for API compatibility but the backend resolves from JWT
