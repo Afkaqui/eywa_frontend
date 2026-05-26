@@ -92,6 +92,46 @@ export interface Simbiocreacion {
   updatedAt: string;
 }
 
+// ── ESG ──
+
+export interface EsgScores {
+  // Gestión Ambiental
+  emisiones: number;
+  energia: number;
+  agua: number;
+  // Gestión Social
+  comunidad: number;
+  empleados: number;
+  seguridad: number;
+  // Gobernanza
+  cumplimiento: number;
+  transparencia: number;
+  etica: number;
+  // Gestión de Innovación
+  tecnologia: number;
+  id: number;
+  capacitacion: number;
+  // Cadena de Valor
+  materiales: number;
+  logistica: number;
+  proveedores: number;
+}
+
+export interface EsgScore {
+  id: string;
+  userId: string;
+  scores: EsgScores;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EsgHistory {
+  id: string;
+  userId: string;
+  scores: EsgScores;
+  createdAt: string;
+}
+
 // ── Edutech ──
 
 export type CourseLevel = 'basico' | 'intermedio' | 'avanzado';
