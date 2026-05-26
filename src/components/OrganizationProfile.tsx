@@ -3,10 +3,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   Building2, TrendingUp, GraduationCap, ChevronRight, Check,
-  Loader2, Phone, Globe, Link as LinkIcon, MapPin, Layers, X, Plus
+  Loader2, Phone, Globe, Link as LinkIcon, MapPin, Layers, X, Plus, Leaf, BarChart2
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { OrganizationRepository } from '@/lib/repositories/organization-repository';
+import { EsgDashboard } from '@/components/EsgDashboard';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -102,6 +103,7 @@ export function OrganizationProfile() {
   const { profile } = useAuth();
   const orgRepo = useMemo(() => new OrganizationRepository(), []);
 
+  const [activeTab, setActiveTab] = useState<'perfil' | 'esg'>('perfil');
   const [step, setStep] = useState<1 | 2>(1);
   const [orgType, setOrgType] = useState<OrgType | null>(null);
   const [loading, setLoading] = useState(true);
@@ -232,15 +234,47 @@ export function OrganizationProfile() {
       <div className="max-w-3xl mx-auto">
 
         {/* Header */}
-        <div className="mb-8 flex items-center gap-3">
+        <div className="mb-6 flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
             <Building2 className="w-5 h-5 text-emerald-600" />
           </div>
           <div>
             <h1 className="text-2xl md:text-3xl font-light text-gray-900">Mi Organización</h1>
-            <p className="text-sm text-gray-500">Completa el perfil de tu organización</p>
+            <p className="text-sm text-gray-500">Gestiona el perfil y sostenibilidad de tu organización</p>
           </div>
         </div>
+
+        {/* Tab switcher */}
+        <div className="flex gap-1 mb-8 bg-gray-100 p-1 rounded-xl w-fit">
+          <button
+            onClick={() => setActiveTab('perfil')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'perfil'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Building2 className="w-4 h-4" />
+            Perfil
+          </button>
+          <button
+            onClick={() => setActiveTab('esg')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'esg'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Leaf className="w-4 h-4" />
+            Índice ESG
+          </button>
+        </div>
+
+        {/* ESG Tab */}
+        {activeTab === 'esg' && <EsgDashboard embedded />}
+
+        {/* Perfil Tab content */}
+        {activeTab === 'perfil' && <>
 
         {/* Step indicator */}
         <div className="flex items-center mb-8">
@@ -522,6 +556,8 @@ export function OrganizationProfile() {
             </div>
           </div>
         )}
+
+        </>}
       </div>
     </div>
   );
