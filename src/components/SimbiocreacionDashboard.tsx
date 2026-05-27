@@ -632,6 +632,28 @@ export function SimbiocreacionDashboard() {
     setSelectedNode(null);
   };
 
+  // Open node editor from Búsquedas list
+  const editNodeFromList = (nodeId: string, label: string) => {
+    setEditMode(true);
+    setEditInteract('move');
+    setConnectFromId(null);
+    setSelectedNode(null);
+    setActivePanel(null);
+    setEditSelId(nodeId);
+    setEditLabelDraft(label);
+  };
+
+  // Delete node directly from Búsquedas list (enters edit mode so Save is visible)
+  const deleteNodeFromList = (nodeId: string) => {
+    setEditMode(true);
+    setEditInteract('move');
+    setConnectFromId(null);
+    setSelectedNode(null);
+    setActivePanel(null);
+    setEditSelId(null);
+    graphRef.current?.removeNode(nodeId);
+  };
+
   const cancelEditMode = () => {
     setEditMode(false);
     setEditSelId(null);
@@ -1297,16 +1319,26 @@ export function SimbiocreacionDashboard() {
                                       const children = liveEdges.filter(e=>e.from===n.id).length;
                                       const isCategory = n.type==='category';
                                       return (
-                                        <button key={n.id}
-                                          onClick={()=>{ setSelectedNode(n); closePanel(); }}
-                                          className="flex items-center gap-3 py-3 w-full text-left hover:bg-gray-50 rounded-lg px-1 transition-colors">
+                                        <div key={n.id} className="flex items-center gap-2 py-2.5 group">
                                           <span className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
                                             style={{backgroundColor:n.color}}>{i+1}</span>
                                           <div className="min-w-0 flex-1">
                                             <div className={`text-sm font-semibold truncate ${isCategory?'text-amber-700':'text-pink-700'}`}>{n.label}</div>
                                             <div className="text-xs text-gray-400">{isCategory?'Categoría':'Grupo'} · {children} hijo{children!==1?'s':''}</div>
                                           </div>
-                                        </button>
+                                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                                            <button onClick={()=>editNodeFromList(n.id, n.label)}
+                                              title="Editar"
+                                              className="p-1.5 rounded-lg text-gray-400 hover:text-teal-600 hover:bg-teal-50 transition-colors">
+                                              <Pencil className="w-3.5 h-3.5"/>
+                                            </button>
+                                            <button onClick={()=>deleteNodeFromList(n.id)}
+                                              title="Eliminar"
+                                              className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                                              <Trash2 className="w-3.5 h-3.5"/>
+                                            </button>
+                                          </div>
+                                        </div>
                                       );
                                     })}
                                   </div>
@@ -1326,8 +1358,7 @@ export function SimbiocreacionDashboard() {
                                       const name = n.label==='●' ? `Participante ${i+1}` : n.label;
                                       const parent = parentOf(n.id);
                                       return (
-                                        <div key={n.id}
-                                          className="flex items-center gap-3 py-3">
+                                        <div key={n.id} className="flex items-center gap-2 py-2.5 group">
                                           <div className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
                                             style={{backgroundColor:n.color||'#94a3b8'}}>
                                             {name.charAt(0).toUpperCase()||'P'}
@@ -1335,6 +1366,18 @@ export function SimbiocreacionDashboard() {
                                           <div className="min-w-0 flex-1">
                                             <div className="text-sm font-semibold text-gray-800 truncate">{name}</div>
                                             <div className="text-xs text-gray-400 truncate">en {parent}</div>
+                                          </div>
+                                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                                            <button onClick={()=>editNodeFromList(n.id, name)}
+                                              title="Editar"
+                                              className="p-1.5 rounded-lg text-gray-400 hover:text-teal-600 hover:bg-teal-50 transition-colors">
+                                              <Pencil className="w-3.5 h-3.5"/>
+                                            </button>
+                                            <button onClick={()=>deleteNodeFromList(n.id)}
+                                              title="Eliminar"
+                                              className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                                              <Trash2 className="w-3.5 h-3.5"/>
+                                            </button>
                                           </div>
                                         </div>
                                       );
