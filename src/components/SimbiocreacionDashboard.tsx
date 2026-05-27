@@ -182,6 +182,7 @@ interface NetworkGraphProps {
   editInteract?: EditInteract;
   connectFromId?: string | null;
   onEdgeDelete?: (from: string, to: string) => void;
+  onDeleteNode?: (id: string) => void;
   selectedNodeId?: string | null;
 }
 
@@ -195,6 +196,7 @@ const NetworkGraph = forwardRef<GraphHandle, NetworkGraphProps>(function Network
   editInteract    = 'move',
   connectFromId   = null,
   onEdgeDelete,
+  onDeleteNode,
   selectedNodeId  = null,
 }, ref) {
   const svgRef   = useRef<SVGSVGElement>(null);
@@ -413,6 +415,20 @@ const NetworkGraph = forwardRef<GraphHandle, NetworkGraphProps>(function Network
                   style={{ pointerEvents:'none' }}>
                   {n.label.length>12?n.label.slice(0,11)+'…':n.label}
                 </text>
+              )}
+              {/* Delete badge — shown on selected non-center node in edit mode */}
+              {editMode && isSelected && n.type!=='center' && (
+                <g onMouseDown={ev => { ev.stopPropagation(); onDeleteNode?.(n.id); }}
+                  style={{ cursor: 'pointer' }}>
+                  <circle cx={n.x+n.r*0.72} cy={n.y-n.r*0.72} r={9}
+                    fill="#ef4444" stroke="white" strokeWidth={1.5}/>
+                  <line x1={n.x+n.r*0.72-3.5} y1={n.y-n.r*0.72-3.5}
+                        x2={n.x+n.r*0.72+3.5} y2={n.y-n.r*0.72+3.5}
+                    stroke="white" strokeWidth={2} strokeLinecap="round"/>
+                  <line x1={n.x+n.r*0.72+3.5} y1={n.y-n.r*0.72-3.5}
+                        x2={n.x+n.r*0.72-3.5} y2={n.y-n.r*0.72+3.5}
+                    stroke="white" strokeWidth={2} strokeLinecap="round"/>
+                </g>
               )}
             </g>
           );
@@ -647,15 +663,31 @@ export function SimbiocreacionDashboard() {
     setEditLabelDraft(preset.label);
   };
 
-  const handleDeleteSelectedNode = () => {
-    if (!editSelId) return;
-    graphRef.current?.removeNode(editSelId);
+  const handleDeleteSelectedNode = useCallback((id?: string) => {
+    const target = id ?? editSelId;
+    if (!target) return;
+    graphRef.current?.removeNode(target);
     setEditSelId(null);
-  };
+  }, [editSelId]);
 
   const handleEdgeDelete = (from: string, to: string) => {
     graphRef.current?.removeEdge(from, to);
   };
+
+  // Delete key shortcut in edit mode
+  useEffect(() => {
+    if (!editMode) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Delete' && e.key !== 'Backspace') return;
+      const tag = (document.activeElement as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      if (!editSelId || editSelectedNode?.type === 'center') return;
+      e.preventDefault();
+      handleDeleteSelectedNode();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [editMode, editSelId, editSelectedNode, handleDeleteSelectedNode]);
 
   const saveGraph = async () => {
     if (!selected || !graphRef.current) return;
@@ -896,6 +928,7 @@ export function SimbiocreacionDashboard() {
                     editInteract={editInteract}
                     connectFromId={connectFromId}
                     onEdgeDelete={editMode ? handleEdgeDelete : undefined}
+                    onDeleteNode={editMode ? handleDeleteSelectedNode : undefined}
                     selectedNodeId={editMode ? editSelId : selectedNode?.id}
                   />
 
@@ -1004,6 +1037,14 @@ export function SimbiocreacionDashboard() {
                       </div>
                       <div className="flex-1 overflow-y-auto p-4 space-y-5">
 
+                        {/* Delete — shown at top for easy access (not center node) */}
+                        {editSelectedNode.type!=='center'&&(
+                          <button onClick={()=>handleDeleteSelectedNode()}
+                            className="flex items-center gap-2 w-full px-4 py-2.5 bg-red-50 text-red-600 hover:bg-red-100 active:bg-red-200 rounded-xl text-sm font-medium transition-all justify-center border border-red-100">
+                            <Trash2 className="w-4 h-4"/> Eliminar nodo
+                          </button>
+                        )}
+
                         {/* Label */}
                         <div>
                           <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nombre del nodo</label>
@@ -1080,15 +1121,6 @@ export function SimbiocreacionDashboard() {
                           </button>
                         </div>
 
-                        {/* Delete */}
-                        {editSelectedNode.type!=='center'&&(
-                          <div className="border-t border-gray-100 pt-4">
-                            <button onClick={handleDeleteSelectedNode}
-                              className="flex items-center gap-2 w-full px-4 py-2.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-sm font-medium transition-all justify-center">
-                              <Trash2 className="w-4 h-4"/> Eliminar nodo
-                            </button>
-                          </div>
-                        )}
                       </div>
                     </div>
                   )}
