@@ -76,7 +76,7 @@ export interface Organization {
 // ── Simbiocreacion ──
 
 export interface StoredGraph {
-  nodes: Array<{ id: string; label: string; type: 'center' | 'category' | 'group' | 'person'; color: string }>;
+  nodes: Array<{ id: string; label: string; type: 'center' | 'category' | 'group' | 'person'; color: string; userId?: string }>;
   edges: Array<{ from: string; to: string }>;
 }
 

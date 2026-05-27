@@ -36,18 +36,20 @@ interface RankingEntry {
 interface GraphNode {
   id: string; label: string; type: 'center' | 'category' | 'group' | 'person';
   x: number; y: number; vx: number; vy: number; r: number; color: string;
+  userId?: string; // optional link to EYWA user
 }
 interface GraphEdge { from: string; to: string }
 
 // Exposed imperative handle for parent to manipulate the graph
 export interface GraphHandle {
   getGraph: () => { nodes: GraphNode[]; edges: GraphEdge[] };
-  addNode:        (node: GraphNode, parentId?: string) => void;
-  removeNode:     (id: string) => void;
-  addEdge:        (from: string, to: string) => void;
-  removeEdge:     (from: string, to: string) => void;
-  updateNodeLabel:(id: string, label: string) => void;
-  updateNodeColor:(id: string, color: string) => void;
+  addNode:          (node: GraphNode, parentId?: string) => void;
+  removeNode:       (id: string) => void;
+  addEdge:          (from: string, to: string) => void;
+  removeEdge:       (from: string, to: string) => void;
+  updateNodeLabel:  (id: string, label: string) => void;
+  updateNodeColor:  (id: string, color: string) => void;
+  updateNodeUserId: (id: string, userId: string | null) => void;
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -107,6 +109,7 @@ function buildGraph(item: Simbiocreacion, width: number, height: number): { node
       const r = sn.type === 'center' ? 52 : sn.type === 'category' ? 30 : sn.type === 'group' ? 22 : 12;
       return {
         id: sn.id, label: sn.label, type: sn.type, color: sn.color,
+        ...(sn.userId ? { userId: sn.userId } : {}),
         x: sn.type === 'center' ? cx : cx + Math.cos(angle) * dist,
         y: sn.type === 'center' ? cy : cy + Math.sin(angle) * dist,
         vx: 0, vy: 0, r,
@@ -254,6 +257,10 @@ const NetworkGraph = forwardRef<GraphHandle, NetworkGraphProps>(function Network
     updateNodeColor: (id, color) => {
       const n = nodesRef.current.find(x => x.id === id);
       if (n) { n.color = color; setTick(t => t + 1); }
+    },
+    updateNodeUserId: (id, userId) => {
+      const n = nodesRef.current.find(x => x.id === id);
+      if (n) { n.userId = userId ?? undefined; setTick(t => t + 1); }
     },
   }), []);
 
@@ -404,16 +411,19 @@ const NetworkGraph = forwardRef<GraphHandle, NetworkGraphProps>(function Network
               {/* hit area */}
               <circle cx={n.x} cy={n.y} r={n.r+8} fill="transparent" />
               {/* node */}
-              <circle cx={n.x} cy={n.y} r={n.r} fill={n.color}
-                fillOpacity={n.type==='person'?0.45:0.92}
-                stroke={n.type==='center'?'#fff':'transparent'}
-                strokeWidth={n.type==='center'?3:0} />
-              {n.type!=='person' && (
+              <circle cx={n.x} cy={n.y} r={n.r}
+                fill={n.type==='person' && n.userId ? '#0d9488' : n.color}
+                fillOpacity={n.type==='person' ? (n.userId ? 0.85 : 0.45) : 0.92}
+                stroke={n.type==='center' ? '#fff' : n.userId ? '#fff' : 'transparent'}
+                strokeWidth={n.type==='center' ? 3 : n.userId ? 1.5 : 0} />
+              {(n.type!=='person' || n.userId) && (
                 <text x={n.x} y={n.y} textAnchor="middle" dominantBaseline="middle"
                   fill="white" fontSize={n.type==='center'?9:n.type==='category'?8:7}
                   fontWeight={n.type==='center'?'700':'500'}
                   style={{ pointerEvents:'none' }}>
-                  {n.label.length>12?n.label.slice(0,11)+'…':n.label}
+                  {n.userId
+                    ? (n.label.charAt(0).toUpperCase())
+                    : (n.label.length>12?n.label.slice(0,11)+'…':n.label)}
                 </text>
               )}
               {/* Delete badge — shown on selected non-center node in edit mode */}
@@ -546,6 +556,9 @@ export function SimbiocreacionDashboard() {
   const [connectFromId,  setConnectFromId]  = useState<string|null>(null);
   const [editLabelDraft, setEditLabelDraft] = useState('');
   const [savingGraph,    setSavingGraph]    = useState(false);
+  const [userSearchQ,    setUserSearchQ]    = useState('');
+  const [userSearchRes,  setUserSearchRes]  = useState<Array<{id:string;fullName:string|null;company:string|null}>>([]);
+  const [userSearching,  setUserSearching]  = useState(false);
 
   // ── Explora / Ranking ──────────────────────────────────────────────────────
   const [explora,        setExplora]        = useState<PublicSimbio[]>([]);
@@ -574,6 +587,18 @@ export function SimbiocreacionDashboard() {
     apiFetch<{ranking:RankingEntry[]}>('/api/proxy/simbiocreacion/ranking')
       .then(d=>setRanking(d.ranking??[])).catch(()=>{}).finally(()=>setRankingLoading(false));
   },[mainTab]);
+
+  // ── User search (debounced 350ms) ──────────────────────────────────────────
+  useEffect(()=>{
+    if (userSearchQ.trim().length < 2) { setUserSearchRes([]); return; }
+    setUserSearching(true);
+    const t = setTimeout(()=>{
+      apiFetch<{users:Array<{id:string;fullName:string|null;company:string|null}>}>(
+        `/api/proxy/users/search?q=${encodeURIComponent(userSearchQ.trim())}`
+      ).then(d=>setUserSearchRes(d.users??[])).catch(()=>setUserSearchRes([])).finally(()=>setUserSearching(false));
+    }, 350);
+    return ()=>clearTimeout(t);
+  },[userSearchQ]);
 
   // ── Form helpers ───────────────────────────────────────────────────────────
   const setF = (key: keyof typeof form, val: unknown) => setForm(p=>({...p,[key]:val}));
@@ -717,7 +742,7 @@ export function SimbiocreacionDashboard() {
     setSavingGraph(true);
     const { nodes, edges } = graphRef.current.getGraph();
     const graphData: StoredGraph = {
-      nodes: nodes.map(n => ({ id: n.id, label: n.label, type: n.type, color: n.color })),
+      nodes: nodes.map(n => ({ id: n.id, label: n.label, type: n.type, color: n.color, ...(n.userId ? { userId: n.userId } : {}) })),
       edges: edges.map(e => ({ from: e.from, to: e.to })),
     };
     try {
@@ -1097,6 +1122,62 @@ export function SimbiocreacionDashboard() {
                           </div>
                         </div>
 
+                        {/* Link EYWA user (only for person nodes) */}
+                        {editSelectedNode.type==='person'&&(
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                              Vincular usuario EYWA
+                            </label>
+                            {editSelectedNode.userId?(
+                              <div className="flex items-center gap-2 p-2 bg-teal-50 border border-teal-200 rounded-xl">
+                                <div className="w-7 h-7 rounded-full bg-teal-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                  {editLabelDraft.charAt(0).toUpperCase()||'U'}
+                                </div>
+                                <span className="text-sm text-teal-800 font-medium flex-1 truncate">{editLabelDraft}</span>
+                                <button onClick={()=>{ graphRef.current?.updateNodeUserId(editSelId,null); graphRef.current?.updateNodeLabel(editSelId,'Persona'); setEditLabelDraft('Persona'); }}
+                                  className="text-teal-400 hover:text-red-500 transition-colors flex-shrink-0" title="Desvincular">
+                                  <X className="w-3.5 h-3.5"/>
+                                </button>
+                              </div>
+                            ):(
+                              <div className="relative">
+                                <div className="relative">
+                                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400"/>
+                                  <input type="text" placeholder="Buscar por nombre o empresa…"
+                                    value={userSearchQ}
+                                    onChange={e=>setUserSearchQ(e.target.value)}
+                                    className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-300 bg-gray-50"/>
+                                </div>
+                                {(userSearchRes.length>0||userSearching)&&(
+                                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+                                    {userSearching&&<div className="flex items-center justify-center p-3"><Loader2 className="w-4 h-4 animate-spin text-gray-400"/></div>}
+                                    {userSearchRes.map(u=>(
+                                      <button key={u.id}
+                                        onClick={()=>{
+                                          const name = u.fullName || u.company || 'Usuario';
+                                          graphRef.current?.updateNodeUserId(editSelId, u.id);
+                                          graphRef.current?.updateNodeLabel(editSelId, name);
+                                          setEditLabelDraft(name);
+                                          setUserSearchQ('');
+                                          setUserSearchRes([]);
+                                        }}
+                                        className="flex items-center gap-3 w-full px-3 py-2.5 hover:bg-teal-50 transition-colors text-left">
+                                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-400 to-teal-700 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                          {(u.fullName||u.company||'U').charAt(0).toUpperCase()}
+                                        </div>
+                                        <div className="min-w-0">
+                                          <div className="text-sm font-medium text-gray-800 truncate">{u.fullName||'Sin nombre'}</div>
+                                          {u.company&&<div className="text-xs text-gray-400 truncate">{u.company}</div>}
+                                        </div>
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
                         {/* Add child node */}
                         <div>
                           <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Agregar nodo hijo</label>
@@ -1359,12 +1440,15 @@ export function SimbiocreacionDashboard() {
                                       const parent = parentOf(n.id);
                                       return (
                                         <div key={n.id} className="flex items-center gap-2 py-2.5 group">
-                                          <div className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
-                                            style={{backgroundColor:n.color||'#94a3b8'}}>
+                                          <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold ring-2 ${n.userId?'ring-teal-400 bg-teal-600':'ring-transparent'}`}
+                                            style={n.userId?{}:{backgroundColor:n.color||'#94a3b8'}}>
                                             {name.charAt(0).toUpperCase()||'P'}
                                           </div>
                                           <div className="min-w-0 flex-1">
-                                            <div className="text-sm font-semibold text-gray-800 truncate">{name}</div>
+                                            <div className="flex items-center gap-1.5">
+                                              <span className="text-sm font-semibold text-gray-800 truncate">{name}</span>
+                                              {n.userId&&<span className="text-[10px] bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">EYWA</span>}
+                                            </div>
                                             <div className="text-xs text-gray-400 truncate">en {parent}</div>
                                           </div>
                                           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
