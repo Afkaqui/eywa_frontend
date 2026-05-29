@@ -6,6 +6,7 @@ import {
   GraduationCap, Building2, CheckCircle2, Leaf,
   ArrowRight, ChevronDown, ChevronUp, Zap,
   Target, Users, TrendingUp, Globe, Shield,
+  CheckCheck, Clock, Rocket, Copy, Check,
 } from 'lucide-react';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -327,9 +328,36 @@ function ToolCard({ tool }: { tool: Tool }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
+function CopyButton({ url }: { url: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      onClick={() => { navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+      className="inline-flex items-center gap-2 text-sm font-mono text-teal-700 bg-teal-50 border border-teal-200 px-4 py-2 rounded-xl hover:bg-teal-100 transition-colors">
+      <span>{url}</span>
+      {copied ? <Check className="w-3.5 h-3.5 text-teal-600"/> : <Copy className="w-3.5 h-3.5 text-teal-500"/>}
+    </button>
+  );
+}
+
 export default function ResumenPage() {
+  const url = 'https://eywa-hazel.vercel.app';
+
   return (
     <div className="min-h-screen bg-gray-50">
+
+      {/* ── FASE 1 BANNER ── */}
+      <div className="bg-gradient-to-r from-teal-600 to-emerald-600 text-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="bg-white/20 border border-white/30 text-white text-xs font-bold px-3 py-1 rounded-full tracking-wider">
+              FASE 1
+            </span>
+            <span className="text-sm font-medium opacity-90">MVP funcional · Plataforma EYWA en producción</span>
+          </div>
+          <CopyButton url={url}/>
+        </div>
+      </div>
 
       {/* ── HERO ── */}
       <section className="bg-white border-b border-gray-100">
@@ -346,10 +374,10 @@ export default function ResumenPage() {
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             {[
-              { icon: Shield, label: 'Basado en estándares ESG',    color: '#0ea5e9' },
-              { icon: TrendingUp, label: 'Medición continua',       color: '#10b981' },
-              { icon: Users, label: 'Colaboración y co-creación',   color: '#ec4899' },
-              { icon: GraduationCap, label: 'Formación especializada', color: '#8b5cf6' },
+              { icon: Shield,       label: 'Basado en estándares ESG',    color: '#0ea5e9' },
+              { icon: TrendingUp,   label: 'Medición continua',           color: '#10b981' },
+              { icon: Users,        label: 'Colaboración y co-creación',  color: '#ec4899' },
+              { icon: GraduationCap, label: 'Formación especializada',    color: '#8b5cf6' },
             ].map(({ icon: Icon, label, color }) => (
               <span key={label} className="flex items-center gap-2 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-100 px-4 py-2 rounded-xl">
                 <Icon className="w-4 h-4" style={{ color }}/>{label}
@@ -442,11 +470,134 @@ export default function ResumenPage() {
           </div>
         </section>
 
+        {/* ── FASE 1 ENTREGABLES ── */}
+        <section>
+          <div className="text-center mb-6">
+            <span className="inline-flex items-center gap-2 bg-teal-50 border border-teal-200 text-teal-700 text-xs font-bold px-4 py-1.5 rounded-full mb-4">
+              <Rocket className="w-3.5 h-3.5"/> FASE 1 · MVP
+            </span>
+            <h2 className="text-2xl font-bold text-gray-900">Lo construido en Fase 1</h2>
+            <p className="text-gray-500 mt-1.5">Frontend (Next.js 15) + Backend (Hono.js) + Base de datos (PostgreSQL + Prisma) en producción</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Completado */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+              <div className="flex items-center gap-2 mb-5">
+                <CheckCheck className="w-5 h-5 text-emerald-500"/>
+                <span className="font-bold text-gray-900">Implementado</span>
+                <span className="ml-auto text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
+                  Listo
+                </span>
+              </div>
+              <ul className="space-y-3">
+                {[
+                  { label: 'Autenticación completa',          sub: 'Registro, login, roles (user / gestor / admin / superadmin)' },
+                  { label: 'Diagnóstico ESG',                  sub: 'Cuestionario multi-paso, puntaje ponderado, historial' },
+                  { label: 'Panel ESG — 15 indicadores',       sub: '5 dimensiones, historial temporal, radar visual' },
+                  { label: 'Simbiocreación',                   sub: 'CRUD, grafo interactivo drag/zoom, editor completo, graphData persistido' },
+                  { label: 'Portfolio de inversión',           sub: 'Empresas, scores ESG, riesgo, tendencias' },
+                  { label: 'Academia (Edutech)',                sub: 'Catálogo de cursos, inscripciones, progreso' },
+                  { label: 'Mi Organización',                  sub: 'Perfil completo, tipo de institución, sector, links' },
+                  { label: 'Validador de Proyectos (IA)',      sub: 'Análisis con Claude AI, feedback estructurado' },
+                  { label: 'Dashboards por rol',               sub: 'Vistas diferenciadas para Gestor, Admin, Superadmin' },
+                  { label: 'Configuración de perfil',          sub: 'Edición de datos personales y cambio de contraseña' },
+                  { label: 'API REST en VPS',                   sub: 'Hono.js · Docker · 161.132.54.226:4001' },
+                  { label: 'Deploy en Vercel',                  sub: 'eywa-hazel.vercel.app — CI/CD automático desde GitHub' },
+                ].map(({ label, sub }) => (
+                  <li key={label} className="flex items-start gap-3">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5"/>
+                    <div>
+                      <span className="text-sm font-semibold text-gray-800">{label}</span>
+                      <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Próximas fases */}
+            <div className="space-y-4">
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <div className="flex items-center gap-2 mb-5">
+                  <Clock className="w-5 h-5 text-amber-500"/>
+                  <span className="font-bold text-gray-900">Fase 2 · Por construir</span>
+                  <span className="ml-auto text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">
+                    Próximo
+                  </span>
+                </div>
+                <ul className="space-y-2.5">
+                  {[
+                    'Notificaciones en tiempo real (WebSocket)',
+                    'Módulo de reportes PDF exportables',
+                    'Integración ODS — mapeo automático por sector',
+                    'Panel de métricas comparativas entre organizaciones',
+                    'Onboarding guiado para nuevos usuarios',
+                    'App móvil (React Native / PWA)',
+                  ].map(item => (
+                    <li key={item} className="flex items-start gap-2.5">
+                      <div className="w-4 h-4 rounded-full border-2 border-gray-200 flex-shrink-0 mt-0.5"/>
+                      <span className="text-sm text-gray-500">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Rocket className="w-5 h-5 text-purple-500"/>
+                  <span className="font-bold text-gray-900">Fase 3 · Visión</span>
+                  <span className="ml-auto text-xs font-semibold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full">
+                    Roadmap
+                  </span>
+                </div>
+                <ul className="space-y-2.5">
+                  {[
+                    'Marketplace de proyectos sostenibles',
+                    'Red de co-inversión entre portafolios',
+                    'Certificación ESG con blockchain',
+                    'Inteligencia artificial para recomendaciones personalizadas',
+                  ].map(item => (
+                    <li key={item} className="flex items-start gap-2.5">
+                      <div className="w-4 h-4 rounded-full border-2 border-purple-200 flex-shrink-0 mt-0.5"/>
+                      <span className="text-sm text-gray-500">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── STACK TÉCNICO ── */}
+        <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <Shield className="w-4 h-4 text-gray-500"/> Stack técnico (Fase 1)
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { layer: 'Frontend',   tech: 'Next.js 15',         sub: 'React + TypeScript + Tailwind' },
+              { layer: 'Backend',    tech: 'Hono.js',             sub: 'Node.js · API REST · Docker'  },
+              { layer: 'Base de datos', tech: 'PostgreSQL',       sub: 'Prisma ORM · VPS propio'       },
+              { layer: 'Deploy',     tech: 'Vercel + VPS',        sub: 'CI/CD GitHub · 161.132.54.226' },
+            ].map(({ layer, tech, sub }) => (
+              <div key={layer} className="bg-gray-50 rounded-xl p-4">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">{layer}</p>
+                <p className="text-sm font-bold text-gray-900">{tech}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{sub}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* ── CTA ── */}
         <section className="bg-gradient-to-br from-teal-600 to-teal-800 rounded-3xl p-10 text-center text-white">
-          <h2 className="text-2xl font-extrabold mb-3">Empieza tu camino sostenible</h2>
+          <div className="inline-flex items-center gap-2 bg-white/15 border border-white/25 text-white text-xs font-bold px-3 py-1.5 rounded-full mb-5 tracking-wider">
+            FASE 1 · EN PRODUCCIÓN
+          </div>
+          <h2 className="text-2xl font-extrabold mb-3">Explora la plataforma</h2>
           <p className="text-teal-100 mb-7 max-w-xl mx-auto">
-            Inicia con el diagnóstico ESG y obtén en minutos un mapa claro de tu posición actual y las próximas acciones.
+            Accede al MVP funcional de EYWA. Todas las herramientas de Fase 1 están disponibles y corriendo en producción.
           </p>
           <a href="/"
             className="inline-flex items-center gap-2 bg-white text-teal-700 font-bold px-7 py-3.5 rounded-2xl hover:bg-teal-50 transition-colors shadow-lg">
@@ -455,7 +606,7 @@ export default function ResumenPage() {
         </section>
 
         <p className="text-center text-xs text-gray-400 pb-2">
-          eywa-hazel.vercel.app/resumen · EYWA Platform 2025
+          eywa-hazel.vercel.app/resumen · EYWA Fase 1 · 2025
         </p>
       </div>
     </div>
