@@ -17,7 +17,8 @@ import {
   Database,
   GraduationCap,
   Building2,
-  Network
+  Network,
+  PieChart,
 } from 'lucide-react';
 import type { UserRole } from '@/lib/types/database';
 import { ROLE_LABELS, ROLE_COLORS } from '@/lib/constants/roles';
@@ -38,6 +39,7 @@ export function NavigationSidebar({ currentView, userRole, userName, userEmail, 
 
   const baseItems = [
     { id: 'hero', icon: LayoutDashboard, label: 'Panel Principal' },
+    { id: 'resumen', icon: PieChart, label: 'Resumen', href: '/resumen' },
     { id: 'diagnostic', icon: Stethoscope, label: 'Diagnóstico' },
     { id: 'validator', icon: CheckCircle, label: 'Validador de Proyectos' },
     { id: 'organization', icon: Building2, label: 'Mi Organización' },
@@ -54,18 +56,13 @@ export function NavigationSidebar({ currentView, userRole, userName, userEmail, 
 
   const visibleRoleItems = roleItems.filter(item => item.roles.includes(userRole));
 
-  const renderNavButton = (item: { id: string; icon: typeof Shield; label: string }, isActive: boolean) => {
+  const renderNavButton = (item: { id: string; icon: typeof Shield; label: string; href?: string }, isActive: boolean) => {
     const Icon = item.icon;
-    return (
-      <button
-        key={item.id}
-        onClick={() => onNavigate(item.id)}
-        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all group relative ${
-          isActive
-            ? 'bg-gray-900 text-white shadow-md'
-            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-        }`}
-      >
+    const cls = `w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all group relative ${
+      isActive ? 'bg-gray-900 text-white shadow-md' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+    }`;
+    const inner = (
+      <>
         <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : ''}`} />
         {isExpanded && <span className="font-medium text-sm truncate">{item.label}</span>}
         {!isExpanded && (
@@ -73,7 +70,15 @@ export function NavigationSidebar({ currentView, userRole, userName, userEmail, 
             {item.label}
           </div>
         )}
-      </button>
+      </>
+    );
+    if (item.href) {
+      return (
+        <a key={item.id} href={item.href} className={cls}>{inner}</a>
+      );
+    }
+    return (
+      <button key={item.id} onClick={() => onNavigate(item.id)} className={cls}>{inner}</button>
     );
   };
 
