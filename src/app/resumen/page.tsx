@@ -1,390 +1,463 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
 import {
-  ArrowLeft, Stethoscope, Network, BarChart2, BarChart3,
-  GraduationCap, Building2, TrendingUp, Users, BookOpen,
-  Leaf, RefreshCw,
+  Stethoscope, Network, BarChart2, BarChart3,
+  GraduationCap, Building2, CheckCircle2, Leaf,
+  ArrowRight, ChevronDown, ChevronUp, Zap,
+  Target, Users, TrendingUp, Globe, Shield,
 } from 'lucide-react';
-import { SimbiocreacionRepository } from '@/lib/repositories/simbiocreacion-repository';
-import { DiagnosticRepository } from '@/lib/repositories/diagnostic-repository';
-import { DiagnosticService } from '@/lib/services/diagnostic-service';
 
-// ── EYWA Ecosystem Graph ──────────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 
-interface ENode {
-  id: string; label: string; sublabel: string;
-  color: string; ring: number; angle: number;
-  r: number; icon?: React.ReactNode;
+interface Tool {
+  id: string;
+  icon: React.ElementType;
+  color: string;
+  name: string;
+  tagline: string;
+  what: string;
+  how: string[];
+  why: string;
+  forWho: string;
 }
 
-const MODULE_DEFS = [
-  { id: 'diag',    label: 'Diagnóstico',    color: '#10b981', Icon: Stethoscope },
-  { id: 'simbio',  label: 'Simbiocreación', color: '#ec4899', Icon: Network     },
-  { id: 'esg',     label: 'ESG',            color: '#0ea5e9', Icon: Leaf         },
-  { id: 'portfolio', label: 'Portfolio',    color: '#f59e0b', Icon: BarChart3   },
-  { id: 'academia', label: 'Academia',      color: '#8b5cf6', Icon: GraduationCap },
-  { id: 'org',     label: 'Organización',   color: '#3b82f6', Icon: Building2   },
+// ── Content ───────────────────────────────────────────────────────────────────
+
+const TOOLS: Tool[] = [
+  {
+    id: 'diagnostic',
+    icon: Stethoscope,
+    color: '#10b981',
+    name: 'Diagnóstico ESG',
+    tagline: 'Evalúa tu madurez en sostenibilidad',
+    what: 'Cuestionario guiado que mide el nivel de madurez de una organización en las tres dimensiones de la sostenibilidad: Ambiental, Social y de Gobernanza (ESG).',
+    how: [
+      'Responde una serie de preguntas cuantitativas sobre prácticas actuales',
+      'El sistema pondera las respuestas y calcula un puntaje de 0 a 100',
+      'Recibes un desglose detallado por dimensión',
+      'Los resultados quedan guardados para medir progreso en el tiempo',
+    ],
+    why: 'Sin saber dónde estás, no puedes saber hacia dónde ir. El diagnóstico revela brechas concretas y prioriza qué trabajar primero para avanzar hacia la sostenibilidad.',
+    forWho: 'Empresas, cooperativas, pymes e instituciones que quieran conocer su punto de partida en sostenibilidad.',
+  },
+  {
+    id: 'simbiocreacion',
+    icon: Network,
+    color: '#ec4899',
+    name: 'Simbiocreación',
+    tagline: 'Mapea y documenta sesiones de co-creación',
+    what: 'Herramienta para registrar y visualizar sesiones de innovación colaborativa. Cada sesión se representa como un grafo interactivo que conecta participantes, grupos e ideas.',
+    how: [
+      'Crea una sesión con nombre, fecha, lugar y objetivos',
+      'Define los ODS (Objetivos de Desarrollo Sostenible) relacionados',
+      'Construye el grafo: nodos de categorías, grupos y personas participantes',
+      'Agrega ideas y etiquetas que nacen de la sesión',
+      'Comparte el grafo públicamente o mantenlo privado',
+    ],
+    why: 'La innovación colaborativa pierde valor si no se documenta. Simbiocreación convierte una sesión efímera en un mapa visual permanente que puede compartirse, replicarse y analizarse.',
+    forWho: 'Facilitadores, consultores de innovación, universidades y organizaciones que realizan talleres de co-creación.',
+  },
+  {
+    id: 'esg',
+    icon: Leaf,
+    color: '#0ea5e9',
+    name: 'Panel ESG',
+    tagline: 'Monitorea tu desempeño sostenible continuamente',
+    what: 'Panel de control con 15 indicadores distribuidos en cinco dimensiones: Gestión Ambiental, Social, Gobernanza, Innovación y Cadena de Valor. Registra y compara tu evolución.',
+    how: [
+      'Ingresa valores para cada indicador (escala 1–10) en cualquier momento',
+      'El sistema guarda un historial de cada actualización',
+      'Visualiza radar charts y tendencias por dimensión',
+      'Compara reportes anteriores para medir mejora real',
+    ],
+    why: 'Los compromisos ESG sin métricas son solo intenciones. Este panel convierte la sostenibilidad en datos concretos, auditables y comparables, esenciales para reportes e inversionistas.',
+    forWho: 'Áreas de sostenibilidad, responsables ESG, inversionistas de impacto y organismos reguladores.',
+  },
+  {
+    id: 'portfolio',
+    icon: BarChart3,
+    color: '#f59e0b',
+    name: 'Portfolio de Inversión',
+    tagline: 'Gestiona el impacto de tu cartera de empresas',
+    what: 'Módulo para inversionistas y gestores de fondos que permite registrar empresas del portafolio, asignarles un score ESG, clasificar su riesgo y dar seguimiento a auditorías.',
+    how: [
+      'Agrega empresas con sector, país y métricas de carbono',
+      'Asigna puntaje ESG y nivel de riesgo (bajo / medio / alto)',
+      'Registra la fecha del último diagnóstico o auditoría',
+      'Filtra y ordena por riesgo, puntaje o tendencia',
+    ],
+    why: 'Los capitales se mueven hacia activos sostenibles. Tener una visión consolidada del desempeño ESG de tu portafolio te permite tomar mejores decisiones de inversión y cumplir con marcos de reporte (TCFD, GRI, etc.).',
+    forWho: 'Fondos de inversión, family offices, bancas de desarrollo e instituciones financieras con mandato ESG.',
+  },
+  {
+    id: 'edutech',
+    icon: GraduationCap,
+    color: '#8b5cf6',
+    name: 'Academia',
+    tagline: 'Formación continua en sostenibilidad y tecnología',
+    what: 'Plataforma de cursos orientada a desarrollar capacidades en ESG, Agrotech, Finanzas Sostenibles y Educación para el impacto. Los usuarios se inscriben y llevan su propio progreso.',
+    how: [
+      'Explora el catálogo de cursos por categoría y nivel',
+      'Inscríbete en los cursos de tu interés',
+      'Avanza a tu ritmo y registra el progreso',
+      'Los administradores pueden crear y publicar nuevos cursos',
+    ],
+    why: 'El conocimiento es la base de cualquier transformación. La Academia democratiza el acceso a formación especializada en sostenibilidad para equipos de todo nivel.',
+    forWho: 'Profesionales, equipos organizacionales, estudiantes y cualquier persona que quiera profundizar en sostenibilidad.',
+  },
+  {
+    id: 'organization',
+    icon: Building2,
+    color: '#3b82f6',
+    name: 'Mi Organización',
+    tagline: 'El perfil base que conecta todos los módulos',
+    what: 'Registro completo de la identidad de la organización: tipo, sector, descripción, país, sitio web y vínculos externos. Es el contexto compartido que enriquece el diagnóstico y el panel ESG.',
+    how: [
+      'Completa el perfil de tu organización una sola vez',
+      'El sistema usa estos datos para contextualizar el diagnóstico',
+      'Mantén actualizado el tipo de institución y sector',
+      'Agrega links a reportes de sostenibilidad o redes existentes',
+    ],
+    why: 'Un diagnóstico o un score ESG descontextualizado pierde valor. Saber el sector y tipo de organización permite comparaciones relevantes y recomendaciones más precisas.',
+    forWho: 'Cualquier organización que use EYWA: el perfil es el punto de partida.',
+  },
+  {
+    id: 'validator',
+    icon: CheckCircle2,
+    color: '#06b6d4',
+    name: 'Validador de Proyectos',
+    tagline: 'Evalúa la viabilidad e impacto de tus ideas',
+    what: 'Herramienta impulsada por inteligencia artificial que analiza la descripción de un proyecto y entrega retroalimentación sobre su viabilidad, alineación con ODS y áreas de mejora.',
+    how: [
+      'Describe tu proyecto en lenguaje natural',
+      'La IA evalúa coherencia, impacto potencial y riesgos',
+      'Recibe sugerencias concretas para fortalecer la propuesta',
+      'Itera y mejora la descripción hasta obtener validación',
+    ],
+    why: 'Muchas buenas ideas fracasan por falta de claridad o estructura. El validador actúa como un primer revisor crítico, objetivo y siempre disponible, antes de presentar el proyecto a una audiencia real.',
+    forWho: 'Emprendedores, equipos de innovación, ONGs y cualquier equipo que desarrolle proyectos de impacto.',
+  },
 ];
 
-// ── Stat card ─────────────────────────────────────────────────────────────────
-function StatCard({ icon: Icon, label, value, color, sub }:
-  { icon: React.ElementType; label: string; value: string | number; color: string; sub?: string }) {
-  return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-start gap-4 hover:shadow-md transition-shadow">
-      <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: color + '1a' }}>
-        <Icon className="w-5 h-5" style={{ color }} />
-      </div>
-      <div className="min-w-0">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-0.5">{label}</p>
-        <p className="text-2xl font-extrabold text-gray-900">{value}</p>
-        {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
-      </div>
-    </div>
-  );
-}
+// ── Ecosystem Graph (SVG, static radial) ─────────────────────────────────────
 
-// ── EYWA SVG Graph ────────────────────────────────────────────────────────────
-function EywaGraph({ stats }: { stats: Record<string, string> }) {
-  const svgRef = useRef<SVGSVGElement>(null);
-  const [dims, setDims] = useState({ w: 700, h: 480 });
-  const [hover, setHover] = useState<string | null>(null);
+function EcosystemGraph() {
+  const svgRef  = useRef<SVGSVGElement>(null);
+  const [dims, setDims] = useState({ w: 600, h: 420 });
   const animRef = useRef<number>(0);
   const tRef    = useRef(0);
-  const [tick, setTick] = useState(0);
+  const [, setTick] = useState(0);
+  const [hov, setHov] = useState<string | null>(null);
 
   useEffect(() => {
     const el = svgRef.current?.parentElement;
     if (!el) return;
     const ro = new ResizeObserver(([e]) => {
-      setDims({ w: e.contentRect.width, h: Math.max(380, e.contentRect.height) });
+      setDims({ w: e.contentRect.width, h: Math.max(340, e.contentRect.height) });
     });
     ro.observe(el);
-    setDims({ w: el.clientWidth, h: Math.max(380, el.clientHeight) });
+    setDims({ w: el.clientWidth, h: Math.max(340, el.clientHeight) });
     return () => ro.disconnect();
   }, []);
 
-  // Gentle pulse animation
   useEffect(() => {
-    const step = () => {
-      tRef.current += 0.012;
-      setTick(t => t + 1);
-      animRef.current = requestAnimationFrame(step);
-    };
+    const step = () => { tRef.current += 0.01; setTick(t => t + 1); animRef.current = requestAnimationFrame(step); };
     animRef.current = requestAnimationFrame(step);
     return () => cancelAnimationFrame(animRef.current);
   }, []);
 
-  void tick;
-
   const cx = dims.w / 2;
   const cy = dims.h / 2;
-  const R1 = Math.min(dims.w, dims.h) * 0.28; // module ring radius
-  const R2 = Math.min(dims.w, dims.h) * 0.44; // metric ring radius
+  const R  = Math.min(dims.w, dims.h) * 0.33;
 
-  const modules = MODULE_DEFS.map((m, i) => {
-    const angle = (2 * Math.PI * i) / MODULE_DEFS.length - Math.PI / 2;
-    const mx = cx + Math.cos(angle) * R1;
-    const my = cy + Math.sin(angle) * R1;
-    // sub-node (metric)
-    const sub = {
-      x: cx + Math.cos(angle) * R2,
-      y: cy + Math.sin(angle) * R2,
-      label: stats[m.id] ?? '—',
-    };
-    return { ...m, x: mx, y: my, angle, sub };
+  const nodes = TOOLS.map((t, i) => {
+    const angle = (2 * Math.PI * i) / TOOLS.length - Math.PI / 2;
+    return { ...t, x: cx + Math.cos(angle) * R, y: cy + Math.sin(angle) * R, angle };
   });
 
-  // Pulse scale for root
-  const rootPulse = 1 + Math.sin(tRef.current) * 0.035;
-  const rootR = 52 * rootPulse;
+  const rootR = 48 + Math.sin(tRef.current) * 2;
 
   return (
-    <svg ref={svgRef} width={dims.w} height={dims.h} className="select-none w-full">
+    <svg ref={svgRef} width={dims.w} height={dims.h} className="w-full select-none">
       <defs>
-        {/* Animated gradient for edges */}
-        {modules.map(m => (
-          <linearGradient key={m.id} id={`grad-${m.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#0d9488" stopOpacity="0.5" />
-            <stop offset="100%" stopColor={m.color} stopOpacity="0.8" />
-          </linearGradient>
-        ))}
-        <filter id="glow">
-          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        <filter id="glow2">
+          <feGaussianBlur stdDeviation="4" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
+        <radialGradient id="rootGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#14b8a6"/>
+          <stop offset="100%" stopColor="#0d9488"/>
+        </radialGradient>
       </defs>
 
-      {/* Root → module edges */}
-      {modules.map(m => {
-        const active = hover === m.id;
-        const pulse  = active ? 1 : 0.5 + Math.sin(tRef.current + m.angle) * 0.15;
+      {/* Connections */}
+      {nodes.map(n => {
+        const active  = hov === n.id;
+        const opacity = active ? 0.9 : 0.35 + Math.sin(tRef.current + n.angle) * 0.12;
         return (
-          <line key={`e-${m.id}`}
-            x1={cx} y1={cy} x2={m.x} y2={m.y}
-            stroke={m.color} strokeWidth={active ? 2.5 : 1.5}
-            strokeOpacity={pulse}
-            strokeDasharray={active ? '0' : '6 4'}
+          <line key={`l-${n.id}`}
+            x1={cx} y1={cy} x2={n.x} y2={n.y}
+            stroke={n.color}
+            strokeWidth={active ? 2.5 : 1.5}
+            strokeOpacity={opacity}
+            strokeDasharray={active ? '0' : '5 5'}
           />
         );
       })}
 
-      {/* Module → metric edges */}
-      {modules.map(m => (
-        <line key={`e2-${m.id}`}
-          x1={m.x} y1={m.y} x2={m.sub.x} y2={m.sub.y}
-          stroke={m.color} strokeWidth={1} strokeOpacity={0.3}
-          strokeDasharray="4 4"
-        />
-      ))}
-
-      {/* Metric nodes (small) */}
-      {modules.map(m => (
-        <g key={`sub-${m.id}`}>
-          <circle cx={m.sub.x} cy={m.sub.y} r={22}
-            fill={m.color} fillOpacity={0.12}
-            stroke={m.color} strokeWidth={1} strokeOpacity={0.4} />
-          <text x={m.sub.x} y={m.sub.y - 4} textAnchor="middle" dominantBaseline="middle"
-            fill={m.color} fontSize={11} fontWeight="700">
-            {m.sub.label}
-          </text>
-          <text x={m.sub.x} y={m.sub.y + 9} textAnchor="middle"
-            fill="#9ca3af" fontSize={7.5}>
-            {m.id === 'diag' ? 'puntos' : m.id === 'esg' ? 'prom.' : m.id === 'portfolio' ? 'empresas' : 'items'}
-          </text>
-        </g>
-      ))}
-
-      {/* Module nodes */}
-      {modules.map(m => {
-        const isHover = hover === m.id;
-        const scale   = isHover ? 1.12 : 1 + Math.sin(tRef.current * 0.7 + m.angle * 2) * 0.025;
-        const r       = 32 * scale;
+      {/* Tool nodes */}
+      {nodes.map(n => {
+        const active = hov === n.id;
+        const pulse  = 1 + (active ? 0.1 : Math.sin(tRef.current * 0.8 + n.angle * 2) * 0.025);
+        const r = 30 * pulse;
+        const Icon = n.icon;
+        const words = n.name.split(' ');
         return (
-          <g key={m.id} style={{ cursor: 'pointer' }}
-            onMouseEnter={() => setHover(m.id)} onMouseLeave={() => setHover(null)}>
-            {isHover && <circle cx={m.x} cy={m.y} r={r + 8} fill={m.color} fillOpacity={0.1} />}
-            <circle cx={m.x} cy={m.y} r={r}
-              fill={m.color} fillOpacity={isHover ? 0.95 : 0.82}
+          <g key={n.id} style={{ cursor: 'pointer' }}
+            onMouseEnter={() => setHov(n.id)}
+            onMouseLeave={() => setHov(null)}>
+            {active && <circle cx={n.x} cy={n.y} r={r + 10} fill={n.color} fillOpacity={0.12}/>}
+            <circle cx={n.x} cy={n.y} r={r}
+              fill={n.color} fillOpacity={active ? 1 : 0.85}
               stroke="white" strokeWidth={2}
-              filter={isHover ? 'url(#glow)' : undefined} />
-            <text x={m.x} y={m.y} textAnchor="middle" dominantBaseline="middle"
-              fill="white" fontSize={8} fontWeight="600"
-              style={{ pointerEvents: 'none' }}>
-              {m.label.split(' ').map((w, wi) => (
-                <tspan key={wi} x={m.x} dy={wi === 0 ? (m.label.includes(' ') ? -5 : 0) : 11}>{w}</tspan>
+              filter={active ? 'url(#glow2)' : undefined}/>
+            <text textAnchor="middle" fill="white" fontWeight="600" style={{ pointerEvents: 'none' }}>
+              {words.map((w, wi) => (
+                <tspan key={wi} x={n.x}
+                  dy={wi === 0 ? (words.length > 1 ? -5 : 0) : 11}
+                  fontSize={7.5}>
+                  {w}
+                </tspan>
               ))}
             </text>
           </g>
         );
       })}
 
-      {/* Root node */}
+      {/* Root */}
       <g>
-        <circle cx={cx} cy={cy} r={rootR + 10}
-          fill="#0d9488" fillOpacity={0.08} />
+        <circle cx={cx} cy={cy} r={rootR + 12} fill="#0d9488" fillOpacity={0.08}/>
         <circle cx={cx} cy={cy} r={rootR}
-          fill="#0d9488" fillOpacity={0.95}
+          fill="url(#rootGrad)"
           stroke="white" strokeWidth={3}
-          filter="url(#glow)" />
-        <text x={cx} y={cy - 6} textAnchor="middle" fill="white" fontSize={13} fontWeight="800">
-          EYWA
-        </text>
-        <text x={cx} y={cy + 8} textAnchor="middle" fill="white" fontSize={7.5} opacity={0.8}>
-          Plataforma
-        </text>
-        <text x={cx} y={cy + 18} textAnchor="middle" fill="white" fontSize={7.5} opacity={0.8}>
-          Sostenible
-        </text>
+          filter="url(#glow2)"/>
+        <text x={cx} y={cy - 7} textAnchor="middle" fill="white" fontSize={15} fontWeight="800">EYWA</text>
+        <text x={cx} y={cy + 9} textAnchor="middle" fill="white" fontSize={8} opacity={0.85}>Plataforma</text>
+        <text x={cx} y={cy + 20} textAnchor="middle" fill="white" fontSize={8} opacity={0.85}>Sostenible</text>
       </g>
     </svg>
   );
 }
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
+// ── Tool Card ─────────────────────────────────────────────────────────────────
 
-export default function ResumenPage() {
-  const { user, profile, loading } = useAuth();
-  const router  = useRouter();
-  const simbiRepo = useRef(new SimbiocreacionRepository());
-  const diagSvc   = useRef(new DiagnosticService(new DiagnosticRepository()));
-
-  const [diagScore,      setDiagScore]      = useState<number | null>(null);
-  const [simbiosCount,   setSimbiosCount]   = useState<number | null>(null);
-  const [simbiosTags,    setSimbiosTags]    = useState<number>(0);
-  const [esgAvg,         setEsgAvg]         = useState<number | null>(null);
-  const [portfolioCount, setPortfolioCount] = useState<number | null>(null);
-  const [coursesCount,   setCoursesCount]   = useState<number | null>(null);
-  const [orgDone,        setOrgDone]        = useState<boolean>(false);
-  const [dataLoading,    setDataLoading]    = useState(true);
-
-  const loadAll = useCallback(async (uid: string) => {
-    setDataLoading(true);
-    await Promise.allSettled([
-      // Diagnóstico
-      diagSvc.current.getLatestResult(uid)
-        .then(r => { if (r) setDiagScore(Math.round((r.score / r.maxScore) * 100)); }),
-
-      // Simbiocreaciones
-      simbiRepo.current.getAll()
-        .then(items => {
-          setSimbiosCount(items.length);
-          setSimbiosTags(items.reduce((s, i) => s + i.tags.length, 0));
-        }),
-
-      // ESG
-      fetch('/api/proxy/esg', { credentials: 'include' })
-        .then(r => r.ok ? r.json() : null)
-        .then(d => {
-          if (!d?.esgScore?.scores) return;
-          const vals = Object.values(d.esgScore.scores) as number[];
-          setEsgAvg(Math.round(vals.reduce((a, b) => a + b, 0) / vals.length));
-        }),
-
-      // Portfolio
-      fetch('/api/proxy/portfolio', { credentials: 'include' })
-        .then(r => r.ok ? r.json() : null)
-        .then(d => setPortfolioCount(d?.companies?.length ?? 0)),
-
-      // Courses (enrollments)
-      fetch('/api/proxy/courses/enrollments', { credentials: 'include' })
-        .then(r => r.ok ? r.json() : null)
-        .then(d => setCoursesCount(d?.enrollments?.length ?? 0)),
-
-      // Organization
-      fetch('/api/proxy/organization', { credentials: 'include' })
-        .then(r => r.ok ? r.json() : null)
-        .then(d => setOrgDone(!!d?.organization?.name)),
-    ]);
-    setDataLoading(false);
-  }, []);
-
-  useEffect(() => {
-    if (user) loadAll(user.id);
-  }, [user, loadAll]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <RefreshCw className="w-6 h-6 animate-spin text-teal-500" />
-      </div>
-    );
-  }
-
-  if (!user) {
-    router.replace('/');
-    return null;
-  }
-
-  const fmt = (n: number | null, unit = '') =>
-    n === null ? '…' : `${n}${unit}`;
-
-  const graphStats: Record<string, string> = {
-    diag:      diagScore     !== null ? `${diagScore}%`  : '—',
-    simbio:    simbiosCount  !== null ? String(simbiosCount) : '—',
-    esg:       esgAvg        !== null ? String(esgAvg)    : '—',
-    portfolio: portfolioCount !== null ? String(portfolioCount) : '—',
-    academia:  coursesCount  !== null ? String(coursesCount)  : '—',
-    org:       orgDone ? '✓' : '—',
-  };
-
-  const name = profile?.fullName || profile?.email?.split('@')[0] || 'Usuario';
-  const initials = name.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase();
-
+function ToolCard({ tool }: { tool: Tool }) {
+  const [open, setOpen] = useState(false);
+  const Icon = tool.icon;
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* ── HEADER ── */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center gap-4 h-14">
-          <button onClick={() => router.back()}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Volver
-          </button>
-          <div className="h-5 w-px bg-gray-200" />
-          <span className="font-bold text-gray-900">Resumen EYWA</span>
-          <div className="ml-auto flex items-center gap-3">
-            {dataLoading && <RefreshCw className="w-4 h-4 animate-spin text-gray-400" />}
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center text-white text-xs font-bold">
-              {initials}
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+      {/* Header */}
+      <div className="p-5 flex items-start gap-4">
+        <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+          style={{ backgroundColor: tool.color + '18' }}>
+          <Icon className="w-6 h-6" style={{ color: tool.color }}/>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <h3 className="font-bold text-gray-900">{tool.name}</h3>
+              <p className="text-sm text-gray-500 mt-0.5">{tool.tagline}</p>
             </div>
-            <span className="text-sm font-medium text-gray-700 hidden sm:block">{name}</span>
+            <button onClick={() => setOpen(o => !o)}
+              className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0 text-gray-400">
+              {open ? <ChevronUp className="w-4 h-4"/> : <ChevronDown className="w-4 h-4"/>}
+            </button>
+          </div>
+          {/* Qué es */}
+          <p className="text-sm text-gray-600 mt-3 leading-relaxed">{tool.what}</p>
+        </div>
+      </div>
+
+      {/* Expandable detail */}
+      {open && (
+        <div className="px-5 pb-5 space-y-5 border-t border-gray-50 pt-4">
+
+          {/* Cómo funciona */}
+          <div>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <Zap className="w-3.5 h-3.5" style={{ color: tool.color }}/> Cómo funciona
+            </p>
+            <ol className="space-y-2">
+              {tool.how.map((step, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <span className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 mt-0.5"
+                    style={{ backgroundColor: tool.color }}>
+                    {i + 1}
+                  </span>
+                  <span className="text-sm text-gray-600 leading-relaxed">{step}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          {/* Por qué importa */}
+          <div>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <Target className="w-3.5 h-3.5" style={{ color: tool.color }}/> Por qué importa
+            </p>
+            <p className="text-sm text-gray-600 leading-relaxed pl-5 border-l-2" style={{ borderColor: tool.color + '60' }}>
+              {tool.why}
+            </p>
+          </div>
+
+          {/* Para quién */}
+          <div className="flex items-start gap-2.5 bg-gray-50 rounded-xl p-3">
+            <Users className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5"/>
+            <div>
+              <p className="text-xs font-semibold text-gray-500 mb-0.5">Para quién</p>
+              <p className="text-sm text-gray-600">{tool.forWho}</p>
+            </div>
           </div>
         </div>
-      </header>
+      )}
+    </div>
+  );
+}
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+// ── Page ──────────────────────────────────────────────────────────────────────
 
-        {/* ── EYWA GRAPH ── */}
-        <section className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="px-6 pt-6 pb-2 flex items-start justify-between">
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Ecosistema EYWA</h1>
-              <p className="text-sm text-gray-500 mt-0.5">
-                Tu huella en los 6 módulos de la plataforma
-              </p>
+export default function ResumenPage() {
+  return (
+    <div className="min-h-screen bg-gray-50">
+
+      {/* ── HERO ── */}
+      <section className="bg-white border-b border-gray-100">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-14 text-center">
+          <div className="inline-flex items-center gap-2 bg-teal-50 border border-teal-100 text-teal-700 text-xs font-semibold px-4 py-1.5 rounded-full mb-6">
+            <Globe className="w-3.5 h-3.5"/> Plataforma de Sostenibilidad
+          </div>
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 tracking-tight mb-4">
+            ¿Qué es <span className="text-teal-600">EYWA</span>?
+          </h1>
+          <p className="text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed mb-8">
+            EYWA es una plataforma integrada que acompaña a organizaciones en su camino hacia la sostenibilidad.
+            Combina diagnóstico, medición, colaboración, formación y gestión de impacto en un solo ecosistema digital.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            {[
+              { icon: Shield, label: 'Basado en estándares ESG',    color: '#0ea5e9' },
+              { icon: TrendingUp, label: 'Medición continua',       color: '#10b981' },
+              { icon: Users, label: 'Colaboración y co-creación',   color: '#ec4899' },
+              { icon: GraduationCap, label: 'Formación especializada', color: '#8b5cf6' },
+            ].map(({ icon: Icon, label, color }) => (
+              <span key={label} className="flex items-center gap-2 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-100 px-4 py-2 rounded-xl">
+                <Icon className="w-4 h-4" style={{ color }}/>{label}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-14">
+
+        {/* ── ECOSYSTEM GRAPH ── */}
+        <section>
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">El ecosistema EYWA</h2>
+            <p className="text-gray-500 mt-1.5">7 herramientas conectadas, un único objetivo: organizaciones más sostenibles</p>
+          </div>
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="h-[400px] sm:h-[460px]">
+              <EcosystemGraph/>
             </div>
-            <span className="px-3 py-1 bg-teal-50 text-teal-700 text-xs font-semibold rounded-full border border-teal-100">
-              Datos en tiempo real
-            </span>
+            <div className="px-6 pb-6 flex flex-wrap gap-3 justify-center border-t border-gray-50 pt-4">
+              {TOOLS.map(t => (
+                <div key={t.id} className="flex items-center gap-1.5 text-xs text-gray-500">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.color }}/>
+                  {t.name}
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="h-[420px] sm:h-[500px]">
-            <EywaGraph stats={graphStats} />
+        </section>
+
+        {/* ── HOW IT CONNECTS ── */}
+        <section>
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Cómo se conectan las herramientas</h2>
+            <p className="text-gray-500 mt-1.5">Cada módulo alimenta y potencia a los demás</p>
           </div>
-          {/* Legend */}
-          <div className="px-6 pb-6 flex flex-wrap gap-3 justify-center">
-            {MODULE_DEFS.map(m => (
-              <div key={m.id} className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: m.color }} />
-                <span className="text-xs text-gray-500">{m.label}</span>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              {
+                title: 'Conoce dónde estás',
+                desc:  'El Diagnóstico ESG y el perfil de Organización establecen la línea base: quién eres, en qué sector operas y cuán maduro es tu enfoque sostenible.',
+                icons: [Stethoscope, Building2],
+                colors: ['#10b981', '#3b82f6'],
+                step: '01',
+              },
+              {
+                title: 'Mide y colabora',
+                desc:  'El Panel ESG registra tu evolución continua. Simbiocreación documenta el aprendizaje colectivo. El Validador evalúa tus proyectos antes de lanzarlos.',
+                icons: [Leaf, Network, CheckCircle2],
+                colors: ['#0ea5e9', '#ec4899', '#06b6d4'],
+                step: '02',
+              },
+              {
+                title: 'Crece y reporta',
+                desc:  'El Portfolio muestra el impacto agregado de tu inversión sostenible. La Academia cierra las brechas de conocimiento identificadas en el diagnóstico.',
+                icons: [BarChart3, GraduationCap],
+                colors: ['#f59e0b', '#8b5cf6'],
+                step: '03',
+              },
+            ].map(({ title, desc, icons, colors, step }) => (
+              <div key={step} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                <div className="text-5xl font-extrabold text-gray-100 mb-4">{step}</div>
+                <div className="flex gap-2 mb-4">
+                  {icons.map((Icon, i) => (
+                    <div key={i} className="w-9 h-9 rounded-xl flex items-center justify-center"
+                      style={{ backgroundColor: colors[i] + '18' }}>
+                      <Icon className="w-5 h-5" style={{ color: colors[i] }}/>
+                    </div>
+                  ))}
+                </div>
+                <h3 className="font-bold text-gray-900 mb-2">{title}</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
               </div>
             ))}
           </div>
         </section>
 
-        {/* ── STATS GRID ── */}
+        {/* ── TOOLS DETAIL ── */}
         <section>
-          <h2 className="text-base font-bold text-gray-700 mb-4 uppercase tracking-wider text-xs">Métricas por módulo</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            <StatCard icon={Stethoscope}   label="Diagnóstico"     value={fmt(diagScore, '%')}           color="#10b981" sub="madurez ESG" />
-            <StatCard icon={Network}        label="Simbios"         value={fmt(simbiosCount)}              color="#ec4899" sub={`${simbiosTags} ideas/tags`} />
-            <StatCard icon={BarChart2}      label="ESG promedio"    value={fmt(esgAvg)}                    color="#0ea5e9" sub="escala 1–10" />
-            <StatCard icon={BarChart3}      label="Portfolio"       value={fmt(portfolioCount)}             color="#f59e0b" sub="empresas" />
-            <StatCard icon={BookOpen}       label="Academia"        value={fmt(coursesCount)}               color="#8b5cf6" sub="cursos inscritos" />
-            <StatCard icon={Building2}      label="Organización"    value={orgDone ? 'Completo' : 'Pendiente'} color="#3b82f6" sub={orgDone ? 'perfil listo' : 'sin perfil'} />
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Las herramientas en detalle</h2>
+            <p className="text-gray-500 mt-1.5">Expande cada tarjeta para ver cómo funciona y por qué importa</p>
           </div>
-        </section>
-
-        {/* ── QUICK LINKS ── */}
-        <section>
-          <h2 className="text-xs font-bold text-gray-700 mb-4 uppercase tracking-wider">Acceso rápido</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {[
-              { label: 'Diagnóstico',     href: '/?view=diagnostic',     color: '#10b981', Icon: Stethoscope   },
-              { label: 'Simbiocreación',  href: '/?view=simbiocreacion', color: '#ec4899', Icon: Network       },
-              { label: 'ESG',             href: '/?view=hero',           color: '#0ea5e9', Icon: Leaf           },
-              { label: 'Portfolio',       href: '/?view=portfolio',      color: '#f59e0b', Icon: BarChart3      },
-              { label: 'Academia',        href: '/?view=edutech',        color: '#8b5cf6', Icon: GraduationCap  },
-              { label: 'Organización',    href: '/?view=organization',   color: '#3b82f6', Icon: Building2      },
-            ].map(({ label, href, color, Icon }) => (
-              <a key={label} href={href}
-                className="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl border border-gray-100 hover:shadow-md hover:border-gray-200 transition-all group">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform"
-                  style={{ backgroundColor: color + '1a' }}>
-                  <Icon className="w-5 h-5" style={{ color }} />
-                </div>
-                <span className="text-xs font-semibold text-gray-700 text-center leading-tight">{label}</span>
-              </a>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {TOOLS.map(tool => (
+              <ToolCard key={tool.id} tool={tool}/>
             ))}
           </div>
         </section>
 
-        {/* ── FOOTER NOTE ── */}
-        <p className="text-center text-xs text-gray-400 pb-4">
-          eywa-hazel.vercel.app/resumen · actualizado al abrir la página
+        {/* ── CTA ── */}
+        <section className="bg-gradient-to-br from-teal-600 to-teal-800 rounded-3xl p-10 text-center text-white">
+          <h2 className="text-2xl font-extrabold mb-3">Empieza tu camino sostenible</h2>
+          <p className="text-teal-100 mb-7 max-w-xl mx-auto">
+            Inicia con el diagnóstico ESG y obtén en minutos un mapa claro de tu posición actual y las próximas acciones.
+          </p>
+          <a href="/"
+            className="inline-flex items-center gap-2 bg-white text-teal-700 font-bold px-7 py-3.5 rounded-2xl hover:bg-teal-50 transition-colors shadow-lg">
+            Ir a la plataforma <ArrowRight className="w-4 h-4"/>
+          </a>
+        </section>
+
+        <p className="text-center text-xs text-gray-400 pb-2">
+          eywa-hazel.vercel.app/resumen · EYWA Platform 2025
         </p>
-      </main>
+      </div>
     </div>
   );
 }
