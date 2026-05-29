@@ -1,319 +1,255 @@
-# EYWA - Plataforma de Orquestacion Ecosistemica y Sostenibilidad
+# EYWA — Plataforma de Sostenibilidad y Gestión de Impacto
 
-> Ecosistema digital integrado para la regeneracion territorial y la inversion de impacto en la region andino-amazonica.
-
-## Sobre EYWA
-
-EYWA es una plataforma de **Ecosistema como Servicio (EaaS)** que conecta y orquesta los ecosistemas de gobierno, empresas, inversores, academia y sociedad civil. Funciona como una infraestructura critica de tecnologia climatica (Climate Tech) para Latinoamerica, diseñada para resolver la crisis de confianza que paraliza la inversion sostenible.
-
-### Proposito
-
-Transformar datos territoriales en informacion estandarizada, verificable y auditable que permita:
-
-- **Diagnostico automatizado** de emprendimientos con IA y puntuacion ASG (Ambiental, Social, Gobernanza)
-- **Trazabilidad verificable** del impacto mediante blockchain ("Cadena de Impacto Verificable")
-- **Pipeline de inversion inteligente** con deal-flow curado y pre-calificado
-- **Formacion continua** a traves del modulo de Academia (Edutech)
-
-### Modelo de Negocio
-
-| Segmento | Modelo | Descripcion |
-|----------|--------|-------------|
-| Inversores (B2B) | SaaS Premium | Suscripcion mensual para acceso al pipeline, datos ASG verificados y herramientas de due diligence |
-| Gobierno (B2G) | Contratos | Servicios de trazabilidad, reportes territoriales y metricas de impacto publico |
-| Emprendedores | Freemium | Diagnostico basico gratuito, hojas de ruta personalizadas |
-| Academia | API | Acceso a datos agregados y anonimizados para investigacion |
-
-### Modelo Ecosistemico: Quintuple Helice
-
-EYWA articula cinco actores: **Gobierno** (politicas basadas en evidencia), **Industria** (emprendimientos regenerativos), **Academia** (investigacion con datos reales), **Sociedad Civil** (verificacion social del impacto) y **Entorno Natural** (monitoreo ambiental y trazabilidad ecologica).
+> MVP Fase 1 en producción · eywa-hazel.vercel.app · mayo 2025
 
 ---
 
-## Stack Tecnologico
+## ¿Qué es EYWA?
 
-| Tecnologia | Uso |
-|------------|-----|
-| **Next.js 15** | Framework React con App Router |
-| **TypeScript** | Tipado estatico |
-| **Supabase** | Backend: Auth (JWT), PostgreSQL, Row Level Security |
-| **Tailwind CSS** | Estilos utilitarios |
-| **Lucide React** | Iconografia |
-| **Vercel** | Despliegue y hosting |
+Plataforma digital integrada que acompaña a organizaciones en su camino hacia la sostenibilidad. Combina diagnóstico ESG, medición continua, colaboración visual, formación y gestión de portafolio en un único ecosistema.
+
+**Presentación pública:** https://eywa-hazel.vercel.app/fase1
+
+---
+
+## Stack Técnico
+
+| Capa | Tecnología |
+|------|-----------|
+| **Frontend** | Next.js 15 · App Router · TypeScript · Tailwind CSS |
+| **Backend** | Hono.js (Node) · REST API · JWT propio |
+| **Base de datos** | PostgreSQL 16 · Prisma ORM |
+| **Infraestructura** | VPS 161.132.54.226 · Docker Compose · Vercel (frontend) |
+| **IA** | Claude API (Anthropic) — Validador de Proyectos |
+| **Iconos** | Lucide React |
 
 ---
 
 ## Arquitectura
 
-El proyecto sigue principios de **Clean Architecture** con separacion clara de responsabilidades:
+```
+Frontend (Vercel)                Backend (VPS :4001)
+Next.js 15                       Hono.js + Prisma
+src/app/                         ~/eywa-backend/
+  api/proxy/**  ──────────────►  /api/**
+  page.tsx (SPA)                 PostgreSQL eywa_db
+  resumen → /fase1               Docker: eywa_api
+```
+
+### Estructura del frontend
 
 ```
 src/
-├── app/                        # Capa de Presentacion (Routes)
-│   ├── page.tsx                # Pagina principal (SPA con navegacion por estado)
-│   ├── docs/                   # Documentacion y manual de usuario
-│   ├── api/admin/              # API Routes protegidas
-│   │   └── users/
-│   │       ├── route.ts        # GET todos los usuarios
-│   │       └── [id]/
-│   │           ├── role/       # PATCH cambiar rol (superadmin)
-│   │           └── plan/       # PATCH cambiar plan (admin+)
-│   ├── opengraph-image.tsx     # OG image dinamica (1200x630)
-│   ├── layout.tsx              # Layout con AuthProvider
-│   └── middleware.ts           # Refresco de sesion JWT
+├── app/
+│   ├── page.tsx                     # SPA principal (navegación por estado)
+│   ├── fase1/page.tsx               # Presentación pública Fase 1
+│   ├── api/proxy/                   # Proxies al backend VPS
+│   │   ├── simbiocreacion/
+│   │   │   ├── route.ts             # CRUD simbiocreaciones
+│   │   │   ├── [id]/route.ts        # GET/PATCH/DELETE por ID
+│   │   │   ├── public/route.ts      # Simbios públicos (Explora)
+│   │   │   └── ranking/route.ts     # Ranking por puntaje
+│   │   ├── users/
+│   │   │   ├── route.ts             # GET todos (admin+)
+│   │   │   ├── me/route.ts          # GET/PATCH perfil propio
+│   │   │   ├── me/password/route.ts # Cambio de contraseña
+│   │   │   ├── search/route.ts      # GET search?q= (todos auth)
+│   │   │   └── [id]/role|plan/      # PATCH rol/plan (admin+)
+│   │   ├── esg/route.ts
+│   │   ├── portfolio/route.ts
+│   │   ├── courses/
+│   │   ├── diagnostic/
+│   │   └── organization/route.ts
+│   └── layout.tsx
 │
-├── components/                 # Capa de Presentacion (UI)
-│   ├── HomePage.tsx            # Landing page publica
-│   ├── LoginPage.tsx           # Autenticacion (login/registro)
-│   ├── NavigationSidebar.tsx   # Navegacion lateral adaptada por rol
-│   ├── HeroDashboard.tsx       # Panel principal con sello de sostenibilidad
-│   ├── DiagnosticInterface.tsx # Cuestionario de diagnostico integral
-│   ├── ValidadorProyectos.tsx  # Validador de proyectos ASG
-│   ├── InvestorPortfolio.tsx   # Portfolio de empresas
-│   ├── EdutechDashboard.tsx    # Modulo de Academia (cursos)
-│   ├── SuperAdminDashboard.tsx # Panel superadmin (roles + planes)
-│   ├── AdminDashboard.tsx      # Panel admin (planes)
-│   ├── GestorDashboard.tsx     # Panel gestor (portfolio + preguntas)
-│   └── LoadingScreen.tsx       # Pantalla de carga
+├── components/
+│   ├── NavigationSidebar.tsx        # Sidebar con rol-based items + link /fase1
+│   ├── HeroDashboard.tsx            # Panel principal
+│   ├── DiagnosticInterface.tsx      # Cuestionario multi-paso
+│   ├── SimbiocreacionDashboard.tsx  # Grafo interactivo + editor completo
+│   ├── OrganizationProfile.tsx      # Perfil de organización
+│   ├── ValidadorProyectos.tsx       # Validador IA (Claude API)
+│   ├── InvestorPortfolio.tsx        # Portfolio de inversión
+│   ├── EdutechDashboard.tsx         # Academia (cursos + inscripciones)
+│   ├── SettingsDashboard.tsx        # Configuración de perfil
+│   ├── SuperAdminDashboard.tsx
+│   ├── AdminDashboard.tsx
+│   └── GestorDashboard.tsx
 │
 ├── contexts/
-│   └── AuthContext.tsx         # Estado global de autenticacion y perfil
+│   └── AuthContext.tsx              # Estado global de auth + perfil
 │
 └── lib/
-    ├── constants/              # Reglas de Negocio centralizadas
-    │   ├── scoring.ts          # Umbrales, niveles, sellos, calculos
-    │   └── roles.ts            # Roles, colores, permisos, rutas API
-    │
-    ├── repositories/           # Capa de Acceso a Datos
-    │   ├── profile-repository.ts
+    ├── repositories/                # Acceso a datos vía proxy
+    │   ├── simbiocreacion-repository.ts
     │   ├── diagnostic-repository.ts
     │   ├── portfolio-repository.ts
     │   └── course-repository.ts
-    │
-    ├── services/               # Capa de Logica de Negocio
+    ├── services/
     │   ├── diagnostic-service.ts
     │   └── course-service.ts
-    │
-    ├── supabase/               # Capa de Infraestructura
-    │   ├── client.ts           # Cliente browser
-    │   ├── server.ts           # Cliente server (cookies)
-    │   ├── admin.ts            # Cliente service_role (bypass RLS)
-    │   └── use-supabase.ts     # Hook centralizado (reemplaza 6+ instancias)
-    │
+    ├── api/
+    │   └── proxy-helper.ts          # proxyToBackend() — reenvía a VPS
+    ├── constants/
+    │   └── roles.ts
     └── types/
-        └── database.ts         # Tipos: Profile, Course, DiagnosticResult, etc.
-```
-
-### Flujo de Datos
-
-```
-Componente (UI) → Servicio (Logica) → Repositorio (Datos) → Supabase (PostgreSQL)
+        └── database.ts              # Tipos: Profile, Simbiocreacion, StoredGraph…
 ```
 
 ---
 
-## Instalacion
+## Módulos de la Plataforma
 
-### Prerrequisitos
+### Diagnóstico ESG
+Cuestionario guiado con puntaje 0–100. Resultado guardado por usuario. Historial de evolución.
 
-- Node.js >= 18
-- Cuenta en [Supabase](https://supabase.com)
-- (Opcional) Cuenta en [Vercel](https://vercel.com) para deploy
+### Simbiocreación
+Mapa visual de sesiones de co-creación. Grafo fuerza-dirigido con:
+- Drag / pan / zoom (SVG con `requestAnimationFrame`)
+- Editor completo: añadir/eliminar/renombrar nodos y conexiones
+- Paleta de colores, presets (Categoría / Grupo / Persona)
+- Vincular nodos persona a usuarios EYWA reales (búsqueda por nombre)
+- Grafo persistido en BD como `graph_data JSONB` (`StoredGraph`)
+- Panel Búsquedas: lista de grupos y participantes con edición rápida
+- Tabs Explora (simbios públicos) y Ranking
 
-### Setup
+### Panel ESG
+15 indicadores en 5 dimensiones (Ambiental, Social, Gobernanza, Innovación, Cadena de Valor). Historial temporal.
 
-```bash
-# 1. Clonar repositorio
-git clone https://github.com/tu-usuario/eywa-platform.git
-cd eywa-platform
-
-# 2. Instalar dependencias
-npm install
-
-# 3. Configurar variables de entorno
-cp .env.example .env.local
-# Editar .env.local con tus credenciales de Supabase:
-#   NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-#   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhb...
-#   SUPABASE_SERVICE_ROLE_KEY=eyJhb...
-
-# 4. Configurar base de datos
-# Ejecutar el contenido de supabase-setup.sql en el SQL Editor de Supabase
-
-# 5. Iniciar servidor de desarrollo
-npm run dev
-```
-
-### Configuracion de Supabase
-
-1. Crear proyecto en [supabase.com](https://supabase.com) → New Project
-2. Ejecutar `supabase-setup.sql` en el SQL Editor (crea tablas, triggers, RLS, seed data)
-3. Copiar `Project URL` y `anon public key` de Settings → API
-
-#### Tablas principales
-
-| Tabla | Descripcion |
-|-------|-------------|
-| `profiles` | Perfiles de usuario vinculados a `auth.users` (role, plan, empresa) |
-| `portfolio_companies` | Empresas del fondo de inversion |
-| `diagnostic_questions` | Preguntas del diagnostico integral |
-| `diagnostic_options` | Opciones de respuesta con puntajes |
-| `diagnostic_results` | Resultados guardados por usuario |
-| `courses` | Catalogo de cursos de la Academia |
-| `course_enrollments` | Inscripciones y progreso de usuarios |
-
----
-
-## Sistema de Roles y Permisos
-
-| Rol | Permisos | Vistas |
-|-----|----------|--------|
-| `superadmin` | Control total: usuarios, roles, planes, datos | Todas + Panel Super Admin |
-| `admin` | Gestion de usuarios y planes (no roles) | Todas + Panel Admin + Gestor |
-| `gestor` | CRUD portfolio + preguntas diagnostico | Todas + Panel Gestor |
-| `user` | Lectura: dashboard, diagnostico, validador, portfolio, academia | Vistas base |
-
-### Crear primer superadmin
-
-Despues de registrarte normalmente, ejecuta en el SQL Editor de Supabase:
-
-```sql
-UPDATE public.profiles SET role = 'superadmin' WHERE email = 'tu@email.com';
-```
-
----
-
-## Seguridad
-
-### Capas de proteccion
-
-1. **Supabase Auth** — Autenticacion JWT con refresco automatico via middleware
-2. **Row Level Security (RLS)** — Politicas a nivel de base de datos por rol
-3. **API Routes protegidas** — Verificacion de rol en servidor con `service_role`
-4. **Middleware Next.js** — Refresco de sesion en cada request
-
----
-
-## Modulos de la Plataforma
-
-### Diagnostico Integral de Impacto
-Motor central de evaluacion que analiza madurez, sostenibilidad y preparacion para inversion. Genera puntuaciones ASG automatizadas alineadas con metricas IRIS+ y estandares internacionales.
-
-### Portfolio de Inversion
-Catalogo de empresas del fondo con metricas de impacto, sector, descripcion y enlaces. Gestionado por usuarios con rol de gestor.
+### Portfolio de Inversión
+Empresas del portafolio con score ESG, sector, riesgo (bajo/medio/alto), tendencia y fechas de auditoría.
 
 ### Academia (Edutech)
-Modulo de formacion continua con cursos en categorias: Agrotech, Edutech, Banca Sostenible, ESG y General. Sistema de inscripcion con seguimiento de progreso.
+Catálogo de cursos por categoría (agrotech, ESG, banca sostenible…). Inscripciones con seguimiento de progreso.
+
+### Mi Organización
+Perfil completo: tipo, sector, descripción, país, website, links externos.
 
 ### Validador de Proyectos
-Herramienta de pre-evaluacion rapida de proyectos contra criterios ASG predefinidos.
-
-### Paneles Administrativos
-- **Super Admin**: Gestion completa de usuarios, roles y planes
-- **Admin**: Gestion de usuarios y planes
-- **Gestor**: CRUD de portfolio y preguntas de diagnostico
+Análisis con Claude AI. Retroalimentación estructurada sobre viabilidad, alineación ODS y mejoras.
 
 ---
 
-## Viabilidad Financiera
+## Sistema de Roles
 
-### Inversion Requerida
-
-| Fase | Monto (USD) | Proposito |
-|------|-------------|-----------|
-| Seed (T0) | $519,000 | MVP, IA central, PoC Blockchain, runway año 1 |
-| Serie A (T2) | $3,000,000 | Expansion territorial, onboarding 5,000 empresas |
-
-### Proyeccion de Crecimiento (5 años)
-
-| Concepto | T1 | T2 | T3 | T4 | T5 |
-|----------|-----|-----|-----|-----|-----|
-| Clientes Premium | 15 | 50 | 120 | 250 | 450 |
-| ARR (USD) | $270K | $900K | $2.16M | $4.5M | $8.1M |
-| EBITDA (USD) | $11K | $628K | $1.87M | $4.2M | $7.78M |
-
-### Estrategia de Financiamiento Hibrido (Blended Finance)
-
-- **Capital VC/Equity**: Desarrollo de propiedad intelectual (IA/Blockchain) y escalabilidad SaaS
-- **Fondos Concesionales**: Grants de agencias de desarrollo (IDB Lab) para onboarding de emprendedores
-- **Contratos B2G**: Ingresos recurrentes del sector publico para trazabilidad y metricas
+| Rol | Acceso |
+|-----|--------|
+| `user` | Todas las vistas base |
+| `gestor` | + Panel Gestor (portfolio + preguntas) |
+| `admin` | + Panel Admin (gestión planes) |
+| `superadmin` | + Panel SuperAdmin (roles + planes + todo) |
 
 ---
 
-## Operacion (Lean Management)
+## Variables de entorno (`.env.local`)
 
-El plan operativo se rige por la filosofia Lean:
+```env
+# Backend VPS
+BACKEND_URL=http://161.132.54.226:4001
+BACKEND_SECRET=eywa-internal-secret-2026
 
-| Principio | Aplicacion en EYWA |
-|-----------|-------------------|
-| Definir el Valor | Dato estandarizado, auditable e inmutable que genera confianza |
-| Flujo de Valor | Diagnostico → Hoja de Ruta → Implementacion → Verificacion → Inversion |
-| Flujo Continuo | Diagnostico automatizado elimina auditorias manuales |
-| Mejora Continua | IA reentrenada con datos limpios + validacion "Human-in-the-Loop" |
-
-### Innovacion (ISO 56002 + Design Thinking)
-
-El desarrollo sigue un proceso iterativo:
-1. **Empatia/Definicion** — Analizar la crisis de confianza y el riesgo de greenwashing
-2. **Ideacion** — Diseño de soluciones centradas en el usuario (Emprendedor, Inversor, Academia)
-3. **MVP/Medir** — Piloto en Alto Mayo, calibracion del modelo de IA
-4. **Despliegue** — Escalamiento territorial y expansion regional
+# Claude AI (Validador de Proyectos)
+ANTHROPIC_API_KEY=sk-ant-...
+```
 
 ---
 
-## Investigacion Academica
+## Instalación local
 
-EYWA es tambien un proyecto de investigacion vinculado a la FIIS UNAC:
-
-- **Titulo**: Impacto de la Plataforma Digital EYWA en la Movilizacion de Capital de Impacto y la Reduccion del Riesgo de Greenwashing
-- **Tipo**: Aplicada / Cuantitativo / No Experimental - Correlacional/Explicativo
-- **Variable Independiente**: Plataforma Digital EYWA (IA + Blockchain)
-- **Variable Dependiente**: Movilizacion de Capital de Impacto y Reduccion del Greenwashing
-- **Ubicacion**: Ecosistema Andino-Amazonico (enfasis en Alto Mayo y VRAEM)
-
----
-
-## Documentacion
-
-La documentacion completa esta disponible dentro de la aplicacion en la ruta `/docs`, incluyendo:
-
-- Guia de usuario (registro, login, diagnostico, portfolio, academia)
-- Manual de administracion (paneles de gestor, admin, superadmin)
-- Documentacion tecnica (arquitectura, seguridad, roles)
+```bash
+git clone https://github.com/Afkaqui/eywa_frontend.git
+cd eywa_frontend
+npm install
+cp .env.example .env.local   # completar con credenciales reales
+npm run dev
+```
 
 ---
 
 ## Deploy
 
+**Frontend** → Vercel (CI/CD automático desde `main`):
 ```bash
-# Build de produccion
-npm run build
+git push origin main   # Vercel detecta y despliega automáticamente
+```
+URL producción: `https://eywa-hazel.vercel.app`
 
-# Deploy a Vercel (recomendado)
-vercel --prod
+**Backend** → VPS (manual):
+```bash
+ssh kaqui@161.132.54.226
+cd ~/eywa-backend
+git pull
+docker compose build --no-cache && docker compose up -d
 ```
 
-Asegurate de configurar las variables de entorno en el panel de Vercel:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
+---
+
+## Base de datos (eywa_db)
+
+Tablas principales gestionadas por Prisma:
+
+| Tabla | Descripción |
+|-------|-------------|
+| `profiles` | Usuarios (id, email, full_name, role, plan, password bcrypt) |
+| `simbiocreaciones` | Sesiones co-creación. Columna `graph_data JSONB` para grafo persistido |
+| `esg_scores` | Scores ESG por usuario (15 campos) |
+| `esg_history` | Historial de snapshots ESG |
+| `portfolio_companies` | Empresas del portafolio |
+| `organizations` | Perfil organizacional |
+| `diagnostic_questions` | Preguntas del cuestionario |
+| `diagnostic_options` | Opciones de respuesta con puntaje |
+| `diagnostic_results` | Resultados guardados por usuario |
+| `courses` | Catálogo de cursos |
+| `course_enrollments` | Inscripciones y progreso |
+
+**Nota importante:** la columna `graph_data` fue añadida manualmente:
+```sql
+ALTER TABLE simbiocreaciones ADD COLUMN IF NOT EXISTS graph_data JSONB;
+```
 
 ---
 
-## Equipo
+## Tipos clave (`src/lib/types/database.ts`)
 
-| Rol | Responsabilidad |
-|-----|----------------|
-| **Visionario** | Vision de mercado y alineacion con bio-negocios amazonicos |
-| **Arquitecto Tecnico** | Implementacion de IA, Blockchain y cadena de impacto verificable |
-| **Estratega Global** | Adhesion a estandares internacionales (IRIS+, ISSB) y conectividad con capital inteligente |
+```typescript
+// Grafo persistido en simbiocreaciones.graph_data
+interface StoredGraph {
+  nodes: Array<{
+    id: string; label: string;
+    type: 'center' | 'category' | 'group' | 'person';
+    color: string;
+    userId?: string;   // opcional: vincula a usuario EYWA real
+  }>;
+  edges: Array<{ from: string; to: string }>;
+}
+```
 
 ---
 
-## Licencia
+## Rutas públicas
 
-Proyecto privado. Todos los derechos reservados.
+| Ruta | Descripción |
+|------|-------------|
+| `/` | SPA principal (requiere auth) |
+| `/fase1` | Presentación pública — qué es EYWA, herramientas, stack, roadmap |
 
 ---
 
-*Construido con Next.js, Supabase y Tailwind CSS.*
+## Fase 1 — Checklist
+
+- [x] Auth completa (registro, login, roles, JWT)
+- [x] Diagnóstico ESG (cuestionario + historial)
+- [x] Panel ESG 15 indicadores
+- [x] Simbiocreación — grafo interactivo con editor completo
+- [x] Portfolio de inversión
+- [x] Academia (cursos + inscripciones)
+- [x] Mi Organización
+- [x] Validador de Proyectos (Claude AI)
+- [x] Dashboards por rol (Gestor / Admin / SuperAdmin)
+- [x] Configuración de perfil + cambio de contraseña
+- [x] API REST en VPS (Hono.js + Docker)
+- [x] Deploy automático en Vercel
+
+---
+
+*EYWA Fase 1 · 2025 · Todos los derechos reservados.*
