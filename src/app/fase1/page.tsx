@@ -606,7 +606,7 @@ export default function ResumenPage() {
         </section>
 
         <p className="text-center text-xs text-gray-400 pb-2">
-          eywa-hazel.vercel.app/resumen · EYWA Fase 1 · 2025
+          eywa-hazel.vercel.app/fase1 · EYWA Fase 1 · 2025
         </p>
       </div>
     </div>

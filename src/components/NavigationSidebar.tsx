@@ -39,7 +39,7 @@ export function NavigationSidebar({ currentView, userRole, userName, userEmail, 
 
   const baseItems = [
     { id: 'hero', icon: LayoutDashboard, label: 'Panel Principal' },
-    { id: 'resumen', icon: PieChart, label: 'Resumen', href: '/resumen' },
+    { id: 'fase1', icon: PieChart, label: 'Fase 1', href: '/fase1' },
     { id: 'diagnostic', icon: Stethoscope, label: 'Diagnóstico' },
     { id: 'validator', icon: CheckCircle, label: 'Validador de Proyectos' },
     { id: 'organization', icon: Building2, label: 'Mi Organización' },
