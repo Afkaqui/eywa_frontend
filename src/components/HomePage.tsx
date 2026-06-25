@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from 'react';
 import { ArrowRight, Shield, BarChart3, Leaf, Award, ChevronDown, Network, Database, GitBranch, Layers, Mail, MapPin, Phone, Linkedin, Twitter, Globe } from 'lucide-react';
 
 const logo = "/logo.png";
@@ -9,6 +10,13 @@ interface HomePageProps {
 }
 
 export function HomePage({ onGetStarted }: HomePageProps) {
+  const [fogVisible, setFogVisible] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setFogVisible(false), 300);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
@@ -46,7 +54,20 @@ export function HomePage({ onGetStarted }: HomePageProps) {
             backgroundImage: `url('https://images.unsplash.com/photo-1705998989555-87ed424a269d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhbWF6b24lMjByYWluZm9yZXN0JTIwYWVyaWFsfGVufDF8fHx8MTc2OTEwMTY4NHww&ixlib=rb-4.1.0&q=80&w=1080')`,
           }}
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-gray-900/90 via-gray-900/70 to-white"></div>
+          {/* White fade — solo en el tercio inferior para transición de página */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{ background: 'linear-gradient(to bottom, transparent 55%, white 100%)' }}
+          />
+          {/* Fog oscuro que se disipa al cargar */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: 'linear-gradient(to bottom, rgba(17,24,39,0.92) 0%, rgba(17,24,39,0.55) 65%, transparent 100%)',
+              opacity: fogVisible ? 1 : 0.58,
+              transition: 'opacity 2.8s ease-out',
+            }}
+          />
         </div>
 
         {/* Content */}
@@ -57,12 +78,12 @@ export function HomePage({ onGetStarted }: HomePageProps) {
             <span className="sm:hidden">Orquestación Ecosistémica</span>
           </div>
           
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-light text-white mb-4 md:mb-6 tracking-tight leading-tight px-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-light text-white mb-4 md:mb-6 tracking-tight leading-tight px-4" style={{ textShadow: '0 2px 16px rgba(0,0,0,0.6)' }}>
             Orquestando Ecosistemas<br />
             <span className="font-semibold">a través de Datos</span>
           </h1>
-          
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-300 mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed px-4">
+
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/80 mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed px-4" style={{ textShadow: '0 1px 10px rgba(0,0,0,0.55)' }}>
             EYWA combina y conecta los ecosistemas de gobierno, empresas, inversores y sociedad civil 
             a través de una plataforma inteligente de gestión de datos para impulsar la sostenibilidad medible.
           </p>
@@ -81,17 +102,28 @@ export function HomePage({ onGetStarted }: HomePageProps) {
           </div>
 
           {/* Stats */}
-          <div className="mt-12 md:mt-24 grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-12 max-w-4xl mx-auto px-4">
+          <div
+            className="mt-12 md:mt-24 grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-12 max-w-4xl mx-auto px-4 py-6 rounded-2xl"
+            style={{ background: 'radial-gradient(ellipse at center, rgba(17,24,39,0.45) 0%, rgba(17,24,39,0.15) 70%, transparent 100%)' }}
+          >
             {[
               { value: '4', label: 'Ecosistemas Conectados', unit: '+' },
               { value: '12.8k', label: 'Puntos de Datos / Día', unit: '' },
               { value: '142.5', label: 'Millones USD Gestionados', unit: 'M' },
             ].map((stat, i) => (
-              <div key={i} className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 md:p-6">
-                <div className="text-2xl md:text-4xl font-light text-white mb-2">
+              <div key={i} className="border-b border-white/25 pb-4 md:pb-6">
+                <div
+                  className="text-2xl md:text-4xl font-light text-white mb-2"
+                  style={{ textShadow: '0 2px 14px rgba(0,0,0,0.95), 0 0 4px rgba(0,0,0,0.8)' }}
+                >
                   {stat.value}<span className="text-emerald-400">{stat.unit}</span>
                 </div>
-                <div className="text-xs md:text-sm text-gray-300 uppercase tracking-wider">{stat.label}</div>
+                <div
+                  className="text-xs md:text-sm text-white uppercase tracking-wider"
+                  style={{ textShadow: '0 1px 10px rgba(0,0,0,0.95), 0 0 4px rgba(0,0,0,0.8)' }}
+                >
+                  {stat.label}
+                </div>
               </div>
             ))}
           </div>
