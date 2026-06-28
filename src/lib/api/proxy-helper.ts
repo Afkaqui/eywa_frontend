@@ -10,7 +10,7 @@ const API_URL = process.env.BACKEND_URL ?? 'http://localhost:4001';
 export async function proxyToBackend(
   request: NextRequest,
   backendPath: string,
-  init?: { method?: string; body?: unknown }
+  init?: { method?: string; body?: unknown; timeoutMs?: number }
 ): Promise<NextResponse> {
   // 1. Obtener el JWT de Auth.js (desencripta la cookie de sesión)
   const token = await getToken({
@@ -32,7 +32,7 @@ export async function proxyToBackend(
         'Authorization': `Bearer ${token.backendToken}`,
       },
       body: init?.body ? JSON.stringify(init.body) : undefined,
-      signal: AbortSignal.timeout(8000),
+      signal: AbortSignal.timeout(init?.timeoutMs ?? 8000),
     });
 
     const data = await res.json().catch(() => ({}));

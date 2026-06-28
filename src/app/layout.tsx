@@ -74,6 +74,42 @@ export const metadata: Metadata = {
   category: "technology",
 };
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://eywa-hazel.vercel.app";
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${siteUrl}/#organization`,
+      name: "EYWA",
+      url: siteUrl,
+      logo: `${siteUrl}/logo.png`,
+      description:
+        "Plataforma de orquestación ecosistémica que conecta gobierno, empresas, inversores y sociedad civil a través de la gestión inteligente de datos para impulsar la sostenibilidad medible.",
+      slogan: "Orquestando ecosistemas a través de datos",
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${siteUrl}/#website`,
+      url: siteUrl,
+      name: "EYWA",
+      inLanguage: "es",
+      publisher: { "@id": `${siteUrl}/#organization` },
+    },
+    {
+      "@type": "SoftwareApplication",
+      name: "EYWA",
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web",
+      url: siteUrl,
+      description:
+        "Plataforma SaaS de gestión de datos ESG y sostenibilidad: diagnóstico ESG, portfolio de inversión sostenible, simbiocreación y reporting verificable.",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -81,6 +117,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body>
         <SessionProvider>
           <AuthProvider>{children}</AuthProvider>

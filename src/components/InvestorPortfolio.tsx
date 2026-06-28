@@ -71,11 +71,15 @@ export function InvestorPortfolio() {
     });
   };
 
-  const portfolioStats = [
-    { label: 'Valor Total del Portfolio', value: '$142.5M', change: '+12.3%' },
-    { label: 'Trust Score Promedio', value: '82.8', change: '+4.2' },
-    { label: 'Impacto de Carbono Total', value: '6.5kt', change: '+18%' },
-    { label: 'Empresas', value: '24', change: '+3' },
+  // Calcula lo que se puede del listado real; el resto queda como "Pendiente".
+  const avgScore = companies.length
+    ? Math.round((companies.reduce((a, c) => a + (c.score || 0), 0) / companies.length) * 10) / 10
+    : null;
+  const portfolioStats: { label: string; value: string | number | null; note: string }[] = [
+    { label: 'Valor Total del Portfolio', value: null, note: 'En cálculo · requiere valorización' },
+    { label: 'Trust Score Promedio', value: avgScore, note: 'Requiere empresas registradas' },
+    { label: 'Impacto de Carbono Total', value: null, note: 'En cálculo · requiere datos de carbono' },
+    { label: 'Empresas', value: companies.length, note: '' },
   ];
 
   return (
@@ -107,10 +111,14 @@ export function InvestorPortfolio() {
             {portfolioStats.map((stat, i) => (
               <div key={i} className="bg-gray-50 rounded-lg p-4">
                 <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">{stat.label}</div>
-                <div className="flex items-baseline gap-2">
+                {stat.value !== null && stat.value !== undefined ? (
                   <span className="text-2xl font-light text-gray-900">{stat.value}</span>
-                  <span className="text-sm text-emerald-600 font-medium">{stat.change}</span>
-                </div>
+                ) : (
+                  <div>
+                    <span className="text-base font-semibold text-gray-400">Pendiente</span>
+                    <div className="text-xs text-gray-400 mt-0.5">{stat.note}</div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

@@ -190,11 +190,10 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic }: HeroDashb
               <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
                 <Activity className="w-5 h-5 text-emerald-600" />
               </div>
-              <TrendingUp className="w-4 h-4 text-emerald-600" />
             </div>
             <div className="text-xs md:text-sm text-gray-500 uppercase tracking-wider mb-2">Carbono Capturado</div>
-            <div className="text-2xl md:text-3xl font-light text-gray-900 mb-1">1,204</div>
-            <div className="text-xs md:text-sm text-gray-500">Tons CO₂</div>
+            <div className="text-base md:text-lg font-semibold text-gray-400 mb-1">Pendiente</div>
+            <div className="text-xs text-gray-400">En cálculo · requiere datos ESG</div>
           </div>
 
           {/* Card 2: IMI Gap */}
@@ -203,11 +202,10 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic }: HeroDashb
               <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
                 <TrendingUp className="w-5 h-5 text-blue-600" />
               </div>
-              <div className="text-xs font-medium text-emerald-600">-12%</div>
             </div>
             <div className="text-xs md:text-sm text-gray-500 uppercase tracking-wider mb-2">Reducción Gap IMI</div>
-            <div className="text-2xl md:text-3xl font-light text-gray-900 mb-1">12%</div>
-            <div className="text-xs md:text-sm text-gray-500">Mejora</div>
+            <div className="text-base md:text-lg font-semibold text-gray-400 mb-1">Pendiente</div>
+            <div className="text-xs text-gray-400">En cálculo · requiere diagnósticos</div>
           </div>
 
           {/* Card 3: Next Audit */}
@@ -218,8 +216,8 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic }: HeroDashb
               </div>
             </div>
             <div className="text-xs md:text-sm text-gray-500 uppercase tracking-wider mb-2">Próxima Auditoría</div>
-            <div className="text-2xl md:text-3xl font-light text-gray-900 mb-1">45</div>
-            <div className="text-xs md:text-sm text-gray-500">Días (28 Feb)</div>
+            <div className="text-base md:text-lg font-semibold text-gray-400 mb-1">Por programar</div>
+            <div className="text-xs text-gray-400">Sin auditorías registradas</div>
           </div>
 
           {/* Card 4: Active Projects */}
@@ -230,8 +228,8 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic }: HeroDashb
               </div>
             </div>
             <div className="text-xs md:text-sm text-gray-500 uppercase tracking-wider mb-2">Proyectos Activos</div>
-            <div className="text-2xl md:text-3xl font-light text-gray-900 mb-1">24</div>
-            <div className="text-xs md:text-sm text-gray-500">En 3 regiones</div>
+            <div className="text-base md:text-lg font-semibold text-gray-400 mb-1">Pendiente</div>
+            <div className="text-xs text-gray-400">Requiere proyectos registrados</div>
           </div>
         </div>
 
@@ -255,15 +253,15 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic }: HeroDashb
                 </p>
                 <div className="grid grid-cols-3 gap-3 md:gap-4">
                   <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 md:p-4 border border-blue-200/30">
-                    <div className="text-xl md:text-2xl font-light text-gray-900 mb-1">4</div>
+                    <div className="text-sm md:text-base font-semibold text-gray-400 mb-1">Pendiente</div>
                     <div className="text-xs text-gray-600 uppercase tracking-wider">Cursos Activos</div>
                   </div>
                   <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 md:p-4 border border-blue-200/30">
-                    <div className="text-xl md:text-2xl font-light text-gray-900 mb-1">24h</div>
+                    <div className="text-sm md:text-base font-semibold text-gray-400 mb-1">Pendiente</div>
                     <div className="text-xs text-gray-600 uppercase tracking-wider">Horas Formativas</div>
                   </div>
                   <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 md:p-4 border border-blue-200/30">
-                    <div className="text-xl md:text-2xl font-light text-gray-900 mb-1">75%</div>
+                    <div className="text-sm md:text-base font-semibold text-gray-400 mb-1">Pendiente</div>
                     <div className="text-xs text-gray-600 uppercase tracking-wider">Progreso Promedio</div>
                   </div>
                 </div>

@@ -107,16 +107,16 @@ export function HomePage({ onGetStarted }: HomePageProps) {
             style={{ background: 'radial-gradient(ellipse at center, rgba(17,24,39,0.45) 0%, rgba(17,24,39,0.15) 70%, transparent 100%)' }}
           >
             {[
-              { value: '4', label: 'Ecosistemas Conectados', unit: '+' },
-              { value: '12.8k', label: 'Puntos de Datos / Día', unit: '' },
-              { value: '142.5', label: 'Millones USD Gestionados', unit: 'M' },
+              { label: 'Ecosistemas Conectados' },
+              { label: 'Puntos de Datos / Día' },
+              { label: 'Millones USD Gestionados' },
             ].map((stat, i) => (
               <div key={i} className="border-b border-white/25 pb-4 md:pb-6">
                 <div
-                  className="text-2xl md:text-4xl font-light text-white mb-2"
+                  className="text-lg md:text-2xl font-medium text-white/70 mb-2"
                   style={{ textShadow: '0 2px 14px rgba(0,0,0,0.95), 0 0 4px rgba(0,0,0,0.8)' }}
                 >
-                  {stat.value}<span className="text-emerald-400">{stat.unit}</span>
+                  Pendiente
                 </div>
                 <div
                   className="text-xs md:text-sm text-white uppercase tracking-wider"
@@ -139,7 +139,7 @@ export function HomePage({ onGetStarted }: HomePageProps) {
       <section id="platform" className="py-16 md:py-32 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 md:mb-20">
-            <div className="text-xs md:text-sm text-emerald-600 uppercase tracking-wider font-semibold mb-4">La Plataforma</div>
+            <div className="text-xs md:text-sm text-emerald-700 uppercase tracking-wider font-semibold mb-4">La Plataforma</div>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-light text-gray-900 mb-4 md:mb-6 px-4">
               Conectando Ecosistemas<br />
               <span className="font-semibold">a través de Inteligencia de Datos</span>
@@ -194,7 +194,7 @@ export function HomePage({ onGetStarted }: HomePageProps) {
       <section id="features" className="py-16 md:py-32 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 md:mb-20">
-            <div className="text-xs md:text-sm text-emerald-600 uppercase tracking-wider font-semibold mb-4">Funcionalidades</div>
+            <div className="text-xs md:text-sm text-emerald-700 uppercase tracking-wider font-semibold mb-4">Funcionalidades</div>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-light text-gray-900 mb-4 md:mb-6 px-4">
               Capacidades de<br />
               <span className="font-semibold">Orquestación Inteligente</span>
@@ -275,7 +275,7 @@ export function HomePage({ onGetStarted }: HomePageProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
             <div>
-              <div className="text-xs md:text-sm text-emerald-600 uppercase tracking-wider font-semibold mb-4">Sobre EYWA</div>
+              <div className="text-xs md:text-sm text-emerald-700 uppercase tracking-wider font-semibold mb-4">Sobre EYWA</div>
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-light text-gray-900 mb-4 md:mb-6">
                 Orquestación ecosistémica<br />
                 <span className="font-semibold">impulsada por datos</span>
@@ -372,7 +372,7 @@ export function HomePage({ onGetStarted }: HomePageProps) {
 
             {/* Platform Column */}
             <div>
-              <h4 className="text-white text-sm font-semibold uppercase tracking-wider mb-5">Plataforma</h4>
+              <h3 className="text-white text-sm font-semibold uppercase tracking-wider mb-5">Plataforma</h3>
               <ul className="space-y-3">
                 {[
                   { label: 'Diagnóstico ESG', href: '#' },
@@ -392,7 +392,7 @@ export function HomePage({ onGetStarted }: HomePageProps) {
 
             {/* Company Column */}
             <div>
-              <h4 className="text-white text-sm font-semibold uppercase tracking-wider mb-5">Empresa</h4>
+              <h3 className="text-white text-sm font-semibold uppercase tracking-wider mb-5">Empresa</h3>
               <ul className="space-y-3">
                 {[
                   { label: 'Sobre Nosotros', href: '#about' },
@@ -412,7 +412,7 @@ export function HomePage({ onGetStarted }: HomePageProps) {
 
             {/* Contact Column */}
             <div>
-              <h4 className="text-white text-sm font-semibold uppercase tracking-wider mb-5">Contacto</h4>
+              <h3 className="text-white text-sm font-semibold uppercase tracking-wider mb-5">Contacto</h3>
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
                   <Mail className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
@@ -437,7 +437,7 @@ export function HomePage({ onGetStarted }: HomePageProps) {
         <div className="border-t border-gray-800/50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-6">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <p className="text-xs text-gray-500 order-2 md:order-1">
+              <p className="text-xs text-gray-400 order-2 md:order-1">
                 &copy; {new Date().getFullYear()} EYWA Platform. Todos los derechos reservados.
               </p>
               <div className="flex items-center gap-6 order-1 md:order-2">
@@ -449,7 +449,7 @@ export function HomePage({ onGetStarted }: HomePageProps) {
                   <a
                     key={link.label}
                     href={link.href}
-                    className="text-gray-500 hover:text-gray-300 text-xs transition-colors duration-200"
+                    className="text-gray-400 hover:text-gray-200 text-xs transition-colors duration-200"
                   >
                     {link.label}
                   </a>

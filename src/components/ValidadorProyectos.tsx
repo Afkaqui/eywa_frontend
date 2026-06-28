@@ -1,7 +1,12 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  ValidatorRepository,
+  type ProjectPlanRow,
+  type CreatePlanPayload,
+} from '@/lib/repositories/validator-repository';
 import { 
   Plus,
   Search, 
@@ -27,130 +32,48 @@ import {
   Activity
 } from 'lucide-react';
 
-interface ProjectPlan {
-  id: string;
-  name: string;
-  type: string;
-  description: string;
-  budget: number;
-  duration: number;
-  carbonGoal: number;
-  createdDate: string;
-  status: 'analyzed' | 'pending';
-  report?: {
-    overallScore: number;
-    strengths: string[];
-    weaknesses: string[];
-    recommendations: string[];
-    esgScores: {
-      environmental: number;
-      social: number;
-      governance: number;
-    };
-    riskLevel: 'low' | 'medium' | 'high';
-    viability: number;
-  };
-}
+// El tipo del proyecto viene del repository (alineado con el backend)
+type ProjectPlan = ProjectPlanRow;
 
-const mockProjects: ProjectPlan[] = [
-  {
-    id: 'PLAN-001',
-    name: 'Implementación de Energía Solar en Oficinas',
-    type: 'Energía Renovable',
-    description: 'Instalación de paneles solares en 5 edificios corporativos para reducir consumo de red eléctrica en 60%',
-    budget: 850000,
-    duration: 8,
-    carbonGoal: 1200,
-    createdDate: '2024-03-06',
-    status: 'analyzed',
-    report: {
-      overallScore: 87,
-      strengths: [
-        'ROI proyectado positivo en 4.5 años',
-        'Reducción significativa de huella de carbono',
-        'Tecnología probada y confiable',
-        'Incentivos fiscales disponibles'
-      ],
-      weaknesses: [
-        'Inversión inicial elevada requiere financiamiento',
-        'Mantenimiento especializado necesario',
-        'Dependencia de condiciones climáticas'
-      ],
-      recommendations: [
-        'Considerar financiamiento verde o bonos de sostenibilidad',
-        'Establecer contrato de mantenimiento preventivo desde año 1',
-        'Implementar sistema de monitoreo en tiempo real',
-        'Evaluar baterías de almacenamiento para maximizar beneficio'
-      ],
-      esgScores: {
-        environmental: 92,
-        social: 78,
-        governance: 91
-      },
-      riskLevel: 'low',
-      viability: 89
-    }
-  },
-  {
-    id: 'PLAN-002',
-    name: 'Programa de Reforestación Comunitaria',
-    type: 'Captura de Carbono',
-    description: 'Reforestación de 300 hectáreas con participación de comunidades locales y especies nativas',
-    budget: 420000,
-    duration: 24,
-    carbonGoal: 8500,
-    createdDate: '2024-03-04',
-    status: 'analyzed',
-    report: {
-      overallScore: 82,
-      strengths: [
-        'Alto impacto ambiental a largo plazo',
-        'Generación de empleo local',
-        'Mejora de biodiversidad regional',
-        'Potencial de créditos de carbono'
-      ],
-      weaknesses: [
-        'ROI financiero a muy largo plazo (15+ años)',
-        'Requiere compromiso comunitario sostenido',
-        'Riesgo de incendios forestales',
-        'Métricas de impacto difíciles de cuantificar'
-      ],
-      recommendations: [
-        'Estructurar como proyecto de inversión de impacto social',
-        'Establecer alianzas con ONGs ambientales locales',
-        'Implementar sistema de monitoreo satelital',
-        'Certificar con estándares internacionales (VCS, Gold Standard)',
-        'Crear plan de contingencia contra incendios'
-      ],
-      esgScores: {
-        environmental: 95,
-        social: 88,
-        governance: 68
-      },
-      riskLevel: 'medium',
-      viability: 76
-    }
-  },
-  {
-    id: 'PLAN-003',
-    name: 'Transición a Packaging Biodegradable',
-    type: 'Economía Circular',
-    description: 'Reemplazo completo de empaques plásticos por materiales biodegradables en línea de productos',
-    budget: 320000,
-    duration: 6,
-    carbonGoal: 450,
-    createdDate: '2024-03-01',
-    status: 'pending'
-  }
-];
+const validatorRepo = new ValidatorRepository();
 
 export function ValidadorProyectos() {
-  const [projects, setProjects] = useState<ProjectPlan[]>(mockProjects);
+  const [projects, setProjects] = useState<ProjectPlan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [analyzingId, setAnalyzingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState<ProjectPlan | null>(null);
   const [showReportModal, setShowReportModal] = useState(false);
+
+  const loadProjects = useCallback(async () => {
+    try {
+      setLoadError(null);
+      const plans = await validatorRepo.listPlans();
+      setProjects(plans);
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : 'Error al cargar proyectos');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadProjects(); }, [loadProjects]);
+
+  // Ejecuta el análisis (IA o heurístico) de un proyecto pendiente
+  const handleAnalyze = useCallback(async (id: string) => {
+    setAnalyzingId(id);
+    try {
+      const updated = await validatorRepo.analyzePlan(id);
+      setProjects(prev => prev.map(p => (p.id === id ? updated : p)));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'No se pudo generar el análisis');
+    } finally {
+      setAnalyzingId(null);
+    }
+  }, []);
 
   // Filtrar proyectos
   const filteredProjects = projects.filter(project => {
@@ -258,7 +181,29 @@ export function ValidadorProyectos() {
           </div>
         </div>
 
+        {/* Loading / error states */}
+        {loading && (
+          <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
+            <Activity className="w-10 h-10 text-emerald-500 mx-auto mb-4 animate-spin" />
+            <p className="text-gray-500">Cargando proyectos...</p>
+          </div>
+        )}
+
+        {!loading && loadError && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+            <AlertTriangle className="w-8 h-8 text-red-500 mx-auto mb-3" />
+            <p className="text-red-700 mb-3">{loadError}</p>
+            <button
+              onClick={() => { setLoading(true); loadProjects(); }}
+              className="text-emerald-600 hover:text-emerald-700 font-medium"
+            >
+              Reintentar
+            </button>
+          </div>
+        )}
+
         {/* Projects Grid */}
+        {!loading && !loadError && (
         <div className="grid grid-cols-1 gap-6">
           {filteredProjects.map((project) => (
             <div
@@ -351,11 +296,12 @@ export function ValidadorProyectos() {
                     </button>
                   ) : (
                     <button
-                      className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-all flex items-center gap-2 font-medium"
-                      onClick={() => alert('Generando análisis automático...')}
+                      className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-all flex items-center gap-2 font-medium disabled:opacity-60 disabled:cursor-not-allowed"
+                      onClick={() => handleAnalyze(project.id)}
+                      disabled={analyzingId === project.id}
                     >
-                      <Activity className="w-4 h-4" />
-                      Generar Análisis
+                      <Activity className={`w-4 h-4 ${analyzingId === project.id ? 'animate-spin' : ''}`} />
+                      {analyzingId === project.id ? 'Analizando...' : 'Generar Análisis'}
                     </button>
                   )}
                   <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all flex items-center gap-2">
@@ -404,25 +350,29 @@ export function ValidadorProyectos() {
               )}
             </div>
           ))}
-        </div>
 
-        {filteredProjects.length === 0 && (
-          <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
-            <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 mb-2">No se encontraron proyectos</p>
-            <button
-              onClick={() => setShowNewProjectModal(true)}
-              className="text-emerald-600 hover:text-emerald-700 font-medium"
-            >
-              Crear tu primer proyecto
-            </button>
-          </div>
+          {filteredProjects.length === 0 && (
+            <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
+              <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 mb-2">No se encontraron proyectos</p>
+              <button
+                onClick={() => setShowNewProjectModal(true)}
+                className="text-emerald-600 hover:text-emerald-700 font-medium"
+              >
+                Crear tu primer proyecto
+              </button>
+            </div>
+          )}
+        </div>
         )}
       </div>
 
       {/* New Project Modal */}
       {showNewProjectModal && (
-        <NewProjectModal onClose={() => setShowNewProjectModal(false)} />
+        <NewProjectModal
+          onClose={() => setShowNewProjectModal(false)}
+          onCreated={async () => { await loadProjects(); }}
+        />
       )}
 
       {/* Report Modal */}
@@ -441,7 +391,7 @@ export function ValidadorProyectos() {
 }
 
 // New Project Modal
-function NewProjectModal({ onClose }: { onClose: () => void }) {
+function NewProjectModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => Promise<void> | void }) {
   const [formData, setFormData] = useState({
     name: '',
     type: 'Energía Renovable',
@@ -454,6 +404,8 @@ function NewProjectModal({ onClose }: { onClose: () => void }) {
   });
   const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; size: number; type: string }>>([]);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   
   const { profile } = useAuth();
   const accountPlan = profile?.plan || 'free';
@@ -504,10 +456,40 @@ function NewProjectModal({ onClose }: { onClose: () => void }) {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert(`Proyecto creado con ${uploadedFiles.length} documento(s). Generando análisis automático en 24-48 horas...`);
-    onClose();
+    if (submitting) return;
+
+    // Validación mínima de campos obligatorios
+    if (!formData.name || !formData.description || !formData.budget || !formData.duration || !formData.carbonGoal) {
+      setSubmitError('Completa todos los campos obligatorios (*)');
+      return;
+    }
+
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const payload: CreatePlanPayload = {
+        name:         formData.name,
+        type:         formData.type,
+        description:  formData.description,
+        budget:       Number(formData.budget) || 0,
+        duration:     Number(formData.duration) || 0,
+        carbonGoal:   Number(formData.carbonGoal) || 0,
+        objectives:   formData.objectives || null,
+        stakeholders: formData.stakeholders || null,
+        documents:    uploadedFiles,
+      };
+      const created = await validatorRepo.createPlan(payload);
+      // Dispara el análisis inmediatamente (IA o heurístico según config del backend)
+      await validatorRepo.analyzePlan(created.id).catch(() => { /* el plan queda como pendiente y se puede reintentar */ });
+      await onCreated();
+      onClose();
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'No se pudo crear el proyecto');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -786,21 +768,31 @@ function NewProjectModal({ onClose }: { onClose: () => void }) {
             </div>
           </form>
 
-          <div className="px-8 py-6 border-t border-gray-200 flex items-center justify-between bg-gray-50">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-white transition-all font-medium"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleSubmit}
-              className="px-6 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all font-medium flex items-center gap-2"
-            >
-              <Upload className="w-5 h-5" />
-              Crear y Analizar Proyecto
-            </button>
+          <div className="px-8 py-6 border-t border-gray-200 bg-gray-50">
+            {submitError && (
+              <div className="mb-3 text-sm text-red-600 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                {submitError}
+              </div>
+            )}
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={submitting}
+                className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-white transition-all font-medium disabled:opacity-60"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={submitting}
+                className="px-6 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all font-medium flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                <Upload className={`w-5 h-5 ${submitting ? 'animate-pulse' : ''}`} />
+                {submitting ? 'Creando y analizando...' : 'Crear y Analizar Proyecto'}
+              </button>
+            </div>
           </div>
         </div>
         
@@ -860,7 +852,7 @@ function NewProjectModal({ onClose }: { onClose: () => void }) {
                     </div>
                     <div className="text-center mb-6">
                       <div className="text-sm font-semibold text-emerald-700 uppercase mb-2">Premium</div>
-                      <div className="text-3xl font-bold text-gray-900">$49</div>
+                      <div className="text-3xl font-bold text-gray-900">$20</div>
                       <div className="text-sm text-gray-500">por mes</div>
                     </div>
                     <ul className="space-y-3">
@@ -1109,7 +1101,7 @@ function ReportModal({
         {/* Footer */}
         <div className="px-8 py-6 border-t border-gray-200 flex items-center justify-between bg-gray-50">
           <div className="text-sm text-gray-600">
-            Reporte generado el {new Date(project.createdDate).toLocaleDateString('es-ES', { 
+            Reporte generado el {new Date(project.analyzedAt ?? project.createdAt).toLocaleDateString('es-ES', {
               year: 'numeric', 
               month: 'long', 
               day: 'numeric' 
