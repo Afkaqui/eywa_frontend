@@ -31,10 +31,28 @@ export class DiagnosticRepository {
   // userId kept for API compatibility but the backend resolves from JWT
   async getLatestResult(_userId?: string): Promise<DiagnosticResultRow | null> {
     try {
-      const results = await apiFetch<DiagnosticResultRow[]>('/api/proxy/diagnostic/results');
-      if (!Array.isArray(results) || results.length === 0) return null;
-      // Results are ordered desc by created_at on the backend
-      return results[0];
+      // El backend (GET /results/me) responde { result: row | null } y los
+      // campos vienen en camelCase (Prisma). Normalizamos a snake_case y
+      // toleramos también un array por compatibilidad.
+      const data = await apiFetch<{ result: Record<string, unknown> | null } | Record<string, unknown>[]>(
+        '/api/proxy/diagnostic/results'
+      );
+      const r = (Array.isArray(data) ? data[0] : data?.result) as Record<string, unknown> | undefined | null;
+      if (!r) return null;
+      const pick = <T,>(...keys: string[]): T => {
+        for (const k of keys) if (r[k] !== undefined && r[k] !== null) return r[k] as T;
+        return undefined as T;
+      };
+      return {
+        id:         pick<string>('id'),
+        user_id:    pick<string>('user_id', 'userId'),
+        score:      pick<number>('score'),
+        max_score:  pick<number>('max_score', 'maxScore'),
+        percentage: pick<number>('percentage'),
+        level:      pick<string>('level'),
+        breakdown:  pick<DiagnosticResultRow['breakdown']>('breakdown') ?? [],
+        created_at: pick<string>('created_at', 'createdAt'),
+      };
     } catch {
       return null;
     }
