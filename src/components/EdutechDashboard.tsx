@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { CourseRepository } from '@/lib/repositories/course-repository';
 import { CourseService } from '@/lib/services/course-service';
+import { AcademyRepository, type CertificateRow } from '@/lib/repositories/academy-repository';
+import { CourseViewer } from './CourseViewer';
+import { generateCertificatePdf } from '@/lib/certificate-pdf';
 import {
   BookOpen,
   Clock,
@@ -18,9 +21,7 @@ import {
   TrendingUp,
   Globe,
   BarChart3,
-  Users,
-  Star,
-  ArrowLeft,
+  Download,
 } from 'lucide-react';
 import type { Course, CourseEnrollment, CourseCategory, CourseLevel } from '@/lib/types/database';
 
@@ -42,18 +43,21 @@ export function EdutechDashboard() {
   const { user, profile } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([]);
+  const [certificates, setCertificates] = useState<CertificateRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<CourseCategory | 'all'>('all');
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const [enrolling, setEnrolling] = useState(false);
+  const [refreshTick, setRefreshTick] = useState(0); // fuerza recarga al volver del visor
 
   const courseService = useMemo(
     () => new CourseService(new CourseRepository()),
     []
   );
+  const academyRepo = useMemo(() => new AcademyRepository(), []);
+  const profileName = profile?.fullName || profile?.email || 'Participante EYWA';
 
-  // Load courses and enrollments via service
+  // Load courses, enrollments and certificates via service
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
@@ -61,13 +65,15 @@ export function EdutechDashboard() {
     const load = async () => {
       setLoading(true);
       try {
-        const [coursesData, enrollData] = await Promise.all([
+        const [coursesData, enrollData, certsData] = await Promise.all([
           courseService.getPublishedCourses(),
           courseService.getUserEnrollments(user.id),
+          academyRepo.getMyCertificates().catch(() => [] as CertificateRow[]),
         ]);
         if (!cancelled) {
           setCourses(coursesData);
           setEnrollments(enrollData);
+          setCertificates(certsData);
         }
       } catch {
         // tables may not exist yet
@@ -78,37 +84,7 @@ export function EdutechDashboard() {
     load();
 
     return () => { cancelled = true; };
-  }, [user, courseService]);
-
-  // Enroll in a course via service
-  const handleEnroll = useCallback(async (courseId: string) => {
-    if (!user) return;
-    setEnrolling(true);
-    try {
-      const enrollment = await courseService.enrollUser(user.id, courseId);
-      setEnrollments(prev => [...prev, enrollment]);
-    } catch {
-      // handle error
-    } finally {
-      setEnrolling(false);
-    }
-  }, [user, courseService]);
-
-  // Update progress via service
-  const handleUpdateProgress = useCallback(async (enrollmentId: string, newProgress: number) => {
-    const progress = Math.min(newProgress, 100);
-    const completed = progress >= 100;
-    try {
-      await courseService.updateProgress(enrollmentId, newProgress);
-      setEnrollments(prev => prev.map(e =>
-        e.id === enrollmentId
-          ? { ...e, progress, completed, completed_at: completed ? new Date().toISOString() : null }
-          : e
-      ));
-    } catch {
-      // handle error
-    }
-  }, [courseService]);
+  }, [user, courseService, academyRepo, refreshTick]);
 
   const getEnrollment = (courseId: string) => enrollments.find(e => e.course_id === courseId);
 
@@ -130,161 +106,16 @@ export function EdutechDashboard() {
     [courses, enrollments]
   );
 
-  // ── Course Detail View ──
+  // ── Course Detail View (visor real: secciones + examen + certificado) ──
   if (selectedCourse) {
-    const enrollment = getEnrollment(selectedCourse.id);
-    const catConfig = CATEGORY_CONFIG[selectedCourse.category];
-    const levelConfig = LEVEL_CONFIG[selectedCourse.level];
-    const CatIcon = catConfig.icon;
-
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-4xl mx-auto p-4 md:p-8">
-          {/* Back button */}
-          <button
-            onClick={() => setSelectedCourse(null)}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm font-medium">Volver a cursos</span>
-          </button>
-
-          {/* Course Header */}
-          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-6">
-            <div className={`h-48 ${catConfig.bg} border-b flex items-center justify-center relative overflow-hidden`}>
-              {selectedCourse.image_url ? (
-                <img src={selectedCourse.image_url} alt={selectedCourse.title} className="absolute inset-0 w-full h-full object-cover" />
-              ) : (
-                <CatIcon className={`w-20 h-20 ${catConfig.color} opacity-30`} />
-              )}
-            </div>
-            <div className="p-6 md:p-8">
-              <div className="flex flex-wrap items-center gap-2 mb-3">
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${catConfig.bg} ${catConfig.color}`}>
-                  {catConfig.label}
-                </span>
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${levelConfig.color}`}>
-                  {levelConfig.label}
-                </span>
-              </div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">{selectedCourse.title}</h1>
-              <p className="text-gray-600 leading-relaxed mb-6">{selectedCourse.description}</p>
-
-              <div className="flex flex-wrap gap-6 text-sm text-gray-500 mb-6">
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4" />
-                  <span>{selectedCourse.instructor}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  <span>{selectedCourse.duration_hours}h de contenido</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <BookOpen className="w-4 h-4" />
-                  <span>{selectedCourse.lessons_count} lecciones</span>
-                </div>
-              </div>
-
-              {/* Enrollment / Progress */}
-              {enrollment ? (
-                <div className="bg-gray-50 rounded-xl p-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-semibold text-gray-700">Tu progreso</span>
-                    <span className={`text-sm font-bold ${enrollment.completed ? 'text-emerald-600' : 'text-blue-600'}`}>
-                      {enrollment.progress}%
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
-                    <div
-                      className={`h-3 rounded-full transition-all duration-500 ${enrollment.completed ? 'bg-emerald-500' : 'bg-blue-500'}`}
-                      style={{ width: `${enrollment.progress}%` }}
-                    />
-                  </div>
-                  {enrollment.completed ? (
-                    <div className="flex items-center gap-2 text-emerald-600">
-                      <Award className="w-5 h-5" />
-                      <span className="font-semibold">Curso completado</span>
-                    </div>
-                  ) : (
-                    <div className="flex gap-3">
-                      <button
-                        onClick={() => handleUpdateProgress(enrollment.id, enrollment.progress + 10)}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                      >
-                        <Play className="w-4 h-4" />
-                        Continuar curso
-                      </button>
-                      <button
-                        onClick={() => handleUpdateProgress(enrollment.id, 100)}
-                        className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
-                      >
-                        <CheckCircle className="w-4 h-4" />
-                        Marcar completado
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <button
-                  onClick={() => handleEnroll(selectedCourse.id)}
-                  disabled={enrolling}
-                  className="flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-colors font-semibold disabled:opacity-50"
-                >
-                  <GraduationCap className="w-5 h-5" />
-                  {enrolling ? 'Inscribiendo...' : 'Inscribirse al curso'}
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Course Content Preview */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-6 md:p-8">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Contenido del curso</h3>
-            <div className="space-y-3">
-              {Array.from({ length: selectedCourse.lessons_count }, (_, i) => {
-                const lessonProgress = enrollment
-                  ? (enrollment.progress / 100) * selectedCourse.lessons_count
-                  : 0;
-                const isCompleted = i < Math.floor(lessonProgress);
-                const isCurrent = i === Math.floor(lessonProgress) && !enrollment?.completed;
-
-                return (
-                  <div
-                    key={i}
-                    className={`flex items-center gap-4 p-4 rounded-xl border transition-colors ${
-                      isCompleted
-                        ? 'bg-emerald-50 border-emerald-200'
-                        : isCurrent
-                        ? 'bg-blue-50 border-blue-200'
-                        : 'bg-gray-50 border-gray-200'
-                    }`}
-                  >
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                      isCompleted
-                        ? 'bg-emerald-500 text-white'
-                        : isCurrent
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-200 text-gray-500'
-                    }`}>
-                      {isCompleted ? <CheckCircle className="w-4 h-4" /> : i + 1}
-                    </div>
-                    <div className="flex-1">
-                      <span className={`text-sm font-medium ${isCompleted ? 'text-emerald-700' : isCurrent ? 'text-blue-700' : 'text-gray-600'}`}>
-                        Leccion {i + 1}
-                      </span>
-                    </div>
-                    {isCurrent && (
-                      <span className="text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
-                        En curso
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
+      <CourseViewer
+        course={selectedCourse}
+        onBack={() => {
+          setSelectedCourse(null);
+          setRefreshTick(t => t + 1); // recarga inscripciones y certificados
+        }}
+      />
     );
   }
 
@@ -437,6 +268,49 @@ export function EdutechDashboard() {
                   </button>
                 );
               })}
+            </div>
+          </div>
+        )}
+
+        {/* Mis Certificados */}
+        {certificates.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Award className="w-5 h-5 text-emerald-600" />
+              Mis certificados
+              <span className="text-sm font-normal text-gray-400">({certificates.length})</span>
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {certificates.map(cert => (
+                <div key={cert.id} className="bg-gradient-to-br from-emerald-50 to-white rounded-xl border border-emerald-200 p-5">
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-lg bg-emerald-500 flex items-center justify-center flex-shrink-0">
+                      <Award className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-bold text-gray-900 line-clamp-2">{cert.course_title ?? 'Curso EYWA'}</h3>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {cert.percentage}% · {new Date(cert.issued_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </p>
+                      <p className="text-[11px] font-mono text-emerald-700 mt-1">{cert.code}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => generateCertificatePdf({
+                      holderName: profileName,
+                      courseTitle: cert.course_title ?? 'Curso EYWA',
+                      instructor: cert.instructor,
+                      percentage: cert.percentage,
+                      code: cert.code,
+                      issuedAt: cert.issued_at,
+                    })}
+                    className="w-full py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-xs font-semibold flex items-center justify-center gap-2"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Descargar PDF
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
         )}

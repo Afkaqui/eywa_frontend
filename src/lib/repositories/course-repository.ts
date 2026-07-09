@@ -9,26 +9,40 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json();
 }
 
+// El backend responde envuelto ({ courses }, { enrollments }, { enrollment });
+// toleramos también arrays crudos por compatibilidad.
+function unwrap<T>(data: unknown, key: string): T {
+  if (Array.isArray(data)) return data as T;
+  const obj = data as Record<string, unknown>;
+  return (obj?.[key] ?? data) as T;
+}
+
 export class CourseRepository {
   async getPublished(): Promise<Course[]> {
-    const courses = await apiFetch<Course[]>('/api/proxy/courses');
-    return courses.filter((c) => c.is_published);
+    const data = await apiFetch<unknown>('/api/proxy/courses');
+    const courses = unwrap<Course[]>(data, 'courses');
+    return (Array.isArray(courses) ? courses : []).filter((c) => c.is_published);
   }
 
   async getAll(): Promise<Course[]> {
-    return apiFetch<Course[]>('/api/proxy/courses');
+    const data = await apiFetch<unknown>('/api/proxy/courses');
+    const courses = unwrap<Course[]>(data, 'courses');
+    return Array.isArray(courses) ? courses : [];
   }
 
   // userId kept for API compatibility; backend resolves current user from JWT
   async getUserEnrollments(_userId?: string): Promise<CourseEnrollment[]> {
-    return apiFetch<CourseEnrollment[]>('/api/proxy/courses/enrollments');
+    const data = await apiFetch<unknown>('/api/proxy/courses/enrollments');
+    const enrollments = unwrap<CourseEnrollment[]>(data, 'enrollments');
+    return Array.isArray(enrollments) ? enrollments : [];
   }
 
   // userId kept for API compatibility; backend resolves from JWT
   async enroll(_userId: string, courseId: string): Promise<CourseEnrollment> {
-    return apiFetch<CourseEnrollment>(`/api/proxy/courses/${courseId}/enroll`, {
+    const data = await apiFetch<unknown>(`/api/proxy/courses/${courseId}/enroll`, {
       method: 'POST',
     });
+    return unwrap<CourseEnrollment>(data, 'enrollment');
   }
 
   async updateProgress(enrollmentId: string, progress: number, completed: boolean): Promise<void> {
