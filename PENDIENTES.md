@@ -38,6 +38,42 @@ Para construirlo hace falta:
   usaba la inicial de la simbiocreación, así que todos los avatares habrían salido
   con la misma letra).
 
+### 🔴 Enlace "Link compartir" apunta al vacío — *pendiente de decisión*
+El botón copia `https://eywa-hazel.vercel.app/?simbio=<id>`, pero **nadie lee el
+parámetro `?simbio=`**: el enlace deja al destinatario en la landing. No hay error,
+simplemente no pasa nada — y el que comparte no se entera. Además el dominio está
+**hardcodeado** a Vercel.
+
+Lo correcto es una ruta pública `/simbio/[id]` que renderice la simbiocreación
+(si no es privada) sin exigir login, más un endpoint público `GET /api/simbiocreacion/:id`.
+Necesita lo mismo que la verificación de certificados: **rutas públicas que hoy no existen**.
+Mientras tanto el botón reparte enlaces rotos.
+
+### 🟠 ¿Qué es una "idea"? — concepto sin definir
+El panel llamaba "ideas" a los `tags` (lo que el formulario pide como *"Grupos / tags"*).
+Se renombró todo a **"grupos"** para que un mismo dato no tenga dos nombres. Pero la
+pregunta de producto sigue abierta: **¿una idea es un nodo del grafo, un tag, o una
+entidad propia con autor y participantes?** Hasta definirlo, no hay jerarquía que construir.
+
+Retirado del panel por ser andamiaje ficticio (ver *Descartado*): niveles fabricados,
+chevrons decorativos y el botón muerto "Añadir participante".
+
+### 🟡 El grafo auto-generado inventa participantes
+Cuando no hay grafo personalizado, `buildGraph` dibuja **siempre 2 nodos tipo `person`**
+por grupo, con etiqueta `●` y sin usuario asociado. Si no hay tags, inventa además 2
+grupos vacíos (`G1`, `G2`). Una simbiocreación vacía se ve poblada de gente que no existe,
+y la pestaña *Participantes* de Búsquedas lista esos mismos puntos.
+
+El modo edición **sí** permite vincular un usuario real a un nodo (`updateNodeUserId`),
+así que el concepto existe — lo que falta es dejar de fingirlo en el auto-generado.
+
+### 🟡 Dos fórmulas distintas de "puntaje"
+- Backend (`/ranking`): `nº simbiocreaciones × 10`
+- Frontend (StatCard local): `nº simbiocreaciones × 10 + nº grupos × 5`
+
+El mismo usuario ve **dos puntajes diferentes** según la pantalla. Hay que unificar
+en cuanto se defina la fórmula real (abajo).
+
 ### 🟡 El ranking usa un puntaje sintético
 `puntaje = nº de simbiocreaciones × 10`. No mide calidad, colaboración ni impacto:
 crear 10 simbiocreaciones vacías puntúa más que una con 50 participantes y 8 ODS.
@@ -127,6 +163,7 @@ Las preguntas y ponderaciones del diagnóstico dependen de contenido de negocio
 
 | Fecha | Qué | Commit |
 |-------|-----|--------|
+| 2026-07-10 | Simbiocreación: panel de grupos honesto (fuera niveles/chevrons/botón muerto), "ideas"→"grupos", y "Nuevo grupo" vuelve a insertar el nodo en el grafo guardado | `pendiente` |
 | 2026-07-10 | Simbiocreación: el grafo nunca persistía (`graphData` descartado por Zod); `PATCH`/`DELETE` devolvían falso éxito | `fe38bfc` |
 | 2026-07-10 | `/login` no devolvía `name` → perfil y certificado caían al email | `4be7e61` |
 | 2026-07-09 | Auto-deploy del backend por GitHub Actions (push a `master` → VPS) | `ca20324` |
@@ -137,4 +174,9 @@ Las preguntas y ponderaciones del diagnóstico dependen de contenido de negocio
 
 ## Descartado
 
-*(vacío — anotar aquí lo que se decida no hacer, con el motivo)*
+| Qué | Motivo |
+|-----|--------|
+| Caja de comentarios en Simbiocreación | Sin `value`/`onChange`/botón ni modelo `Comment`. Prometía guardar y no guardaba. Retirada; la feature sigue viva arriba. |
+| "Nivel 1 / Nivel 2" en el panel de grupos | "Nivel 1" era siempre el nombre de la simbiocreación (misma cadena repetida en cada fila). "Nivel 2" repartía los tags de dos en dos por posición (`cats[Math.floor(i/2)]`) e inventaba "Cat 1"/"Cat 2" — que ni coincidían con las 3 categorías del grafo. Jerarquía inexistente. |
+| Chevrons `<` `>` del panel de grupos | Texto decorativo, no enlaces. Con `flex-wrap` se descolgaban en líneas sueltas. |
+| Botón "Añadir participante" (icono de personas) | `<button>` sin `onClick`. |

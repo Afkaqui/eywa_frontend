@@ -20,7 +20,7 @@ import { useAuth } from '@/contexts/AuthContext';
 type MainTab      = 'mis-simbios' | 'explora' | 'ranking';
 type SubView      = 'lista' | 'crear' | 'editar' | 'detalle';
 type ExploraFilter = 'todas' | 'proximas' | 'pasadas';
-type ActivePanel  = null | 'nueva-idea' | 'mis-ideas' | 'busquedas' | 'opciones' | 'stats';
+type ActivePanel  = null | 'nuevo-grupo' | 'mis-grupos' | 'busquedas' | 'opciones' | 'stats';
 type EditInteract = 'move' | 'connect';
 
 interface PublicSimbio extends Simbiocreacion {
@@ -541,9 +541,9 @@ export function SimbiocreacionDashboard() {
   const [selectedNode,       setSelectedNode]       = useState<GraphNode|null>(null);
   const [busquedasTab,       setBusquedasTab]       = useState<'grupos'|'participantes'>('grupos');
   const [busquedasQuery,     setBusquedasQuery]     = useState('');
-  const [nuevaIdeaConfirmed, setNuevaIdeaConfirmed] = useState(false);
-  const [nuevaIdeaName,      setNuevaIdeaName]      = useState('');
-  const [addingIdea,         setAddingIdea]         = useState(false);
+  const [nuevoGrupoConfirmed, setNuevoGrupoConfirmed] = useState(false);
+  const [nuevoGrupoName,      setNuevoGrupoName]      = useState('');
+  const [addingGrupo,         setAddingGrupo]         = useState(false);
   const [sliderForce,        setSliderForce]        = useState(40);
   const [sliderDistance,     setSliderDistance]     = useState(55);
   const [sliderOrder,        setSliderOrder]        = useState(15);
@@ -633,17 +633,33 @@ export function SimbiocreacionDashboard() {
     setOpenMenu(null);
   };
 
-  // ── Add idea ───────────────────────────────────────────────────────────────
-  const handleAddIdea = async () => {
-    if (!nuevaIdeaName.trim()||!selected) return;
-    setAddingIdea(true);
-    const newTags = [...selected.tags, nuevaIdeaName.trim()];
+  // ── Add grupo ───────────────────────────────────────────────────────────────
+  // Si hay un grafo personalizado guardado, buildGraph ignora los tags: hay que
+  // insertar el nodo también ahí, o el grupo nuevo no aparecería en el grafo.
+  const handleAddGrupo = async () => {
+    const nombre = nuevoGrupoName.trim();
+    if (!nombre || !selected) return;
+    setAddingGrupo(true);
+
+    const newTags = [...selected.tags, nombre];
+    const payload: Partial<Simbiocreacion> = { tags: newTags };
+
+    const stored = selected.graphData;
+    if (stored && stored.nodes.length > 0) {
+      const anchor = stored.nodes.find(n => n.type === 'center') ?? stored.nodes[0];
+      const nodeId = `grp-${Date.now()}`;
+      payload.graphData = {
+        nodes: [...stored.nodes, { id: nodeId, label: nombre.slice(0, 12), type: 'group', color: '#ec4899' }],
+        edges: [...stored.edges, { from: anchor.id, to: nodeId }],
+      };
+    }
+
     try {
-      await simbiRepo.update(selected.id, { tags: newTags });
-      const updated = {...selected, tags: newTags};
+      await simbiRepo.update(selected.id, payload);
+      const updated = { ...selected, ...payload };
       setSelected(updated); setItems(p=>p.map(i=>i.id===selected.id?updated:i));
-      setNuevaIdeaName(''); setNuevaIdeaConfirmed(false); setActivePanel(null);
-    } catch {/***/} finally { setAddingIdea(false); }
+      setNuevoGrupoName(''); setNuevoGrupoConfirmed(false); setActivePanel(null);
+    } catch {/***/} finally { setAddingGrupo(false); }
   };
 
   // ── Edit mode graph functions ──────────────────────────────────────────────
@@ -756,9 +772,9 @@ export function SimbiocreacionDashboard() {
   };
 
   // ── Derived ────────────────────────────────────────────────────────────────
-  const totalIdeas = items.reduce((s,i)=>s+i.tags.length,0);
+  const totalGrupos = items.reduce((s,i)=>s+i.tags.length,0);
   const totalOds   = new Set(items.flatMap(i=>i.ods)).size;
-  const puntaje    = items.length*10+totalIdeas*5;
+  const puntaje    = items.length*10+totalGrupos*5;
 
   const filteredExplora = useMemo(()=>{
     const now=Date.now();
@@ -789,7 +805,7 @@ export function SimbiocreacionDashboard() {
   const physicsDistance = 10+(sliderDistance/100)*100;
   const physicsOrder    = 0.001+(sliderOrder/100)*0.015;
 
-  const closePanel = () => { setActivePanel(null); setNuevaIdeaConfirmed(false); setNuevaIdeaName(''); };
+  const closePanel = () => { setActivePanel(null); setNuevoGrupoConfirmed(false); setNuevoGrupoName(''); };
 
   // ── get connected edges for selected node in edit mode ─────────────────────
   const editConnectedEdges = (()=>{
@@ -856,7 +872,7 @@ export function SimbiocreacionDashboard() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
                 <StatCard label="Puntaje"                value={puntaje}      accent="bg-gradient-to-br from-pink-500 to-rose-600"/>
                 <StatCard label="Total Simbiocreaciones" value={items.length} accent="bg-gradient-to-br from-pink-400 to-pink-500"/>
-                <StatCard label="Total Ideas / Tags"     value={totalIdeas}   accent="bg-gradient-to-br from-pink-300 to-pink-400"/>
+                <StatCard label="Total Grupos / Tags"     value={totalGrupos}   accent="bg-gradient-to-br from-pink-300 to-pink-400"/>
                 <StatCard label="ODS Relacionados"       value={totalOds}     accent="bg-gradient-to-br from-pink-200 to-pink-300"/>
               </div>
               <div className="flex items-center justify-between mb-4">
@@ -984,8 +1000,8 @@ export function SimbiocreacionDashboard() {
                   {!editMode&&(
                     <div className="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-10">
                       {([
-                        {icon:Plus,      label:'Nueva idea',  panel:'nueva-idea'  as ActivePanel},
-                        {icon:Lightbulb, label:'Mis ideas',   panel:'mis-ideas'   as ActivePanel},
+                        {icon:Plus,      label:'Nuevo grupo',  panel:'nuevo-grupo'  as ActivePanel},
+                        {icon:Lightbulb, label:'Mis grupos',   panel:'mis-grupos'   as ActivePanel},
                         {icon:Users,     label:'Búsquedas',   panel:'busquedas'   as ActivePanel},
                         {icon:Settings,  label:'Opciones',    panel:'opciones'    as ActivePanel},
                         {icon:BarChart2, label:'Stats',       panel:'stats'       as ActivePanel},
@@ -1034,7 +1050,7 @@ export function SimbiocreacionDashboard() {
                     <div className="absolute right-4 top-16 w-72 bg-white rounded-2xl shadow-2xl z-20 overflow-hidden border border-gray-100 flex flex-col max-h-[calc(100%-5rem)]">
                       <div className="bg-pink-500 px-4 py-3 flex-shrink-0 flex items-start justify-between gap-2">
                         <p className="text-white text-xs font-semibold leading-tight truncate">
-                          {selectedNode.type==='center'?'Simbiocreación':selectedNode.type==='category'?'Categoría':'Idea / Grupo'}
+                          {selectedNode.type==='center'?'Simbiocreación':selectedNode.type==='category'?'Categoría':'Grupo'}
                         </p>
                         <button onClick={()=>setSelectedNode(null)} className="text-white/80 hover:text-white"><X className="w-4 h-4"/></button>
                       </div>
@@ -1220,36 +1236,36 @@ export function SimbiocreacionDashboard() {
                   )}
 
                   {/* ══ View mode panels ══ */}
-                  {/* Nueva idea */}
-                  {!editMode&&activePanel==='nueva-idea'&&(
+                  {/* Nuevo grupo */}
+                  {!editMode&&activePanel==='nuevo-grupo'&&(
                     <div className="absolute inset-0 flex items-center justify-center z-20">
                       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-6 overflow-hidden">
-                        {!nuevaIdeaConfirmed?(
+                        {!nuevoGrupoConfirmed?(
                           <div className="p-6">
                             <div className="flex items-start justify-between mb-3">
-                              <h3 className="text-lg font-semibold text-gray-900">¿Agregar una nueva idea?</h3>
+                              <h3 className="text-lg font-semibold text-gray-900">¿Agregar un nuevo grupo?</h3>
                               <button onClick={closePanel} className="text-gray-400 hover:text-gray-600 ml-2"><X className="w-5 h-5"/></button>
                             </div>
-                            <p className="text-sm text-gray-500 mb-6">Se agregará una nueva idea (nodo) al grafo de la simbiocreación.</p>
+                            <p className="text-sm text-gray-500 mb-6">Se agregará como un nuevo nodo al grafo de la simbiocreación.</p>
                             <div className="flex gap-3">
                               <button onClick={closePanel} className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all">Cancelar</button>
-                              <button onClick={()=>setNuevaIdeaConfirmed(true)} className="flex-1 px-4 py-2.5 text-sm font-medium bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-all">Confirmar</button>
+                              <button onClick={()=>setNuevoGrupoConfirmed(true)} className="flex-1 px-4 py-2.5 text-sm font-medium bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-all">Confirmar</button>
                             </div>
                           </div>
                         ):(
                           <div className="p-6">
                             <div className="flex items-start justify-between mb-4">
-                              <h3 className="text-lg font-semibold text-gray-900">Nueva idea</h3>
+                              <h3 className="text-lg font-semibold text-gray-900">Nuevo grupo</h3>
                               <button onClick={closePanel} className="text-gray-400 hover:text-gray-600 ml-2"><X className="w-5 h-5"/></button>
                             </div>
-                            <input autoFocus type="text" placeholder="Nombre de la nueva idea" value={nuevaIdeaName}
-                              onChange={e=>setNuevaIdeaName(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')handleAddIdea();}}
+                            <input autoFocus type="text" placeholder="Nombre del nuevo grupo" value={nuevoGrupoName}
+                              onChange={e=>setNuevoGrupoName(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')handleAddGrupo();}}
                               className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 mb-4"/>
                             <div className="flex gap-3">
-                              <button onClick={()=>{ setNuevaIdeaConfirmed(false); setNuevaIdeaName(''); }} className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50">Atrás</button>
-                              <button onClick={handleAddIdea} disabled={!nuevaIdeaName.trim()||addingIdea}
+                              <button onClick={()=>{ setNuevoGrupoConfirmed(false); setNuevoGrupoName(''); }} className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50">Atrás</button>
+                              <button onClick={handleAddGrupo} disabled={!nuevoGrupoName.trim()||addingGrupo}
                                 className="flex-1 px-4 py-2.5 text-sm font-medium bg-pink-500 text-white rounded-xl hover:bg-pink-600 disabled:opacity-40 flex items-center justify-center gap-2">
-                                {addingIdea?<><Loader2 className="w-4 h-4 animate-spin"/>Agregando…</>:'Agregar'}
+                                {addingGrupo?<><Loader2 className="w-4 h-4 animate-spin"/>Agregando…</>:'Agregar'}
                               </button>
                             </div>
                           </div>
@@ -1277,54 +1293,39 @@ export function SimbiocreacionDashboard() {
                     </div>
                   )}
 
-                  {/* Side panels: mis-ideas / busquedas / stats */}
-                  {!editMode&&(activePanel==='mis-ideas'||activePanel==='busquedas'||activePanel==='stats')&&(
+                  {/* Side panels: mis-grupos / busquedas / stats */}
+                  {!editMode&&(activePanel==='mis-grupos'||activePanel==='busquedas'||activePanel==='stats')&&(
                     <div className="absolute left-0 top-0 bottom-0 w-80 bg-white shadow-2xl z-20 flex flex-col overflow-hidden border-r border-gray-100">
                       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
                         <div className="flex items-center gap-2">
-                          {activePanel==='mis-ideas'&&<Lightbulb className="w-5 h-5 text-pink-500"/>}
+                          {activePanel==='mis-grupos'&&<Lightbulb className="w-5 h-5 text-pink-500"/>}
                           {activePanel==='busquedas'&&<Users className="w-5 h-5 text-teal-600"/>}
                           {activePanel==='stats'&&<BarChart2 className="w-5 h-5 text-teal-600"/>}
                           <h3 className="font-semibold text-gray-900 text-sm">
-                            {activePanel==='mis-ideas'?'Mi(s) idea(s)':activePanel==='busquedas'?'Búsquedas':'Stats de Simbiocreación'}
+                            {activePanel==='mis-grupos'?'Grupos':activePanel==='busquedas'?'Búsquedas':'Stats de Simbiocreación'}
                           </h3>
                         </div>
                         <button onClick={closePanel} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5"/></button>
                       </div>
 
-                      {/* Mis ideas */}
-                      {activePanel==='mis-ideas'&&(
+                      {/* Mis grupos */}
+                      {activePanel==='mis-grupos'&&(
                         <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                          <button onClick={()=>{ closePanel(); setTimeout(()=>setActivePanel('nueva-idea'),50); }}
+                          <button onClick={()=>{ closePanel(); setTimeout(()=>setActivePanel('nuevo-grupo'),50); }}
                             className="flex items-center gap-2 w-full px-4 py-2.5 bg-pink-500 text-white rounded-xl text-sm font-semibold hover:bg-pink-600 transition-all justify-center">
-                            <Plus className="w-4 h-4"/>Nueva idea
+                            <Plus className="w-4 h-4"/>Nuevo grupo
                           </button>
                           {selected.tags.length===0?(
                             <div className="text-center py-8"><Lightbulb className="w-8 h-8 text-gray-200 mx-auto mb-2"/><p className="text-xs text-gray-400">(vacío)</p></div>
                           ):(
                             <div className="divide-y divide-gray-50">
-                              {selected.tags.map((tag,i)=>{
-                                const cats=selected.ods.length>0?selected.ods.slice(0,4).map((o,ci)=>({id:`cat-${ci}`,label:`ODS ${o}`})):[{id:'cat-0',label:'Cat 1'},{id:'cat-1',label:'Cat 2'}];
-                                const cat=cats[Math.floor(i/2)]??cats[0];
-                                return (
-                                  <div key={i} className="py-3 space-y-2">
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                      <span className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-600 text-white rounded-lg text-xs font-semibold min-w-0 max-w-[120px] truncate">
-                                        <ExternalLink className="w-3 h-3 flex-shrink-0"/><span className="truncate">{tag||'(vacío)'}</span>
-                                      </span>
-                                      <span className="text-gray-300 text-xs">&lt;</span>
-                                      <span className="px-1.5 py-0.5 border border-gray-300 rounded-full text-xs text-gray-500 whitespace-nowrap">Nivel 1: {selected.nombre.slice(0,10)}</span>
-                                      <span className="text-gray-300 text-xs">&gt;</span>
-                                      <span className="text-gray-300 text-xs">&lt;</span>
-                                      <span className="px-1.5 py-0.5 border border-gray-300 rounded-full text-xs text-gray-500 whitespace-nowrap">Nivel 2: {cat.label.slice(0,10)}</span>
-                                      <span className="text-gray-300 text-xs">&gt;</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 pl-1">
-                                      <button title="Añadir participante" className="text-teal-500 hover:text-teal-700 transition-colors"><Users className="w-4 h-4"/></button>
-                                    </div>
-                                  </div>
-                                );
-                              })}
+                              {selected.tags.map((tag,i)=>(
+                                <div key={i} className="py-2.5">
+                                  <span className="inline-flex items-center px-3 py-1.5 bg-teal-600 text-white rounded-lg text-xs font-semibold max-w-full">
+                                    <span className="truncate">{tag||'(vacío)'}</span>
+                                  </span>
+                                </div>
+                              ))}
                             </div>
                           )}
                         </div>
@@ -1470,7 +1471,7 @@ export function SimbiocreacionDashboard() {
                           <div className="bg-pink-50 border border-pink-100 rounded-2xl p-4 space-y-3">
                             <div className="flex items-center justify-between"><span className="text-sm text-gray-600">Participantes</span><span className="text-2xl font-extrabold text-pink-600">{selected.tags.length*2}</span></div>
                             <div className="h-px bg-pink-100"/>
-                            <div className="flex items-center justify-between"><span className="text-sm text-gray-600">Ideas</span><span className="text-2xl font-extrabold text-pink-600">{selected.tags.length}</span></div>
+                            <div className="flex items-center justify-between"><span className="text-sm text-gray-600">Grupos</span><span className="text-2xl font-extrabold text-pink-600">{selected.tags.length}</span></div>
                           </div>
                           <div className="grid grid-cols-2 gap-3">
                             <div className="bg-teal-50 border border-teal-100 rounded-xl p-3 text-center"><div className="text-xs text-teal-600 mb-1">ODS</div><div className="text-xl font-bold text-teal-700">{selected.ods.length}</div></div>
@@ -1486,7 +1487,7 @@ export function SimbiocreacionDashboard() {
                           )}
                           {selected.tags.length>0&&(
                             <div>
-                              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Ideas / Tags</p>
+                              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Grupos / Tags</p>
                               <div className="flex flex-wrap gap-1.5">{selected.tags.map(t=>(<span key={t} className="px-2.5 py-1 bg-white border border-gray-200 text-gray-700 rounded-lg text-xs">{t}</span>))}</div>
                             </div>
                           )}
