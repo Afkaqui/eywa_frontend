@@ -91,6 +91,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // Login inicial con Credentials → user tiene backendToken
       if (user) {
         token.sub          = user.id;
+        token.name         = user.name    ?? null;
         token.role         = user.role    ?? 'user';
         token.plan         = user.plan    ?? 'free';
         token.company      = user.company ?? null;
@@ -127,6 +128,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     session({ session, token }) {
       if (token.sub) {
         session.user.id      = token.sub;
+        session.user.name    = (token.name as string | null) ?? session.user.name ?? null;
         session.user.role    = token.role    ?? 'user';
         session.user.plan    = token.plan    ?? 'free';
         session.user.company = token.company ?? null;
