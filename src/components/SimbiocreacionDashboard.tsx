@@ -746,7 +746,7 @@ export function SimbiocreacionDashboard() {
       edges: edges.map(e => ({ from: e.from, to: e.to })),
     };
     try {
-      await simbiRepo.update(selected.id, { graphData } as Parameters<typeof simbiRepo.update>[1]);
+      await simbiRepo.update(selected.id, { graphData });
       const updated = { ...selected, graphData };
       setSelected(updated);
       setItems(p => p.map(i => i.id === selected.id ? updated : i));
@@ -1553,7 +1553,7 @@ export function SimbiocreacionDashboard() {
                     {selected.graphData&&(
                       <div className="border-t border-gray-100 pt-4">
                         <button onClick={()=>{ if(confirm('¿Restablecer el grafo al diseño automático? Se perderán los cambios manuales.'))
-                          { simbiRepo.update(selected.id,{graphData:null} as Parameters<typeof simbiRepo.update>[1]).then(()=>{ const u={...selected,graphData:null}; setSelected(u); setItems(p=>p.map(i=>i.id===selected.id?u:i)); }); }
+                          { simbiRepo.update(selected.id,{graphData:null}).then(()=>{ const u={...selected,graphData:null}; setSelected(u); setItems(p=>p.map(i=>i.id===selected.id?u:i)); }); }
                         }} className="flex items-center gap-2 w-full px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 text-sm font-medium rounded-xl transition-all">
                           <Network className="w-4 h-4"/>Restablecer grafo automático
                         </button>
