@@ -163,7 +163,7 @@ Las preguntas y ponderaciones del diagnóstico dependen de contenido de negocio
 
 | Fecha | Qué | Commit |
 |-------|-----|--------|
-| 2026-07-10 | Simbiocreación: panel de grupos honesto (fuera niveles/chevrons/botón muerto), "ideas"→"grupos", y "Nuevo grupo" vuelve a insertar el nodo en el grafo guardado | `pendiente` |
+| 2026-07-10 | Simbiocreación: panel de grupos honesto (fuera niveles/chevrons/botón muerto), "ideas"→"grupos", y "Nuevo grupo" vuelve a insertar el nodo en el grafo guardado | `24684db` |
 | 2026-07-10 | Simbiocreación: el grafo nunca persistía (`graphData` descartado por Zod); `PATCH`/`DELETE` devolvían falso éxito | `fe38bfc` |
 | 2026-07-10 | `/login` no devolvía `name` → perfil y certificado caían al email | `4be7e61` |
 | 2026-07-09 | Auto-deploy del backend por GitHub Actions (push a `master` → VPS) | `ca20324` |
