@@ -24,6 +24,37 @@ para no prometerle al usuario algo que no existe. La funcionalidad sigue pendien
 
 ## 1. Simbiocreación
 
+### 🧭 Modelo / visión (definido con el usuario, 2026-07-10)
+**Una simbiocreación ES un proyecto** — la *idea a desarrollar*. La palabra "idea"
+vive a nivel del proyecto completo, **no** como sub-elemento (ese era el error del
+panel que listaba tags como "ideas").
+
+El propósito del módulo es **dimensionar y maquetar** el proyecto en un grafo cuyos
+nodos son **actores reales**:
+- **Personal** (personas) — agregado a mano o **traído de Portafolio** (habrá una versión nueva).
+- **Áreas** (internas).
+- **Instituciones** (externas).
+
+Mapeo desde el andamiaje actual → modelo objetivo:
+
+| Nodo hoy | Concepto objetivo |
+|----------|-------------------|
+| `center` | el proyecto |
+| `category` / `group` | áreas / instituciones |
+| `person` (los `●` inventados) | personal / actores reales |
+
+Implicaciones (reescriben pendientes de más abajo):
+- El "grafo inventa participantes" deja de ser deuda: pasa a ser la feature de
+  **agregar actores reales**; los `●` fantasma se eliminan.
+- El botón muerto "Añadir participante" es el gancho de **añadir actor**.
+- **Portafolio v2** es la fuente de actores que se pueden "llamar" a un proyecto
+  → Simbiocreación queda acoplado a Portafolio por diseño.
+- El panel "Mis grupos" (antes "ideas") se transforma en un panel de **Actores**
+  (personal / áreas / instituciones). Los `tags` actuales quedan como paso previo
+  hasta migrar a actores estructurados.
+
+> Pendiente de arrancar cuando exista Portafolio v2 (define la forma del "actor").
+
 ### 🟠 Comentarios en simbiocreaciones — *UI retirada*
 Había una caja "Escribe tu comentario..." con un contador `0 comentarios` escrito a
 mano. El `<textarea>` no tenía `value`, ni `onChange`, ni botón de publicar, y no
@@ -49,13 +80,11 @@ Lo correcto es una ruta pública `/simbio/[id]` que renderice la simbiocreación
 Necesita lo mismo que la verificación de certificados: **rutas públicas que hoy no existen**.
 Mientras tanto el botón reparte enlaces rotos.
 
-### 🟠 ¿Qué es una "idea"? — concepto sin definir
-El panel llamaba "ideas" a los `tags` (lo que el formulario pide como *"Grupos / tags"*).
-Se renombró todo a **"grupos"** para que un mismo dato no tenga dos nombres. Pero la
-pregunta de producto sigue abierta: **¿una idea es un nodo del grafo, un tag, o una
-entidad propia con autor y participantes?** Hasta definirlo, no hay jerarquía que construir.
-
-Retirado del panel por ser andamiaje ficticio (ver *Descartado*): niveles fabricados,
+### 🟠 "Idea" — RESUELTO conceptualmente (ver Modelo/visión arriba)
+Ya no hay ambigüedad: la simbiocreación **es** la idea/proyecto; no hay sub-"idea".
+El panel "ideas" (que listaba tags) se renombró a **"grupos"** como paso intermedio y
+su destino es convertirse en el panel de **Actores** (personal/áreas/instituciones).
+Se retiró del panel el andamiaje ficticio (ver *Descartado*): niveles fabricados,
 chevrons decorativos y el botón muerto "Añadir participante".
 
 ### 🟡 El grafo auto-generado inventa participantes
