@@ -1062,16 +1062,6 @@ export function SimbiocreacionDashboard() {
                             ))}</ul>
                           </div>
                         )}
-                        <div>
-                          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">0 comentarios</p>
-                          <div className="flex items-start gap-2">
-                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-400 to-teal-700 flex items-center justify-center flex-shrink-0">
-                              <span className="text-white text-xs font-bold">{(selected.nombre??'U')[0].toUpperCase()}</span>
-                            </div>
-                            <textarea placeholder="Escribe tu comentario..." rows={2}
-                              className="flex-1 text-xs border-0 border-b border-gray-200 bg-transparent resize-none focus:outline-none focus:border-teal-400 placeholder-gray-400 text-gray-700"/>
-                          </div>
-                        </div>
                       </div>
                     </div>
                   )}
