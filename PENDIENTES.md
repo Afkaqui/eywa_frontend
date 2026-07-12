@@ -69,16 +69,12 @@ Para construirlo hace falta:
   usaba la inicial de la simbiocreación, así que todos los avatares habrían salido
   con la misma letra).
 
-### 🔴 Enlace "Link compartir" apunta al vacío — *pendiente de decisión*
-El botón copia `https://eywa-hazel.vercel.app/?simbio=<id>`, pero **nadie lee el
-parámetro `?simbio=`**: el enlace deja al destinatario en la landing. No hay error,
-simplemente no pasa nada — y el que comparte no se entera. Además el dominio está
-**hardcodeado** a Vercel.
-
-Lo correcto es una ruta pública `/simbio/[id]` que renderice la simbiocreación
-(si no es privada) sin exigir login, más un endpoint público `GET /api/simbiocreacion/:id`.
-Necesita lo mismo que la verificación de certificados: **rutas públicas que hoy no existen**.
-Mientras tanto el botón reparte enlaces rotos.
+### ✅ Enlace "Link compartir" — RESUELTO (2026-07-10)
+Existe visor público `/simbio/[id]` (sin login) que renderiza la simbiocreación no
+privada con su grafo real; endpoint público `GET /api/simbiocreacion/public/:id`
+(privadas → 404). El botón usa origin dinámico (sin dominio hardcodeado) y solo
+aparece en públicas. **Pendiente menor:** Open Graph / preview del enlace al pegarlo
+en WhatsApp/LinkedIn (hoy el visor es client-side, sin metadata por-id).
 
 ### 🟠 "Idea" — RESUELTO conceptualmente (ver Modelo/visión arriba)
 Ya no hay ambigüedad: la simbiocreación **es** la idea/proyecto; no hay sub-"idea".
@@ -171,6 +167,19 @@ de verdad hace falta almacenamiento (S3, R2 o disco del VPS) y extracción de te
 
 ---
 
+## 6. Seguridad / infraestructura
+
+### 🟡 El middleware de rutas no protege nada
+`src/middleware.ts` define `publicPaths` con `'/'` y usa `pathname.startsWith(p)`.
+Como **todo** path empieza con `/`, `isPublic` siempre es `true` y el redirect a login
+nunca se dispara. El gateo real hoy es 100% client-side (`page.tsx` muestra `LoginPage`
+si no hay `user`). No es un agujero grave porque las APIs sí validan el JWT en backend,
+pero el middleware da una falsa sensación de protección. Si se corrige el matcher,
+**verificar que `/simbio` y `/api/proxy/simbiocreacion/public` sigan accesibles** (ya
+están listados explícitamente en `publicPaths`).
+
+---
+
 ## 5. Datos y KPIs
 
 ### 🟡 KPIs marcados como "Pendiente"
@@ -192,6 +201,7 @@ Las preguntas y ponderaciones del diagnóstico dependen de contenido de negocio
 
 | Fecha | Qué | Commit |
 |-------|-----|--------|
+| 2026-07-10 | Link compartir de Simbiocreación: visor público `/simbio/[id]` + endpoint público (privadas→404). Verificado en vivo sin sesión | `8382b48` |
 | 2026-07-10 | Simbiocreación: panel de grupos honesto (fuera niveles/chevrons/botón muerto), "ideas"→"grupos", y "Nuevo grupo" vuelve a insertar el nodo en el grafo guardado | `24684db` |
 | 2026-07-10 | Simbiocreación: el grafo nunca persistía (`graphData` descartado por Zod); `PATCH`/`DELETE` devolvían falso éxito | `fe38bfc` |
 | 2026-07-10 | `/login` no devolvía `name` → perfil y certificado caían al email | `4be7e61` |
