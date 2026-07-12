@@ -58,7 +58,9 @@ export function NavigationSidebar({ currentView, userRole, userName, userEmail, 
 
   const renderNavButton = (item: { id: string; icon: typeof Shield; label: string; href?: string }, isActive: boolean) => {
     const Icon = item.icon;
-    const cls = `w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all group relative ${
+    const cls = `w-full flex items-center rounded-xl transition-all group relative ${
+      isExpanded ? 'gap-3 px-4 py-3.5' : 'justify-center px-0 py-3'
+    } ${
       isActive ? 'bg-gray-900 text-white shadow-md' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
     }`;
     const inner = (
@@ -91,8 +93,8 @@ export function NavigationSidebar({ currentView, userRole, userName, userEmail, 
         }`}
       >
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center gap-3">
+        <div className={`border-b border-gray-200 ${isExpanded ? 'p-6' : 'px-2 py-5'}`}>
+          <div className={`flex items-center gap-3 ${isExpanded ? '' : 'justify-center'}`}>
             <img src={logo} alt="EYWA Logo" className="w-10 h-10 object-contain flex-shrink-0" />
             {isExpanded && (
               <div className="overflow-hidden">
@@ -104,7 +106,7 @@ export function NavigationSidebar({ currentView, userRole, userName, userEmail, 
         </div>
 
         {/* Main Navigation */}
-        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+        <nav className={`flex-1 py-6 space-y-2 overflow-y-auto overflow-x-hidden [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${isExpanded ? 'px-4' : 'px-3'}`}>
           {baseItems.map((item) => renderNavButton(item, currentView === item.id))}
 
           {/* Role-based items */}
@@ -122,10 +124,12 @@ export function NavigationSidebar({ currentView, userRole, userName, userEmail, 
         </nav>
 
         {/* Secondary Actions */}
-        <div className="px-4 py-4 border-t border-gray-200 space-y-2">
+        <div className={`py-4 border-t border-gray-200 space-y-2 ${isExpanded ? 'px-4' : 'px-3'}`}>
           <button
             onClick={() => onNavigate('notifications')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group relative ${
+            className={`w-full flex items-center rounded-xl transition-all group relative ${
+              isExpanded ? 'gap-3 px-4 py-3' : 'justify-center px-0 py-3'
+            } ${
               currentView === 'notifications'
                 ? 'bg-gray-900 text-white shadow-md'
                 : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -156,7 +160,9 @@ export function NavigationSidebar({ currentView, userRole, userName, userEmail, 
 
           <button
             onClick={() => onNavigate('settings')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group relative ${
+            className={`w-full flex items-center rounded-xl transition-all group relative ${
+              isExpanded ? 'gap-3 px-4 py-3' : 'justify-center px-0 py-3'
+            } ${
               currentView === 'settings'
                 ? 'bg-gray-900 text-white shadow-md'
                 : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -173,7 +179,7 @@ export function NavigationSidebar({ currentView, userRole, userName, userEmail, 
         </div>
 
         {/* User Profile & Logout */}
-        <div className="p-4 border-t border-gray-200">
+        <div className={`border-t border-gray-200 ${isExpanded ? 'p-4' : 'px-3 py-4'}`}>
           {isExpanded ? (
             <div className="mb-3 px-4 py-3 bg-gray-50 rounded-xl">
               <div className="flex items-center gap-3">
@@ -199,7 +205,9 @@ export function NavigationSidebar({ currentView, userRole, userName, userEmail, 
 
           <button
             onClick={onLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all bg-red-50 text-red-600 hover:bg-red-100 group relative"
+            className={`w-full flex items-center rounded-xl transition-all bg-red-50 text-red-600 hover:bg-red-100 group relative ${
+              isExpanded ? 'gap-3 px-4 py-3' : 'justify-center px-0 py-3'
+            }`}
           >
             <LogOut className="w-5 h-5 flex-shrink-0" />
             {isExpanded && <span className="font-medium text-sm">Cerrar Sesión</span>}
