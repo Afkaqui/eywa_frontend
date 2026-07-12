@@ -47,6 +47,10 @@ export function ValidadorProyectos() {
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState<ProjectPlan | null>(null);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'proyectos' | 'reportes'>('proyectos');
+
+  const reports = projects.filter(p => p.report);
+  const openReport = (project: ProjectPlan) => { setSelectedProject(project); setShowReportModal(true); };
 
   const loadProjects = useCallback(async () => {
     try {
@@ -104,7 +108,7 @@ export function ValidadorProyectos() {
               <h1 className="text-3xl font-light text-gray-900 mb-2">
                 Validador de Proyectos
               </h1>
-              <p className="text-gray-600">Ingresa tus planes y obtén análisis automático con recomendaciones ESG</p>
+              <p className="text-gray-600">Crea tus proyectos y genera un análisis preliminar ESG (análisis con IA próximamente)</p>
             </div>
             <button
               onClick={() => setShowNewProjectModal(true)}
@@ -149,7 +153,31 @@ export function ValidadorProyectos() {
         </div>
       </div>
 
-      {/* Filters and Search */}
+      {/* Tabs: Proyectos | Reportes */}
+      <div className="px-8 pt-6">
+        <div className="flex items-center gap-1 border-b border-gray-200">
+          {([['proyectos', 'Proyectos', projects.length], ['reportes', 'Reportes', reports.length]] as const).map(([id, label, count]) => (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id)}
+              className={`px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                activeTab === id
+                  ? 'border-emerald-600 text-emerald-700'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {label} <span className="ml-1 text-xs text-gray-400">{count}</span>
+            </button>
+          ))}
+        </div>
+        <div className="mt-3 text-xs text-gray-500 flex items-center gap-1.5">
+          <Lightbulb className="w-3.5 h-3.5 text-yellow-500" />
+          Los análisis son <strong>preliminares</strong> (sin IA). El análisis avanzado con IA estará disponible próximamente.
+        </div>
+      </div>
+
+      {/* ── Vista: PROYECTOS ── */}
+      {activeTab === 'proyectos' && (
       <div className="px-8 py-6">
         <div className="bg-white border border-gray-200 rounded-xl p-4 mb-6">
           <div className="flex items-center gap-4">
@@ -221,7 +249,7 @@ export function ValidadorProyectos() {
                         ? 'bg-emerald-100 text-emerald-700'
                         : 'bg-yellow-100 text-yellow-700'
                     }`}>
-                      {project.status === 'analyzed' ? 'Analizado' : 'Pendiente de Análisis'}
+                      {project.status === 'analyzed' ? 'Análisis preliminar' : 'Sin analizar'}
                     </span>
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">{project.name}</h3>
@@ -299,15 +327,12 @@ export function ValidadorProyectos() {
                       className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-all flex items-center gap-2 font-medium disabled:opacity-60 disabled:cursor-not-allowed"
                       onClick={() => handleAnalyze(project.id)}
                       disabled={analyzingId === project.id}
+                      title="Genera un análisis preliminar sin IA. El análisis con IA estará disponible próximamente."
                     >
                       <Activity className={`w-4 h-4 ${analyzingId === project.id ? 'animate-spin' : ''}`} />
-                      {analyzingId === project.id ? 'Analizando...' : 'Generar Análisis'}
+                      {analyzingId === project.id ? 'Analizando...' : 'Análisis preliminar'}
                     </button>
                   )}
-                  <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all flex items-center gap-2">
-                    <Download className="w-4 h-4" />
-                    Exportar
-                  </button>
                 </div>
               </div>
 
@@ -366,6 +391,62 @@ export function ValidadorProyectos() {
         </div>
         )}
       </div>
+      )}
+
+      {/* ── Vista: REPORTES ── */}
+      {activeTab === 'reportes' && (
+      <div className="px-8 py-6">
+        {reports.length === 0 ? (
+          <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
+            <Award className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-600 font-medium mb-2">Aún no hay reportes</p>
+            <p className="text-sm text-gray-400 mb-4">Genera un análisis preliminar desde un proyecto para ver su reporte aquí.</p>
+            <button onClick={() => setActiveTab('proyectos')} className="text-emerald-600 hover:text-emerald-700 font-medium">
+              Ir a proyectos
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4">
+            {reports.map((project) => (
+              <div key={project.id} className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-medium px-2 py-1 rounded bg-emerald-100 text-emerald-700">Análisis preliminar</span>
+                      {project.analyzedAt && (
+                        <span className="text-xs text-gray-400">
+                          {new Date(project.analyzedAt).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 truncate">{project.name}</h3>
+                    <div className="flex flex-wrap items-center gap-4 mt-3 text-sm">
+                      <span className="flex items-center gap-1.5"><Award className="w-4 h-4 text-yellow-600" /><strong className="text-gray-900">{project.report!.overallScore}/100</strong></span>
+                      <span className="text-gray-500">A: <strong className="text-emerald-700">{project.report!.esgScores.environmental}</strong></span>
+                      <span className="text-gray-500">S: <strong className="text-blue-700">{project.report!.esgScores.social}</strong></span>
+                      <span className="text-gray-500">G: <strong className="text-purple-700">{project.report!.esgScores.governance}</strong></span>
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                        project.report!.riskLevel === 'low' ? 'bg-emerald-100 text-emerald-700' :
+                        project.report!.riskLevel === 'medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
+                      }`}>
+                        Riesgo {project.report!.riskLevel === 'low' ? 'Bajo' : project.report!.riskLevel === 'medium' ? 'Medio' : 'Alto'}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => openReport(project)}
+                    className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all flex items-center gap-2 font-medium flex-shrink-0"
+                  >
+                    <Eye className="w-4 h-4" />
+                    Ver Reporte
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      )}
 
       {/* New Project Modal */}
       {showNewProjectModal && (
@@ -480,9 +561,8 @@ function NewProjectModal({ onClose, onCreated }: { onClose: () => void; onCreate
         stakeholders: formData.stakeholders || null,
         documents:    uploadedFiles,
       };
-      const created = await validatorRepo.createPlan(payload);
-      // Dispara el análisis inmediatamente (IA o heurístico según config del backend)
-      await validatorRepo.analyzePlan(created.id).catch(() => { /* el plan queda como pendiente y se puede reintentar */ });
+      await validatorRepo.createPlan(payload);
+      // Crear NO analiza: el análisis es una acción aparte desde la lista.
       await onCreated();
       onClose();
     } catch (err) {
@@ -762,8 +842,8 @@ function NewProjectModal({ onClose, onCreated }: { onClose: () => void; onCreate
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
               <Lightbulb className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-blue-800">
-                <p className="font-medium mb-1">Análisis Automático</p>
-                <p>Una vez creado, nuestro sistema analizará tu proyecto y documentos en 24-48 horas y generará un reporte completo con observaciones, puntuación ESG y recomendaciones.</p>
+                <p className="font-medium mb-1">Análisis del proyecto</p>
+                <p>Una vez creado, podrás generar un <strong>análisis preliminar</strong> desde la lista de proyectos. El análisis avanzado con IA estará disponible próximamente.</p>
               </div>
             </div>
           </form>
@@ -790,7 +870,7 @@ function NewProjectModal({ onClose, onCreated }: { onClose: () => void; onCreate
                 className="px-6 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all font-medium flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <Upload className={`w-5 h-5 ${submitting ? 'animate-pulse' : ''}`} />
-                {submitting ? 'Creando y analizando...' : 'Crear y Analizar Proyecto'}
+                {submitting ? 'Creando...' : 'Crear Proyecto'}
               </button>
             </div>
           </div>

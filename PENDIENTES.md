@@ -181,9 +181,39 @@ Hoy corre con un **heurístico determinista**, no con IA. El *seam* ya está lis
 **Verificado: en el VPS no están configuradas.** Falta que ARS entregue credenciales
 y confirmar el contrato de su API.
 
-### 🟠 Subir el contenido de los documentos
-Hoy solo se guarda **metadata** del documento, no el archivo. Para que la IA analice
-de verdad hace falta almacenamiento (S3, R2 o disco del VPS) y extracción de texto.
+### 🟠 Subida real de documentos con almacenamiento — plan de trabajo (B(b))
+**Estado hoy:** el campo `documents` (Json) guarda solo **metadata** (nombre/tipo);
+el archivo no se sube a ningún lado. Para que la IA (y el usuario) tengan el contenido
+real hace falta almacenamiento + extracción de texto. Plan por fases:
+
+**Fase 1 — Almacenamiento de archivos**
+- Elegir backend de storage. Opciones:
+  - **Cloudflare R2** (S3-compatible, sin egress) — recomendado si se prevé volumen.
+  - **Disco del VPS** + carpeta servida por el backend — más simple, sin costo extra,
+    pero acopla los archivos al servidor (backup/espacio propios).
+  - S3/Supabase Storage — alternativas válidas.
+- Backend: endpoint `POST /api/validator/plans/:id/documents` que reciba `multipart/form-data`,
+  valide (tipo permitido: pdf/docx/xlsx/img; tamaño máx p.ej. 10 MB; límite por plan según
+  plan free/premium), guarde el binario y devuelva `{ id, name, url, size, mime }`.
+- Modelo: cambiar el shape de `documents` de metadata a `{ id, name, url, size, mime, uploadedAt }[]`,
+  o crear tabla `PlanDocument` (mejor para borrar/listar individualmente). Migración aditiva.
+- Endpoint `DELETE /api/validator/plans/:id/documents/:docId`.
+- Seguridad: verificar propiedad del plan; URLs firmadas/temporales si el bucket es privado;
+  nunca exponer el bucket completo.
+
+**Fase 2 — Frontend de subida**
+- Reemplazar el input actual (que solo captura nombres) por subida real con barra de
+  progreso, validación de tipo/tamaño en cliente, y lista de archivos ya subidos con
+  opción de eliminar. Respetar el límite del plan (free = 1 doc, premium = varios).
+
+**Fase 3 — Extracción de texto (para la IA)**
+- Al subir, extraer texto: PDF (`pdf-parse`/`pdfjs`), DOCX (`mammoth`), XLSX (`xlsx`),
+  OCR para imágenes si aplica (`tesseract`). Guardar el texto extraído para pasárselo
+  al validador cuando ARS entregue la IA.
+- Esto conecta con "Enchufar la API de IA real": el análisis real necesita este texto.
+
+**Dependencias/decisiones abiertas:** elegir storage (costo vs simplicidad), definir
+límites por plan (free/premium), y si el texto extraído se guarda en la BD o en el storage.
 
 ---
 
