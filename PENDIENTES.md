@@ -154,6 +154,27 @@ de correo configurado.
 
 ## 4. Validador de Proyectos IA
 
+### 🧭 Flujo objetivo (definido con el usuario, 2026-07-10)
+El módulo se reorganiza en pasos **desacoplados**:
+1. **Crear proyecto** con sus documentos y datos — paso independiente, sin analizar.
+2. **Lista de proyectos**, cada uno con un botón **Analizar** al lado.
+3. **Analizar queda PENDIENTE** (falta la IA de ARS). No debe fingir con el heurístico:
+   el botón muestra estado "análisis con IA · próximamente", no ejecuta y presenta.
+4. Al analizar (cuando exista IA) se **habilita el apartado de Reportes** por proyecto.
+
+Estado actual vs objetivo:
+- ✅ Backend **ya desacoplado**: `POST /plans` (crear) y `POST /plans/:id/analyze`
+  (analizar) son rutas separadas; el modelo `ProjectPlan` ya tiene `documents`,
+  `status`, `report`, `analyzedAt`.
+- ❌ **Frontend acopla crear+analizar**: el botón dice "Crear y Analizar Proyecto" y
+  al crear llama solo a `analyzePlan()`. **Cascarón activo:** el texto promete
+  *"analizará tu proyecto en 24-48 horas"* — falso (ni hay IA ni hay 24-48h; corre
+  un heurístico al instante y lo presenta como análisis).
+
+Construible **ya** (sin IA): separar crear de analizar, botón "Analizar" en estado
+pendiente honesto, apartado de Reportes (vacío hasta que haya análisis), y quitar la
+promesa de "24-48 horas". Bloqueado: el análisis en sí (abajo) y los documentos reales.
+
 ### 🔴 Enchufar la API de IA real (depende de ARS)
 Hoy corre con un **heurístico determinista**, no con IA. El *seam* ya está listo en
 `validator-service.ts`: si existen `VALIDATOR_AI_URL` y `VALIDATOR_AI_KEY` en el
