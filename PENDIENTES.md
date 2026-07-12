@@ -153,26 +153,20 @@ de correo configurado.
 
 ## 4. Validador de Proyectos IA
 
-### 🧭 Flujo objetivo (definido con el usuario, 2026-07-10)
-El módulo se reorganiza en pasos **desacoplados**:
-1. **Crear proyecto** con sus documentos y datos — paso independiente, sin analizar.
-2. **Lista de proyectos**, cada uno con un botón **Analizar** al lado.
-3. **Analizar queda PENDIENTE** (falta la IA de ARS). No debe fingir con el heurístico:
-   el botón muestra estado "análisis con IA · próximamente", no ejecuta y presenta.
-4. Al analizar (cuando exista IA) se **habilita el apartado de Reportes** por proyecto.
+### ✅ Flujo desacoplado (crear / analizar / reportes) — HECHO (2026-07-10)
+Reencuadre aplicado (decisión A(b) del usuario):
+- **Crear ya no analiza** (se quitó el auto-`analyzePlan`); botón "Crear Proyecto".
+- El heurístico se conserva pero **etiquetado honesto** como "Análisis preliminar
+  (sin IA)" en badge, botón (tooltip) y banner del módulo.
+- **Pestaña "Reportes"** que lista los proyectos con reporte (score ESG, riesgo,
+  fecha) + estado vacío honesto.
+- Quitados: promesa falsa "24-48 horas" y botón "Exportar" muerto.
+- Backend sin cambios (ya estaba desacoplado: `POST /plans` vs `POST /plans/:id/analyze`).
 
-Estado actual vs objetivo:
-- ✅ Backend **ya desacoplado**: `POST /plans` (crear) y `POST /plans/:id/analyze`
-  (analizar) son rutas separadas; el modelo `ProjectPlan` ya tiene `documents`,
-  `status`, `report`, `analyzedAt`.
-- ❌ **Frontend acopla crear+analizar**: el botón dice "Crear y Analizar Proyecto" y
-  al crear llama solo a `analyzePlan()`. **Cascarón activo:** el texto promete
-  *"analizará tu proyecto en 24-48 horas"* — falso (ni hay IA ni hay 24-48h; corre
-  un heurístico al instante y lo presenta como análisis).
+Verificado con `tsc` + `next build` limpios. **No se pudo verificar el flujo interactivo
+en vivo** (el módulo está tras login y no hay credenciales en esta sesión).
 
-Construible **ya** (sin IA): separar crear de analizar, botón "Analizar" en estado
-pendiente honesto, apartado de Reportes (vacío hasta que haya análisis), y quitar la
-promesa de "24-48 horas". Bloqueado: el análisis en sí (abajo) y los documentos reales.
+Sigue **bloqueado**: el análisis real con IA (abajo) y los documentos reales (B(b), abajo).
 
 ### 🔴 Enchufar la API de IA real (depende de ARS)
 Hoy corre con un **heurístico determinista**, no con IA. El *seam* ya está listo en
@@ -251,6 +245,7 @@ Las preguntas y ponderaciones del diagnóstico dependen de contenido de negocio
 
 | Fecha | Qué | Commit |
 |-------|-----|--------|
+| 2026-07-10 | Validador: flujo desacoplado crear/analizar, heurístico etiquetado "preliminar", pestaña Reportes, fuera promesa "24-48h" y botón Exportar muerto | (frontend) |
 | 2026-07-10 | Link compartir de Simbiocreación: visor público `/simbio/[id]` + endpoint público (privadas→404). Verificado en vivo sin sesión | `8382b48` |
 | 2026-07-10 | Simbiocreación: panel de grupos honesto (fuera niveles/chevrons/botón muerto), "ideas"→"grupos", y "Nuevo grupo" vuelve a insertar el nodo en el grafo guardado | `24684db` |
 | 2026-07-10 | Simbiocreación: el grafo nunca persistía (`graphData` descartado por Zod); `PATCH`/`DELETE` devolvían falso éxito | `fe38bfc` |
