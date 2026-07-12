@@ -235,9 +235,40 @@ Por decisión de producto, cuando un dato no está mapeado a la base de datos se
 
 Falta **definir el origen de cada métrica** antes de poder calcularlas.
 
-### 🟡 Contenido del diagnóstico ESG
-Las preguntas y ponderaciones del diagnóstico dependen de contenido de negocio
-(Eduardo). El motor ya funciona.
+### 🟠 Contenido del diagnóstico ESG — preparación (2026-07-10)
+**Decisiones tomadas:** el contenido lo pasan el usuario/Eduardo; **la estructura
+(plana vs mapeada a las 5 dimensiones) queda pendiente de analizar un Excel** que
+Eduardo tiene. Cuando llegue el Excel → lo audito y defino estructura + cargo.
+
+**Motor actual (auditado):**
+- Modelo: `DiagnosticQuestion` (title, description, context_title/description/impact/image,
+  sort_order) + `DiagnosticOption` (label, value, score, sort_order) + `DiagnosticResult`
+  (score, maxScore, percentage, level, breakdown por pregunta).
+- Scoring: `total = Σ(score de opción elegida)` / `max = Σ(mejor opción por pregunta)`;
+  `%` = total/max. Niveles: Inicial <40, Moderado 40-59, Bueno 60-79, Excelente ≥80.
+- **No hay campo `dimension`** en las preguntas → hoy el diagnóstico da UN score plano.
+- Hay **3 preguntas placeholder** (Certif. Orgánica, Carbono, Gobernanza Social) y
+  4 resultados de prueba → limpiar al cargar el contenido real.
+
+**Existe aparte** un panel ESG de **5 dimensiones × 3 = 15 indicadores** (`EsgDashboard`,
+data-driven vía `EsgRepository`): Ambiental (Emisiones/Energía/Agua), Social (Comunidad/
+Empleados/Seguridad), Gobernanza (Cumplimiento/Transparencia/Ética), Innovación (Tec.Verde/
+I+D/Capacitación), Cadena de Valor (Materiales/Logística/Proveedores). **Hoy NO se conecta
+con el diagnóstico.** Si el Excel confirma estructura mapeada → agregar `dimension` (+ opcional
+`indicator`) a la pregunta, scoring por dimensión, y alimentar el radar con el resultado.
+
+**Contrato de datos por pregunta (lo que hay que llenar):**
+| Campo | Obligatorio | Nota |
+|-------|-------------|------|
+| `sort_order` | sí | orden de aparición |
+| `title` | sí | la pregunta |
+| `description` | sí | subtítulo/ayuda |
+| `context_title/description/impact` | opcional | contexto educativo que se muestra |
+| `dimension` | según Excel | Ambiental/Social/Gobernanza/Innovación/Cadena (si mapeado) |
+| **opciones** (2-5) | sí | cada una: `label`, `value` (slug), `score` (int), `sort_order` |
+
+**Al recibir el Excel:** mapear columnas → contrato, decidir estructura, generar seed SQL
+(idempotente, estilo `seed-demo-course.sql`), limpiar placeholders y cargar en la BD.
 
 ---
 
