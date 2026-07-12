@@ -73,8 +73,7 @@ Para construirlo hace falta:
 Existe visor público `/simbio/[id]` (sin login) que renderiza la simbiocreación no
 privada con su grafo real; endpoint público `GET /api/simbiocreacion/public/:id`
 (privadas → 404). El botón usa origin dinámico (sin dominio hardcodeado) y solo
-aparece en públicas. **Pendiente menor:** Open Graph / preview del enlace al pegarlo
-en WhatsApp/LinkedIn (hoy el visor es client-side, sin metadata por-id).
+aparece en públicas.
 
 ### 🟠 "Idea" — RESUELTO conceptualmente (ver Modelo/visión arriba)
 Ya no hay ambigüedad: la simbiocreación **es** la idea/proyecto; no hay sub-"idea".
@@ -240,3 +239,4 @@ Las preguntas y ponderaciones del diagnóstico dependen de contenido de negocio
 | "Nivel 1 / Nivel 2" en el panel de grupos | "Nivel 1" era siempre el nombre de la simbiocreación (misma cadena repetida en cada fila). "Nivel 2" repartía los tags de dos en dos por posición (`cats[Math.floor(i/2)]`) e inventaba "Cat 1"/"Cat 2" — que ni coincidían con las 3 categorías del grafo. Jerarquía inexistente. |
 | Chevrons `<` `>` del panel de grupos | Texto decorativo, no enlaces. Con `flex-wrap` se descolgaban en líneas sueltas. |
 | Botón "Añadir participante" (icono de personas) | `<button>` sin `onClick`. |
+| Open Graph / preview por cada `/simbio/[id]` | Decisión del usuario (2026-07-10): no se hará. El enlace funciona; solo no tendrá tarjeta enriquecida al pegarlo en WhatsApp/LinkedIn. |
