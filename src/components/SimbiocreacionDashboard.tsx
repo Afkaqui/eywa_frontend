@@ -189,7 +189,7 @@ interface NetworkGraphProps {
   selectedNodeId?: string | null;
 }
 
-const NetworkGraph = forwardRef<GraphHandle, NetworkGraphProps>(function NetworkGraph({
+export const NetworkGraph = forwardRef<GraphHandle, NetworkGraphProps>(function NetworkGraph({
   item,
   physicsForce    = 0.04,
   physicsDistance = 40,
@@ -463,7 +463,9 @@ function StatCard({ label, value, accent }: { label: string; value: number|strin
 
 function ShareRow({ id }: { id: string }) {
   const [copied, setCopied] = useState(false);
-  const url = `https://eywa-hazel.vercel.app/?simbio=${id}`;
+  // Origen dinámico: funciona en Vercel hoy y en el dominio propio mañana.
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const url = `${origin}/simbio/${id}`;
   const copy = () => navigator.clipboard.writeText(url).then(()=>{ setCopied(true); setTimeout(()=>setCopied(false),2000); });
   return (
     <div className="mt-2 flex items-center gap-2">
@@ -909,7 +911,7 @@ export function SimbiocreacionDashboard() {
                             {item.ods.length>0&&<span className="text-xs text-gray-400 flex items-center gap-1"><Leaf className="w-3 h-3"/>{item.ods.length} ODS</span>}
                             {item.graphData&&<span className="text-xs text-teal-500 flex items-center gap-1"><Network className="w-3 h-3"/>grafo personalizado</span>}
                           </div>
-                          <ShareRow id={item.id}/>
+                          {!item.privado&&<ShareRow id={item.id}/>}
                         </div>
                         <div className="text-sm text-gray-500 text-center">{item.tags.length} grupos</div>
                         <div className="text-xs text-gray-400 text-center">{new Date(item.updatedAt).toLocaleDateString('es',{day:'numeric',month:'short',year:'numeric'})}</div>
@@ -1533,7 +1535,9 @@ export function SimbiocreacionDashboard() {
                     )}
                     <div className="border-t border-gray-100 pt-4">
                       <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Compartir</div>
-                      <ShareRow id={selected.id}/>
+                      {selected.privado
+                        ? <p className="text-xs text-gray-400 flex items-center gap-1.5"><Lock className="w-3.5 h-3.5"/>Es privada. Cámbiala a pública para poder compartir el enlace.</p>
+                        : <ShareRow id={selected.id}/>}
                     </div>
                     <div className="border-t border-gray-100 pt-4">
                       <button onClick={()=>openEditar(selected)}
