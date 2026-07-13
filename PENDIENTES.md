@@ -240,16 +240,16 @@ y NAB Colombia (89 orgs, 5 campos). Son el catálogo de **instituciones** del ec
 `contactName?` (PII), `contactEmail?` (PII), `source` (archivo origen), `createdBy`, timestamps.
 
 **Plan por fases:**
-1. **Modelo + migración** `Actor` (aditiva) + repository/rutas: `GET /actors` (filtros:
-   país, categoría, sector, instrumento, búsqueda) con **PII oculta salvo gestor/admin**;
-   `GET /actors/:id`; CRUD para gestor+.
-2. **Importador**: Python convierte ambos Excel → filas unificadas (aplica mapeo de
-   taxonomía, normaliza instrumentos/sectores, dedup) → seed SQL idempotente → cargar en BD.
-3. **Frontend directorio**: navegar/filtrar por país/categoría/sector; CRUD admin; PII gateada.
-4. **Portafolio**: `PortfolioCompany.actorId?` (link) + acción "agregar a mi portafolio"
-   desde el directorio (prellenar name/sector desde el actor).
-5. **Simbiocreación**: actores como nodos "institución" del grafo (nodo lleva `actorId`).
-   Conecta con el Panel de Actores (§1) — depende de esta base.
+1. ✅ **HECHO** — Modelo `Actor` + migración + rutas `/api/actors` (filtros país/categoría/
+   sector/instrumento/búsqueda + facets; GET :id; CRUD gestor+; **PII oculta salvo gestor/admin**).
+2. ✅ **HECHO** — Importador (Python → seed SQL idempotente). **320 actores cargados en prod**
+   (PE 232, CO 88). Taxonomía Colombia mapeada + 7 outliers reclasificados + `subcategory`
+   preserva el origen. Distribución: intermediarios 146, proveedores_capital 92, empresa_social 42,
+   gobierno_multilaterales 22, bancos 18. Script: `scratchpad/import_actores.py`, seed: `prisma/seed-actors.sql`.
+3. ⬜ **Frontend directorio**: navegar/filtrar por país/categoría/sector; CRUD admin; PII gateada.
+4. ⬜ **Portafolio**: `PortfolioCompany.actorId?` (link) + acción "agregar a mi portafolio".
+5. ⬜ **Simbiocreación**: actores como nodos "institución" del grafo (nodo lleva `actorId`).
+   Conecta con el Panel de Actores (§1).
 
 **Abierto:** confirmar el mapeo fino de subcategorías/sectores/instrumentos al importar
 (algunos textos de los Excel vienen con espacios/variantes).
@@ -321,6 +321,7 @@ con el diagnóstico.** Si el Excel confirma estructura mapeada → agregar `dime
 
 | Fecha | Qué | Commit |
 |-------|-----|--------|
+| 2026-07-10 | Directorio de Actores: modelo + rutas (PII por rol) + 320 actores importados de NAB PE/CO (Fases 1-2) | (backend) |
 | 2026-07-10 | Validador: flujo desacoplado crear/analizar, heurístico etiquetado "preliminar", pestaña Reportes, fuera promesa "24-48h" y botón Exportar muerto | (frontend) |
 | 2026-07-10 | Link compartir de Simbiocreación: visor público `/simbio/[id]` + endpoint público (privadas→404). Verificado en vivo sin sesión | `8382b48` |
 | 2026-07-10 | Simbiocreación: panel de grupos honesto (fuera niveles/chevrons/botón muerto), "ideas"→"grupos", y "Nuevo grupo" vuelve a insertar el nodo en el grafo guardado | `24684db` |
