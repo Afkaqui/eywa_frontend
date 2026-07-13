@@ -211,6 +211,51 @@ límites por plan (free/premium), y si el texto extraído se guarda en la BD o e
 
 ---
 
+## 7. Directorio de Actores (nuevo módulo — 2026-07-10)
+
+**Origen:** dos "mapas de actores" del ecosistema de inversión de impacto en
+`C:\Users\Asus\Desktop\EYWA\actores\`: NAB Perú (232 orgs, 15 campos, taxonomía completa)
+y NAB Colombia (89 orgs, 5 campos). Son el catálogo de **instituciones** del ecosistema.
+
+**Decisiones (con el usuario, 2026-07-10):**
+- **Tabla maestra nueva `Actor`**; el Portafolio la **consume** (no se fusiona con
+  `PortfolioCompany`). Simbiocreación también la jala (Panel de Actores).
+- **Global, curada por gestor/admin** (data compartida; todos la navegan).
+- **Taxonomía EYWA unificada + campo `country`** (base = la de Perú; Colombia se mapea).
+- **Contacto/correo (PII): se guardan pero visibles solo a gestor/admin**; el directorio
+  general muestra web/descripción, no PII (serializador según rol).
+
+**Taxonomía unificada (5 categorías)** con mapeo de Colombia:
+| EYWA | Perú | Colombia |
+|------|------|----------|
+| Proveedores de Capital | Proveedores de Capital | Oferentes de capital |
+| Intermediarios | Intermediarios | Intermediación de capital + Constructores de mercado |
+| Bancos | Bancos | — |
+| Gobierno y Multilaterales | Gobierno y multilaterales | — |
+| Empresa Social | Empresa social | — |
+
+**Modelo `Actor` (superset, campos nulables):** `name`, `country` (PE/CO), `category`
+(enum unificado), `subcategory?`, `description?`, `services?`, `procedencia?`, `geoScope?`,
+`instruments Json` (array), `sectors Json` (array), `aum?`, `investmentAmount?`, `website?`,
+`contactName?` (PII), `contactEmail?` (PII), `source` (archivo origen), `createdBy`, timestamps.
+
+**Plan por fases:**
+1. **Modelo + migración** `Actor` (aditiva) + repository/rutas: `GET /actors` (filtros:
+   país, categoría, sector, instrumento, búsqueda) con **PII oculta salvo gestor/admin**;
+   `GET /actors/:id`; CRUD para gestor+.
+2. **Importador**: Python convierte ambos Excel → filas unificadas (aplica mapeo de
+   taxonomía, normaliza instrumentos/sectores, dedup) → seed SQL idempotente → cargar en BD.
+3. **Frontend directorio**: navegar/filtrar por país/categoría/sector; CRUD admin; PII gateada.
+4. **Portafolio**: `PortfolioCompany.actorId?` (link) + acción "agregar a mi portafolio"
+   desde el directorio (prellenar name/sector desde el actor).
+5. **Simbiocreación**: actores como nodos "institución" del grafo (nodo lleva `actorId`).
+   Conecta con el Panel de Actores (§1) — depende de esta base.
+
+**Abierto:** confirmar el mapeo fino de subcategorías/sectores/instrumentos al importar
+(algunos textos de los Excel vienen con espacios/variantes).
+
+---
+
 ## 6. Seguridad / infraestructura
 
 ### 🟡 El middleware de rutas no protege nada
