@@ -287,15 +287,52 @@ lo definirá el usuario más adelante ("luego te pasaré qué debe tener cada un
 Un dataroom = **repositorio de documentos de la organización + control de acceso** (típico
 en due diligence / inversión: financieros, ESG, legal, etc.).
 
-**A definir cuando el usuario pase el detalle:**
-- **Estructura/secciones** de cada dataroom y tipos de documento esperados.
-- **Control de acceso:** ¿solo el dueño de la organización sube/ve? ¿se comparte con
-  inversores/terceros (enlace o invitación)? ¿gestor/admin ven todo? Definir roles.
-- Si es privado por defecto o compartible.
+**ESTRUCTURA DESEADA** (referencia dada por el usuario 2026-07-14:
+https://qoryladataroom.netlify.app/ — "QORY LAB Data Room"):
 
-**Boceto técnico (preliminar):** modelo `DataroomDocument` (o `OrganizationDocument`) con
-`organizationId`, `section`, `name`, `path/url`, `mime`, `size`, `uploadedBy`, timestamps;
-endpoints subir/listar/borrar bajo `/api/organization/dataroom`; reutiliza el storage del VPS.
+> ⚠️ La referencia mezcla dos capas. **El dataroom es la capa 1**; la capa 2 son
+> dashboards propios de esa empresa (estados financieros con partidas/notas, presupuestos
+> con proyecciones, organigrama) → **fuera del alcance del dataroom genérico**.
+
+**Capa 1 — El dataroom = 10 carpetas, cada una con un CHECKLIST de documentos requeridos
+y un ESTADO por documento (✅ Completo / ⏳ Pendiente / ❌ Faltante):**
+
+| # | Carpeta | Documentos requeridos |
+|---|---------|----------------------|
+| 1 | **Panorama** | Directorio ejecutivo (directivos, cargo, nivel jerárquico → organigrama); Actividad principal |
+| 2 | **Legal y Societario** | Testimonio de constitución y estatutos · Partida registral (copia literal) · Poderes y vigencia · Modificaciones estatutarias · Libros societarios · Convenios de accionistas |
+| 3 | **Tributario** | Ficha RUC · Declaraciones juradas (anuales/mensuales) · Comprobantes de pago · Constancias de libros contables · Informes de auditoría tributaria · Certificados de no adeudo |
+| 4 | **Financiero y Contable** | Estados financieros (anuales y trimestrales) · Informes de auditoría financiera · Presupuestos y proyecciones · Contratos de deudas y financiamientos · Reportes de valorización |
+| 5 | **Negocio y Operaciones** | Descripción del modelo de negocio · Diagramas de procesos clave · Licencias y permisos |
+| 6 | **Cumplimiento y Políticas internas** | Manual de políticas y procedimientos · Código de ética y conducta · Reglamento interno de trabajo (RIT) · Documentación SPLAFT · Declaraciones juradas de empleados · Informes de auditorías de cumplimiento |
+| 7 | **Sostenibilidad y ASG** | Reporte de sostenibilidad · Política de sostenibilidad y RSE · Mediciones de impacto ambiental · Informes de impacto social · Certificaciones de calidad/sostenibilidad · Catálogo de proyectos de impacto |
+| 8 | **Comercial y Mercado** | Contratos marco (clientes/proveedores) · Lista de clientes y proveedores clave · Políticas de precios y ventas · Material de marketing y ventas · Estudios de mercado y competencia |
+| 9 | **Talento Humano** | Organigrama · Modelos de contratos de trabajo · Políticas de contratación y salarios · Estructura de planillas y bandas salariales · Planes de desarrollo y capacitación · Formatos de evaluación de desempeño |
+| 10 | **Propiedad Intelectual y Tecnología** | Títulos de registro de marcas y patentes · Contratos de licencia de software · Registro de dominios web · Política de seguridad de la información · NDAs |
+
+**Otros patrones a replicar de la referencia:**
+- **% de completitud** por carpeta y global (deriva de los estados) → métrica de "empresa
+  lista para financiamiento". **Encaja con el ADN de EYWA (Trust Score / dato honesto).**
+- **Nomenclatura sugerida:** `Contrato_Cliente_XYZ_2024-03-15.pdf`.
+- **Mantenimiento:** responsable asignado + revisión cada 3-6 meses.
+- Ellos usan Google Drive/Dropbox; **nosotros: disco del VPS** (ya decidido).
+
+**Sinergia con EYWA:** la **Carpeta 7 (Sostenibilidad y ASG)** es literalmente el core de
+EYWA → puede alimentarse del Diagnóstico ESG, el panel ESG y los certificados. Y un dataroom
+completo + el **Directorio de Actores** (proveedores de capital) = el puente natural
+empresa→inversor.
+
+**Modelo propuesto:**
+- Plantilla (global, seed): `DataroomFolder` (10, con orden y descripción) y `DataroomItem`
+  (documento requerido dentro de cada carpeta).
+- Por organización: `DataroomDocument` (`organizationId`, `itemId`, archivo en disco del VPS,
+  `name`, `mime`, `size`, `uploadedBy`, `status`, timestamps). El **estado** se deriva de si
+  hay archivo (o se marca "no aplica").
+- Endpoints bajo `/api/organization/dataroom` (listar plantilla + estado, subir, borrar).
+
+**AÚN ABIERTO — control de acceso:** ¿quién ve/sube? ¿se comparte con inversores/terceros
+(enlace o invitación con permiso por carpeta/documento, como sugiere la referencia)?
+¿gestor/admin ven todo?
 
 ### 🟡 El middleware de rutas no protege nada
 `src/middleware.ts` define `publicPaths` con `'/'` y usa `pathname.startsWith(p)`.
