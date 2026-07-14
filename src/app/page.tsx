@@ -19,14 +19,13 @@ import { GestorDashboard } from '@/components/GestorDashboard';
 import { EdutechDashboard } from '@/components/EdutechDashboard';
 import { OrganizationProfile } from '@/components/OrganizationProfile';
 import { SimbiocreacionDashboard } from '@/components/SimbiocreacionDashboard';
-import { ActorsDirectory } from '@/components/ActorsDirectory';
 import { SettingsDashboard } from '@/components/SettingsDashboard';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import type { DiagnosticResult } from '@/lib/types/database';
 
 type ViewType =
   | 'hero' | 'diagnostic' | 'portfolio' | 'mobile' | 'validator' | 'edutech'
-  | 'organization' | 'simbiocreacion' | 'actores'
+  | 'organization' | 'simbiocreacion'
   | 'notifications' | 'settings'
   | 'superadmin' | 'admin' | 'gestor';
 
@@ -84,7 +83,6 @@ export default function Page() {
         {currentView === 'validator' && <ValidadorProyectos />}
         {currentView === 'organization' && <OrganizationProfile />}
         {currentView === 'simbiocreacion' && <SimbiocreacionDashboard />}
-        {currentView === 'actores' && <ActorsDirectory />}
         {currentView === 'portfolio' && <InvestorPortfolio />}
         {currentView === 'mobile' && <MobileApp />}
         {currentView === 'edutech' && <EdutechDashboard />}

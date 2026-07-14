@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Search, Filter, Download, TrendingUp, AlertCircle, X, FileText, Calendar, CheckSquare, Loader2 } from 'lucide-react';
 import { PortfolioRepository } from '@/lib/repositories/portfolio-repository';
+import { ActorsDirectory } from '@/components/ActorsDirectory';
 import type { PortfolioCompany } from '@/lib/types/database';
 
 const logo = "/logo.png";
@@ -12,6 +13,7 @@ export function InvestorPortfolio() {
   const [companies, setCompanies] = useState<PortfolioCompany[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'empresas' | 'directorio'>('empresas');
 
   const fetchCompanies = useCallback(async () => {
     try {
@@ -125,7 +127,32 @@ export function InvestorPortfolio() {
         </div>
       </div>
 
+      {/* Tabs */}
+      <div className="max-w-[1600px] mx-auto px-8 pt-4">
+        <div className="flex items-center gap-1 border-b border-gray-200">
+          {([['empresas', 'Mis Empresas', companies.length], ['directorio', 'Directorio de Actores', null]] as const).map(([id, label, count]) => (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id)}
+              className={`px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                activeTab === id ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {label}{count !== null && <span className="ml-1.5 text-xs text-gray-400">{count}</span>}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Directorio de Actores (embebido) */}
+      {activeTab === 'directorio' && (
+        <div className="max-w-[1600px] mx-auto px-8 py-8">
+          <ActorsDirectory embedded />
+        </div>
+      )}
+
       {/* Main Content */}
+      {activeTab === 'empresas' && (
       <div className="max-w-[1600px] mx-auto px-8 py-8">
         {/* Filters and Search */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
@@ -248,6 +275,7 @@ export function InvestorPortfolio() {
           </div>
         </div>
       </div>
+      )}
 
       {/* Modal Nuevo Reporte */}
       {showReportModal && (

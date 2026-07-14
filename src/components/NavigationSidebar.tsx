@@ -44,7 +44,6 @@ export function NavigationSidebar({ currentView, userRole, userName, userEmail, 
     { id: 'validator', icon: CheckCircle, label: 'Validador de Proyectos' },
     { id: 'organization', icon: Building2, label: 'Mi Organización' },
     { id: 'simbiocreacion', icon: Network, label: 'Simbiocreación' },
-    { id: 'actores', icon: Building2, label: 'Directorio de Actores' },
     { id: 'portfolio', icon: BarChart3, label: 'Portfolio' },
     { id: 'edutech', icon: GraduationCap, label: 'Academia' },
   ];

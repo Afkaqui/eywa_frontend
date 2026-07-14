@@ -19,7 +19,7 @@ const COUNTRY_LABEL: Record<string, string> = { PE: '🇵🇪 Perú', CO: '🇨�
 
 const actorRepo = new ActorRepository();
 
-export function ActorsDirectory() {
+export function ActorsDirectory({ embedded = false }: { embedded?: boolean } = {}) {
   const [actors, setActors] = useState<Actor[]>([]);
   const [canSeeContact, setCanSeeContact] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -76,45 +76,50 @@ export function ActorsDirectory() {
     return m;
   }, [filtered]);
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Directorio de Actores</h1>
-              <p className="text-sm text-gray-500">Ecosistema de inversión de impacto · {actors.length} organizaciones</p>
-            </div>
-          </div>
+  const categoryChips = (
+    <div className="flex flex-wrap gap-2">
+      {(Object.keys(CATEGORY_CONFIG) as ActorCategory[]).map(cat => {
+        const cfg = CATEGORY_CONFIG[cat];
+        const active = category === cat;
+        return (
+          <button
+            key={cat}
+            onClick={() => setCategory(active ? 'all' : cat)}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${
+              active ? cfg.bg + ' ' + cfg.color : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'
+            }`}
+          >
+            <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />
+            {cfg.label}
+            <span className="text-gray-400">{byCategory[cat] ?? 0}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
 
-          {/* Chips de categoría (resumen del filtrado actual) */}
-          <div className="flex flex-wrap gap-2 mt-4">
-            {(Object.keys(CATEGORY_CONFIG) as ActorCategory[]).map(cat => {
-              const cfg = CATEGORY_CONFIG[cat];
-              const active = category === cat;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setCategory(active ? 'all' : cat)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${
-                    active ? cfg.bg + ' ' + cfg.color : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'
-                  }`}
-                >
-                  <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />
-                  {cfg.label}
-                  <span className="text-gray-400">{byCategory[cat] ?? 0}</span>
-                </button>
-              );
-            })}
+  return (
+    <div className={embedded ? '' : 'min-h-screen bg-gray-50'}>
+      {/* Header (solo en modo standalone) */}
+      {!embedded && (
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center">
+                <Building2 className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Directorio de Actores</h1>
+                <p className="text-sm text-gray-500">Ecosistema de inversión de impacto · {actors.length} organizaciones</p>
+              </div>
+            </div>
+            <div className="mt-4">{categoryChips}</div>
           </div>
         </div>
-      </div>
+      )}
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
+      <div className={embedded ? '' : 'max-w-7xl mx-auto px-4 md:px-8 py-6'}>
+        {embedded && <div className="mb-4">{categoryChips}</div>}
         {/* Filtros */}
         <div className="bg-white border border-gray-200 rounded-xl p-4 mb-6 flex flex-col md:flex-row gap-3">
           <div className="flex-1 relative">
