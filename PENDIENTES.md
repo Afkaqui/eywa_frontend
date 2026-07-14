@@ -181,11 +181,10 @@ el archivo no se sube a ningún lado. Para que la IA (y el usuario) tengan el co
 real hace falta almacenamiento + extracción de texto. Plan por fases:
 
 **Fase 1 — Almacenamiento de archivos**
-- Elegir backend de storage. Opciones:
-  - **Cloudflare R2** (S3-compatible, sin egress) — recomendado si se prevé volumen.
-  - **Disco del VPS** + carpeta servida por el backend — más simple, sin costo extra,
-    pero acopla los archivos al servidor (backup/espacio propios).
-  - S3/Supabase Storage — alternativas válidas.
+- **DECIDIDO (usuario 2026-07-14): storage en el DISCO DEL VPS** (no R2). Carpeta dedicada
+  servida por el backend. **Es infraestructura COMPARTIDA con el Dataroom (§8).** Ojo
+  operativo: el VPS es compartido (~27 contenedores) → usar una carpeta/volumen dedicado,
+  incluirla en los backups (`~/backups`), y controlar espacio en disco.
 - Backend: endpoint `POST /api/validator/plans/:id/documents` que reciba `multipart/form-data`,
   valide (tipo permitido: pdf/docx/xlsx/img; tamaño máx p.ej. 10 MB; límite por plan según
   plan free/premium), guarde el binario y devuelva `{ id, name, url, size, mime }`.
@@ -269,22 +268,24 @@ y NAB Colombia (89 orgs, 5 campos). Son el catálogo de **instituciones** del ec
 **Idea (del usuario):** se creará **un dataroom por empresa**; el contenido de cada uno
 lo definirá el usuario más adelante ("luego te pasaré qué debe tener cada uno").
 
-**Contexto EYWA (a resolver al recibir el detalle):**
-- **¿Qué es "empresa"?** Hay varias entidades candidatas: `PortfolioCompany` (empresas
-  monitoreadas), `Organization` (la organización propia del usuario), `Actor` (instituciones
-  del ecosistema), o la empresa del `Profile`. **Definir a cuál se ancla el dataroom.**
-- Un dataroom = **repositorio de documentos por empresa + control de acceso** (típico en
-  due diligence / inversión: financieros, ESG, legal, etc.).
+**Decisiones (usuario 2026-07-14):**
+- **La "empresa" es `Organization`** — la organización vinculada a la cuenta del usuario
+  (1:1 con `Profile`, ya existe el módulo `OrganizationProfile`). → **Un dataroom por
+  organización.** El dataroom cuelga de `Organization`, no de PortfolioCompany ni Actor.
+- **Storage en el DISCO DEL VPS** (misma infra que Validador §4, compartida).
 
-**Dependencias / sinergias (importante):**
-- **Reutiliza la infraestructura de almacenamiento** del plan B(b) (§4, "Subida real de
-  documentos"): la decisión de storage (Cloudflare R2 vs disco del VPS) es **compartida**.
-  Conviene decidir el storage una sola vez para Validador + Dataroom.
-- Necesita **control de acceso**: quién ve/sube a cada dataroom (dueño de la empresa,
-  inversores invitados, gestor/admin). Definir roles y compartición (¿enlace/invitación?).
+Un dataroom = **repositorio de documentos de la organización + control de acceso** (típico
+en due diligence / inversión: financieros, ESG, legal, etc.).
 
-**Abierto (pendiente del detalle del usuario):** estructura/secciones de cada dataroom,
-tipos de documento esperados, permisos y si es privado o compartible con terceros.
+**A definir cuando el usuario pase el detalle:**
+- **Estructura/secciones** de cada dataroom y tipos de documento esperados.
+- **Control de acceso:** ¿solo el dueño de la organización sube/ve? ¿se comparte con
+  inversores/terceros (enlace o invitación)? ¿gestor/admin ven todo? Definir roles.
+- Si es privado por defecto o compartible.
+
+**Boceto técnico (preliminar):** modelo `DataroomDocument` (o `OrganizationDocument`) con
+`organizationId`, `section`, `name`, `path/url`, `mime`, `size`, `uploadedBy`, timestamps;
+endpoints subir/listar/borrar bajo `/api/organization/dataroom`; reutiliza el storage del VPS.
 
 ### 🟡 El middleware de rutas no protege nada
 `src/middleware.ts` define `publicPaths` con `'/'` y usa `pathname.startsWith(p)`.
