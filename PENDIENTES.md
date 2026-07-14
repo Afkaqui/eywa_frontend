@@ -264,7 +264,27 @@ y NAB Colombia (89 orgs, 5 campos). Son el catálogo de **instituciones** del ec
 
 ---
 
-## 6. Seguridad / infraestructura
+## 8. Dataroom por empresa (nuevo módulo — proyectado 2026-07-13)
+
+**Idea (del usuario):** se creará **un dataroom por empresa**; el contenido de cada uno
+lo definirá el usuario más adelante ("luego te pasaré qué debe tener cada uno").
+
+**Contexto EYWA (a resolver al recibir el detalle):**
+- **¿Qué es "empresa"?** Hay varias entidades candidatas: `PortfolioCompany` (empresas
+  monitoreadas), `Organization` (la organización propia del usuario), `Actor` (instituciones
+  del ecosistema), o la empresa del `Profile`. **Definir a cuál se ancla el dataroom.**
+- Un dataroom = **repositorio de documentos por empresa + control de acceso** (típico en
+  due diligence / inversión: financieros, ESG, legal, etc.).
+
+**Dependencias / sinergias (importante):**
+- **Reutiliza la infraestructura de almacenamiento** del plan B(b) (§4, "Subida real de
+  documentos"): la decisión de storage (Cloudflare R2 vs disco del VPS) es **compartida**.
+  Conviene decidir el storage una sola vez para Validador + Dataroom.
+- Necesita **control de acceso**: quién ve/sube a cada dataroom (dueño de la empresa,
+  inversores invitados, gestor/admin). Definir roles y compartición (¿enlace/invitación?).
+
+**Abierto (pendiente del detalle del usuario):** estructura/secciones de cada dataroom,
+tipos de documento esperados, permisos y si es privado o compartible con terceros.
 
 ### 🟡 El middleware de rutas no protege nada
 `src/middleware.ts` define `publicPaths` con `'/'` y usa `pathname.startsWith(p)`.
