@@ -250,11 +250,21 @@ y NAB Colombia (89 orgs, 5 campos). Son el catálogo de **instituciones** del ec
    **Vive DENTRO de Portafolio** como pestaña "Directorio de Actores" (no es módulo de
    nav aparte; decisión del usuario 2026-07-13). `ActorsDirectory` acepta `embedded`.
    Pendiente menor: **UI de CRUD admin** (crear/editar; el backend ya lo soporta).
-4. ⬜ **Portafolio**: `PortfolioCompany.actorId?` (link) + acción "agregar a mi portafolio".
-   - ⬜ **Apartado de "Fondos"** dentro de Portafolio (pedido por el usuario 2026-07-13):
-     sección dedicada a fondos de inversión. Probable origen: actores con categoría
-     `proveedores_capital` (fondos de inversión de impacto, gestoras, etc.). Definir si
-     es una vista filtrada del directorio o un concepto propio del portafolio.
+4. ✅ **HECHO (reformulada)** — Favoritos personales.
+   **Decisiones del usuario (2026-07-14):** el directorio/portafolio es **GLOBAL y solo
+   admin/gestor lo modifica**; los usuarios pueden marcar **favoritos** (lista personal).
+   **Se DESCARTÓ `PortfolioCompany.actorId`**: un actor NO es una empresa de portafolio y
+   **no necesita score ESG** ("eso es exclusivo de los usuarios") — meterlo ahí lo obligaba
+   a tener un score que no le corresponde.
+   Construido: modelo `ActorFavorite`, `POST/DELETE /api/actors/:id/favorite` (idempotente),
+   filtro `?favorites=true`, campos `is_favorite`/`can_edit`. UI: estrella en card y detalle
+   + filtro "Favoritos" con contador. **Verificado en vivo**: usuario normal NO puede editar
+   el directorio (403) pero SÍ marcar favoritos; los favoritos son aislados por usuario.
+   - ⬜ **"Fondos" = ENTIDAD NUEVA** (decisión del usuario 2026-07-14): no es una vista
+     filtrada de actores, sino un concepto propio con sus propios campos.
+     **PENDIENTE DE DEFINIR:** qué campos tiene un fondo (¿tamaño/AUM, tesis de inversión,
+     ticket mín/máx, etapa, sectores, instrumentos, contacto?) y **de dónde salen los datos**
+     (¿los carga el admin a mano? ¿hay un Excel como el de actores?).
 5. ⬜ **Simbiocreación**: actores como nodos "institución" del grafo (nodo lleva `actorId`).
    Conecta con el Panel de Actores (§1).
 
