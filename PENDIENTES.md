@@ -248,8 +248,9 @@ y NAB Colombia (89 orgs, 5 campos). Son el catálogo de **instituciones** del ec
    gobierno_multilaterales 22, bancos 18. Script: `scratchpad/import_actores.py`, seed: `prisma/seed-actors.sql`.
 3. ✅ **HECHO** — Frontend directorio (`ActorsDirectory`): buscar + filtrar por país/
    categoría/sector, chips con conteo, cards, panel de detalle, PII gateada por rol.
-   Cableado en nav + page. Pendiente menor: **UI de CRUD admin** (crear/editar actores;
-   el backend ya lo soporta, falta la interfaz).
+   **Vive DENTRO de Portafolio** como pestaña "Directorio de Actores" (no es módulo de
+   nav aparte; decisión del usuario 2026-07-13). `ActorsDirectory` acepta `embedded`.
+   Pendiente menor: **UI de CRUD admin** (crear/editar; el backend ya lo soporta).
 4. ⬜ **Portafolio**: `PortfolioCompany.actorId?` (link) + acción "agregar a mi portafolio".
    - ⬜ **Apartado de "Fondos"** dentro de Portafolio (pedido por el usuario 2026-07-13):
      sección dedicada a fondos de inversión. Probable origen: actores con categoría
