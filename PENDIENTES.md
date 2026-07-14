@@ -273,7 +273,32 @@ y NAB Colombia (89 orgs, 5 campos). Son el catálogo de **instituciones** del ec
 
 ---
 
-## 8. Dataroom por empresa (nuevo módulo — proyectado 2026-07-13)
+## 8. Dataroom por empresa — ✅ BASE CONSTRUIDA (2026-07-14)
+
+**Vive en "Mi Organización" → pestaña "Dataroom".** Verificado en vivo:
+- Plantilla en BD: **10 carpetas / 50 documentos requeridos**.
+- **Subida real al disco del VPS** (volumen `/home/kaqui/eywa-uploads:/app/uploads`
+  en docker-compose — **imprescindible**: el auto-deploy recrea el contenedor y sin el
+  volumen los archivos se perderían en cada push).
+- Valida tipo (pdf/office/imagen/csv) y 20 MB; sanea el nombre (anti path-traversal).
+- Descarga **íntegra** (byte a byte igual al original); **otro usuario → 403**.
+- **% de completitud** global y por carpeta.
+- Todo documento **nace privado** (`is_public=false`); publicar es explícito y por documento.
+
+**FALTA (en orden de valor):**
+1. ⬜ **Mini-landing pública** `/empresa/[slug]` — el `is_public` por documento ya existe y
+   se puede alternar desde la UI, pero **la página pública aún no está hecha**, así que
+   marcar "público" todavía no publica nada en ninguna parte.
+2. ⬜ **Invitaciones** (inversores/auditores) → **bloqueado por el correo** (Resend + dominio),
+   misma dependencia que recuperar contraseña (§3).
+3. ⬜ **Permiso delegado a gestores** (`DataroomAccessGrant`): hoy solo el dueño y el
+   **superadmin** acceden. El gestor todavía no.
+4. ⬜ *(sugerido)* Registro de accesos (quién vio qué documento y cuándo).
+5. ⬜ Auto-poblar la carpeta 7 (Sostenibilidad y ASG) desde el diagnóstico ESG y los
+   certificados de la Academia.
+6. ⬜ Incluir `~/eywa-uploads` en los backups del VPS.
+
+### Referencia y diseño original (proyectado 2026-07-13)
 
 **Idea (del usuario):** se creará **un dataroom por empresa**; el contenido de cada uno
 lo definirá el usuario más adelante ("luego te pasaré qué debe tener cada uno").
