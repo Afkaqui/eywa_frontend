@@ -3,10 +3,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   Building2, TrendingUp, GraduationCap, ChevronRight, Check,
-  Loader2, Phone, Globe, Link as LinkIcon, MapPin, Layers, X, Plus, Leaf, BarChart2
+  Loader2, Phone, Globe, Link as LinkIcon, MapPin, Layers, X, Plus, Leaf, BarChart2,
+  FolderLock
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { OrganizationRepository } from '@/lib/repositories/organization-repository';
+import { Dataroom } from '@/components/Dataroom';
 import { EsgDashboard } from '@/components/EsgDashboard';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -103,7 +105,7 @@ export function OrganizationProfile() {
   const { profile } = useAuth();
   const orgRepo = useMemo(() => new OrganizationRepository(), []);
 
-  const [activeTab, setActiveTab] = useState<'perfil' | 'esg'>('perfil');
+  const [activeTab, setActiveTab] = useState<'perfil' | 'esg' | 'dataroom'>('perfil');
   const [step, setStep] = useState<1 | 2>(1);
   const [orgType, setOrgType] = useState<OrgType | null>(null);
   const [loading, setLoading] = useState(true);
@@ -268,10 +270,24 @@ export function OrganizationProfile() {
             <Leaf className="w-4 h-4" />
             Índice ESG
           </button>
+          <button
+            onClick={() => setActiveTab('dataroom')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'dataroom'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <FolderLock className="w-4 h-4" />
+            Dataroom
+          </button>
         </div>
 
         {/* ESG Tab */}
         {activeTab === 'esg' && <EsgDashboard embedded />}
+
+        {/* Dataroom Tab */}
+        {activeTab === 'dataroom' && <Dataroom />}
 
         {/* Perfil Tab content */}
         {activeTab === 'perfil' && <>
