@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { ActorRepository, type Actor, type ActorCategory } from '@/lib/repositories/actor-repository';
 import {
   Search, Filter, Globe, Building2, Landmark, Users2, Sprout, Banknote,
-  MapPin, Link2, Mail, User, X, Loader2, Network, Tag, Layers,
+  MapPin, Link2, Mail, User, X, Loader2, Network, Tag, Layers, Star,
 } from 'lucide-react';
 
 const CATEGORY_CONFIG: Record<ActorCategory, { label: string; icon: typeof Building2; color: string; bg: string; dot: string }> = {
@@ -29,7 +29,22 @@ export function ActorsDirectory({ embedded = false }: { embedded?: boolean } = {
   const [country, setCountry] = useState<string>('all');
   const [category, setCategory] = useState<string>('all');
   const [sector, setSector] = useState<string>('all');
+  const [onlyFavorites, setOnlyFavorites] = useState(false);
   const [selected, setSelected] = useState<Actor | null>(null);
+
+  // Marcar/desmarcar favorito (optimista; el directorio global no se toca)
+  const toggleFavorite = async (actor: Actor) => {
+    const next = !actor.is_favorite;
+    setActors(prev => prev.map(a => (a.id === actor.id ? { ...a, is_favorite: next } : a)));
+    setSelected(prev => (prev && prev.id === actor.id ? { ...prev, is_favorite: next } : prev));
+    try {
+      await actorRepo.setFavorite(actor.id, next);
+    } catch {
+      // revertir si falla
+      setActors(prev => prev.map(a => (a.id === actor.id ? { ...a, is_favorite: !next } : a)));
+      setSelected(prev => (prev && prev.id === actor.id ? { ...prev, is_favorite: !next } : prev));
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -58,6 +73,7 @@ export function ActorsDirectory({ embedded = false }: { embedded?: boolean } = {
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
     return actors.filter(a => {
+      if (onlyFavorites && !a.is_favorite) return false;
       if (country !== 'all' && a.country !== country) return false;
       if (category !== 'all' && a.category !== category) return false;
       if (sector !== 'all' && !(a.sectors ?? []).includes(sector)) return false;
@@ -68,7 +84,9 @@ export function ActorsDirectory({ embedded = false }: { embedded?: boolean } = {
       )) return false;
       return true;
     });
-  }, [actors, q, country, category, sector]);
+  }, [actors, q, country, category, sector, onlyFavorites]);
+
+  const favCount = useMemo(() => actors.filter(a => a.is_favorite).length, [actors]);
 
   const byCategory = useMemo(() => {
     const m: Record<string, number> = {};
@@ -146,6 +164,17 @@ export function ActorsDirectory({ embedded = false }: { embedded?: boolean } = {
               {sectors.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
+          <button
+            onClick={() => setOnlyFavorites(v => !v)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${
+              onlyFavorites
+                ? 'bg-amber-50 border-amber-300 text-amber-700'
+                : 'bg-white border-gray-300 text-gray-600 hover:border-gray-400'
+            }`}
+          >
+            <Star className={`w-4 h-4 ${onlyFavorites ? 'fill-amber-400 text-amber-500' : ''}`} />
+            Favoritos <span className="text-gray-400">{favCount}</span>
+          </button>
         </div>
 
         {/* Resultados */}
@@ -178,16 +207,30 @@ export function ActorsDirectory({ embedded = false }: { embedded?: boolean } = {
                   const cfg = CATEGORY_CONFIG[actor.category];
                   const Icon = cfg.icon;
                   return (
-                    <button
+                    <div
                       key={actor.id}
+                      role="button"
+                      tabIndex={0}
                       onClick={() => setSelected(actor)}
-                      className="bg-white border border-gray-200 rounded-xl p-5 text-left hover:shadow-lg hover:border-gray-300 transition-all flex flex-col"
+                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelected(actor); } }}
+                      className="bg-white border border-gray-200 rounded-xl p-5 text-left hover:shadow-lg hover:border-gray-300 transition-all flex flex-col cursor-pointer"
                     >
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${cfg.bg}`}>
                           <Icon className={`w-4 h-4 ${cfg.color}`} />
                         </div>
-                        <span className="text-xs text-gray-400">{COUNTRY_LABEL[actor.country] ?? actor.country}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-400">{COUNTRY_LABEL[actor.country] ?? actor.country}</span>
+                          <button
+                            onClick={e => { e.stopPropagation(); toggleFavorite(actor); }}
+                            title={actor.is_favorite ? 'Quitar de favoritos' : 'Marcar como favorito'}
+                            className="p-1 -m-1 rounded hover:bg-gray-50 transition-colors"
+                          >
+                            <Star className={`w-4 h-4 transition-colors ${
+                              actor.is_favorite ? 'fill-amber-400 text-amber-500' : 'text-gray-300 hover:text-amber-400'
+                            }`} />
+                          </button>
+                        </div>
                       </div>
                       <h3 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-2">{actor.name}</h3>
                       <span className={`inline-flex items-center gap-1 text-xs font-medium mb-2 ${cfg.color}`}>
@@ -203,7 +246,7 @@ export function ActorsDirectory({ embedded = false }: { embedded?: boolean } = {
                           ))}
                         </div>
                       )}
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -213,12 +256,21 @@ export function ActorsDirectory({ embedded = false }: { embedded?: boolean } = {
       </div>
 
       {/* Detalle */}
-      {selected && <ActorDetail actor={selected} canSeeContact={canSeeContact} onClose={() => setSelected(null)} />}
+      {selected && (
+        <ActorDetail
+          actor={selected}
+          canSeeContact={canSeeContact}
+          onToggleFavorite={() => toggleFavorite(selected)}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </div>
   );
 }
 
-function ActorDetail({ actor, canSeeContact, onClose }: { actor: Actor; canSeeContact: boolean; onClose: () => void }) {
+function ActorDetail({ actor, canSeeContact, onToggleFavorite, onClose }: {
+  actor: Actor; canSeeContact: boolean; onToggleFavorite: () => void; onClose: () => void;
+}) {
   const cfg = CATEGORY_CONFIG[actor.category];
   const Icon = cfg.icon;
   const web = actor.website ? (actor.website.startsWith('http') ? actor.website : `https://${actor.website}`) : null;
@@ -240,7 +292,18 @@ function ActorDetail({ actor, canSeeContact, onClose }: { actor: Actor; canSeeCo
               </div>
             </div>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <button
+              onClick={onToggleFavorite}
+              title={actor.is_favorite ? 'Quitar de favoritos' : 'Marcar como favorito'}
+              className="p-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <Star className={`w-5 h-5 transition-colors ${
+                actor.is_favorite ? 'fill-amber-400 text-amber-500' : 'text-gray-300 hover:text-amber-400'
+              }`} />
+            </button>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1.5"><X className="w-5 h-5" /></button>
+          </div>
         </div>
 
         <div className="p-6 space-y-4">

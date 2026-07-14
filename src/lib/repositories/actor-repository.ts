@@ -6,6 +6,7 @@ export type ActorCategory =
 
 export interface Actor {
   id: string;
+  is_favorite: boolean;
   name: string;
   country: string;
   category: ActorCategory;
@@ -28,6 +29,7 @@ export interface ActorListResult {
   actors: Actor[];
   total: number;
   can_see_contact: boolean;
+  can_edit: boolean; // el directorio solo lo edita admin/gestor
 }
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
@@ -53,7 +55,15 @@ export class ActorRepository {
       actors: Array.isArray(data.actors) ? data.actors : [],
       total: data.total ?? 0,
       can_see_contact: Boolean(data.can_see_contact),
+      can_edit: Boolean(data.can_edit),
     };
+  }
+
+  // Favoritos personales (no modifican el directorio global)
+  async setFavorite(id: string, favorite: boolean): Promise<void> {
+    await apiFetch<void>(`/api/proxy/actors/${id}/favorite`, {
+      method: favorite ? 'POST' : 'DELETE',
+    });
   }
 
   async get(id: string): Promise<Actor> {
