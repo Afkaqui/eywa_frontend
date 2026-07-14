@@ -7,8 +7,9 @@ import {
 } from '@/lib/repositories/dataroom-repository';
 import {
   FolderClosed, FolderOpen, CheckCircle2, Circle, Upload, Download, Trash2,
-  Loader2, ShieldCheck, AlertTriangle, FileText, Globe, Lock,
+  Loader2, ShieldCheck, AlertTriangle, FileText, Globe, Lock, Copy, Check, ExternalLink,
 } from 'lucide-react';
+import type { LandingState } from '@/lib/repositories/dataroom-repository';
 
 const repo = new DataroomRepository();
 
@@ -71,6 +72,10 @@ export function Dataroom() {
   }
 
   const pct = data.completeness.percentage;
+  const publicDocsCount = data.folders
+    .flatMap(f => f.items)
+    .flatMap(i => i.documents)
+    .filter(d => d.is_public).length;
 
   return (
     <div className="space-y-6">
@@ -115,6 +120,9 @@ export function Dataroom() {
         </p>
       </div>
 
+      {/* Perfil público */}
+      <LandingPanel publicDocs={publicDocsCount} />
+
       {/* Carpetas */}
       <div className="space-y-3">
         {data.folders.map(folder => (
@@ -126,6 +134,87 @@ export function Dataroom() {
             onChanged={load}
           />
         ))}
+      </div>
+    </div>
+  );
+}
+
+// Panel para activar la mini-landing pública de la empresa.
+function LandingPanel({ publicDocs }: { publicDocs: number }) {
+  const [state, setState] = useState<LandingState | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    repo.getLanding().then(setState).catch(() => setState({ enabled: false, slug: null }));
+  }, []);
+
+  const url = state?.slug && typeof window !== 'undefined'
+    ? `${window.location.origin}/empresa/${state.slug}`
+    : '';
+
+  const toggle = async () => {
+    if (!state) return;
+    setBusy(true);
+    try { setState(await repo.setLanding(!state.enabled)); }
+    catch { /* sin cambios */ }
+    finally { setBusy(false); }
+  };
+
+  const copy = () => {
+    if (!url) return;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  if (!state) return null;
+
+  return (
+    <div className={`rounded-xl border p-5 ${state.enabled ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-gray-200'}`}>
+      <div className="flex items-start gap-3">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${state.enabled ? 'bg-emerald-100' : 'bg-gray-100'}`}>
+          <Globe className={`w-5 h-5 ${state.enabled ? 'text-emerald-600' : 'text-gray-400'}`} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-semibold text-gray-900 mb-1">Perfil público de tu empresa</h3>
+          <p className="text-xs text-gray-500 mb-3">
+            {state.enabled
+              ? <>Tu página está <strong className="text-emerald-700">activa</strong>. Muestra tu perfil, tu % de dataroom completo y los {publicDocs} documento{publicDocs === 1 ? '' : 's'} que marcaste como públicos. <strong>Los privados nunca aparecen.</strong></>
+              : <>Publica una página con el perfil de tu empresa y solo los documentos que marques como públicos. Útil para compartir con inversores y bancos.</>}
+          </p>
+
+          {state.enabled && url && (
+            <div className="flex items-center gap-2 mb-3">
+              <span className="flex-1 text-xs font-mono text-gray-600 bg-white border border-gray-200 rounded-lg px-3 py-2 truncate">{url}</span>
+              <button onClick={copy} title="Copiar enlace" className="p-2 text-gray-400 hover:text-emerald-600 transition-colors">
+                {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+              </button>
+              <a href={url} target="_blank" rel="noopener noreferrer" title="Abrir" className="p-2 text-gray-400 hover:text-emerald-600 transition-colors">
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            </div>
+          )}
+
+          {state.enabled && publicDocs === 0 && (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3">
+              Aún no has marcado ningún documento como público, así que tu página solo muestra el perfil y el sello de completitud.
+            </p>
+          )}
+
+          <button
+            onClick={toggle}
+            disabled={busy}
+            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 ${
+              state.enabled
+                ? 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                : 'bg-emerald-600 text-white hover:bg-emerald-700'
+            }`}
+          >
+            {busy ? 'Guardando…' : state.enabled ? 'Desactivar página pública' : 'Activar página pública'}
+          </button>
+        </div>
       </div>
     </div>
   );

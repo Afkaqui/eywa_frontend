@@ -12,6 +12,7 @@ export default auth((req) => {
   const publicPaths = [
     '/', '/login', '/register', '/api/auth',
     '/simbio', '/api/proxy/simbiocreacion/public',
+    '/empresa', '/api/proxy/dataroom/public', // mini-landing pública de empresa
   ];
   const isPublic = publicPaths.some((p) => nextUrl.pathname.startsWith(p));
 

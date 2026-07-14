@@ -82,4 +82,53 @@ export class DataroomRepository {
   downloadUrl(docId: string): string {
     return `/api/proxy/dataroom/documents/${docId}/download`;
   }
+
+  // ── Mini-landing pública ────────────────────────────────────────────────────
+  async getLanding(): Promise<LandingState> {
+    return apiFetch<LandingState>('/api/proxy/dataroom/landing');
+  }
+
+  async setLanding(enabled: boolean): Promise<LandingState> {
+    return apiFetch<LandingState>('/api/proxy/dataroom/landing', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled }),
+    });
+  }
+}
+
+export interface LandingState {
+  enabled: boolean;
+  slug: string | null;
+}
+
+// ── Datos de la landing pública (sin sesión) ──────────────────────────────────
+export interface PublicOrg {
+  name: string;
+  type: string;
+  description: string | null;
+  sector: string | null;
+  country: string | null;
+  website: string | null;
+  externalLinks: string[];
+}
+
+export interface PublicDoc {
+  id: string;
+  file_name: string;
+  mime: string;
+  size: number;
+  folder: string;
+  item: string;
+  created_at: string;
+}
+
+export interface PublicLandingData {
+  organization: PublicOrg;
+  completeness: { completed_items: number; total_items: number; percentage: number };
+  documents: PublicDoc[];
+}
+
+export function publicDownloadUrl(docId: string): string {
+  return `/api/proxy/dataroom/public/documents/${docId}/download`;
 }
