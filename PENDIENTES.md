@@ -351,7 +351,16 @@ empresa→inversor.
 - `DataroomInvitation`: `organizationId`, `email`, `token`, `expiresAt`, `acceptedAt`, `revokedAt`.
   (Requiere envío de correo → misma dependencia que la recuperación de contraseña, §3.)
 - `DataroomDocument.isPublic` (bool, default **false**) → gobierna qué sale en la mini-landing.
-- Gestor/admin de EYWA: definir si ven todo (por soporte) o no. **Pendiente.**
+
+**Roles internos de EYWA (definido por el usuario 2026-07-14):**
+- **Superadmin: ve TODO** (todos los dataroom de todas las empresas).
+- **Gestor: solo ve lo que el superadmin le habilite** (acceso delegado, no automático).
+- **Admin / usuario normal: nada** (salvo su propia organización).
+- → Modelo: `DataroomAccessGrant` (`userId` del gestor, `organizationId`, `grantedBy`,
+  `createdAt`, `revokedAt?`). El superadmin concede/revoca. *A definir:* si el permiso es
+  por **organización completa** (recomendado, más simple) o por carpeta.
+- Como el superadmin accede a documentos sensibles (impuestos, planillas, NDAs), conviene
+  un **registro de accesos** (quién vio qué y cuándo) — auditable. *Sugerido, a confirmar.*
 
 **Sinergia:** la mini-landing es el mismo patrón que el visor público `/simbio/[id]` que ya
 construimos (ruta pública + proxy sin token + 404 si no es pública). Receta conocida.
