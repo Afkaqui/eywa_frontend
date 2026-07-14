@@ -330,9 +330,31 @@ empresa→inversor.
   hay archivo (o se marca "no aplica").
 - Endpoints bajo `/api/organization/dataroom` (listar plantilla + estado, subir, borrar).
 
-**AÚN ABIERTO — control de acceso:** ¿quién ve/sube? ¿se comparte con inversores/terceros
-(enlace o invitación con permiso por carpeta/documento, como sugiere la referencia)?
-¿gestor/admin ven todo?
+**CONTROL DE ACCESO (definido por el usuario 2026-07-14):**
+- El dataroom **pertenece a la `Organization` vinculada al usuario**.
+- **Invitación:** el dueño invita a terceros (inversores, auditores) a ver el dataroom.
+- **Enlace público opcional:** genera una **mini-landing de la empresa**.
+
+> ⚠️ **REGLA DE SEGURIDAD (no negociable).** El dataroom contiene declaraciones de
+> impuestos, estados financieros, NDAs, contratos y planillas salariales. **"Hacerlo
+> público" NO puede exponer esos documentos.** Diseño en dos capas:
+>
+> | Capa | Quién ve | Qué |
+> |------|----------|-----|
+> | 🔒 **Dataroom** | Dueño + **invitados** | Los ~50 documentos reales |
+> | 🌐 **Mini-landing** (`/empresa/[slug]`) | Cualquiera con el enlace | Perfil de la empresa, score ESG, **% de completitud (sello de confianza)**, certificaciones, proyectos de impacto, y **solo los documentos que el dueño marque como públicos** uno por uno |
+>
+> **Todo documento nace PRIVADO.** Publicar es una acción explícita y por documento.
+
+**Modelo de acceso:**
+- `Organization`: `dataroomPublic` (bool, default false) + `slug`/`publicCode` (URL de la landing).
+- `DataroomInvitation`: `organizationId`, `email`, `token`, `expiresAt`, `acceptedAt`, `revokedAt`.
+  (Requiere envío de correo → misma dependencia que la recuperación de contraseña, §3.)
+- `DataroomDocument.isPublic` (bool, default **false**) → gobierna qué sale en la mini-landing.
+- Gestor/admin de EYWA: definir si ven todo (por soporte) o no. **Pendiente.**
+
+**Sinergia:** la mini-landing es el mismo patrón que el visor público `/simbio/[id]` que ya
+construimos (ruta pública + proxy sin token + 404 si no es pública). Receta conocida.
 
 ### 🟡 El middleware de rutas no protege nada
 `src/middleware.ts` define `publicPaths` con `'/'` y usa `pathname.startsWith(p)`.
