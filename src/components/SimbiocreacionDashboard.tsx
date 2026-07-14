@@ -80,7 +80,7 @@ const NODE_PRESETS = [
   { type: 'person'   as const, label: 'Persona',     color: '#94a3b8', r: 12 },
 ];
 
-const NODE_COLORS = ['#0d9488','#f59e0b','#ec4899','#8b5cf6','#3b82f6','#ef4444','#10b981','#f97316'];
+const NODE_COLORS = ['#059669','#f59e0b','#ec4899','#8b5cf6','#3b82f6','#ef4444','#10b981','#f97316'];
 
 const EMPTY_FORM = {
   nombre: '', lugar: '', fecha: '', horaInicio: '', descripcion: '',
@@ -88,7 +88,7 @@ const EMPTY_FORM = {
 };
 
 const inputClass =
-  'w-full px-0 py-3 border-0 border-b border-gray-200 bg-transparent text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-teal-500 transition-colors';
+  'w-full px-0 py-3 border-0 border-b border-gray-200 bg-transparent text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-emerald-500 transition-colors';
 
 async function apiFetch<T>(path: string): Promise<T> {
   const res = await fetch(path, { credentials: 'include' });
@@ -124,7 +124,7 @@ function buildGraph(item: Simbiocreacion, width: number, height: number): { node
   const edges: GraphEdge[] = [];
 
   nodes.push({ id: 'root', label: item.nombre.toUpperCase(), type: 'center',
-    x: cx, y: cy, vx: 0, vy: 0, r: 52, color: '#0d9488' });
+    x: cx, y: cy, vx: 0, vy: 0, r: 52, color: '#059669' });
 
   const cats = item.ods.length > 0
     ? item.ods.slice(0, 4).map((o, i) => ({
@@ -405,14 +405,14 @@ export const NetworkGraph = forwardRef<GraphHandle, NetworkGraphProps>(function 
               {/* selection ring */}
               {(isSelected || isConnFrom) && (
                 <circle cx={n.x} cy={n.y} r={n.r+6}
-                  fill="none" stroke={isConnFrom ? '#f59e0b' : '#0d9488'}
+                  fill="none" stroke={isConnFrom ? '#f59e0b' : '#059669'}
                   strokeWidth={2.5} strokeDasharray={isConnFrom ? '6 3' : '0'} />
               )}
               {/* hit area */}
               <circle cx={n.x} cy={n.y} r={n.r+8} fill="transparent" />
               {/* node */}
               <circle cx={n.x} cy={n.y} r={n.r}
-                fill={n.type==='person' && n.userId ? '#0d9488' : n.color}
+                fill={n.type==='person' && n.userId ? '#059669' : n.color}
                 fillOpacity={n.type==='person' ? (n.userId ? 0.85 : 0.45) : 0.92}
                 stroke={n.type==='center' ? '#fff' : n.userId ? '#fff' : 'transparent'}
                 strokeWidth={n.type==='center' ? 3 : n.userId ? 1.5 : 0} />
@@ -471,8 +471,8 @@ function ShareRow({ id }: { id: string }) {
     <div className="mt-2 flex items-center gap-2">
       <span className="text-xs text-gray-400">Link compartir</span>
       <span className="text-xs text-gray-500 truncate max-w-[180px] font-mono">{url}</span>
-      <button onClick={copy} className="text-gray-400 hover:text-teal-600 transition-colors flex-shrink-0">
-        {copied ? <Check className="w-3.5 h-3.5 text-teal-500"/> : <Copy className="w-3.5 h-3.5"/>}
+      <button onClick={copy} className="text-gray-400 hover:text-emerald-600 transition-colors flex-shrink-0">
+        {copied ? <Check className="w-3.5 h-3.5 text-emerald-500"/> : <Copy className="w-3.5 h-3.5"/>}
       </button>
     </div>
   );
@@ -489,11 +489,11 @@ function ExploraCard({ item }: { item: PublicSimbio }) {
     return `hace ${Math.floor(m/12)} año(s)`;
   })();
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-teal-200 transition-all cursor-pointer group">
+    <div className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md hover:border-emerald-200 transition-all cursor-pointer group">
       {item.fecha && <div className="text-xs text-gray-400 uppercase tracking-wide mb-2">{new Date(item.fecha).toLocaleDateString('es',{day:'numeric',month:'short',year:'numeric'})}</div>}
-      <h3 className="font-bold text-gray-900 text-sm mb-3 group-hover:text-teal-700 transition-colors line-clamp-2">{item.nombre}</h3>
+      <h3 className="font-bold text-gray-900 text-sm mb-3 group-hover:text-emerald-700 transition-colors line-clamp-2">{item.nombre}</h3>
       <div className="flex items-center gap-1 mb-3">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-teal-700 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">{initials}</div>
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-700 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">{initials}</div>
         {item.ods.slice(0,3).map(o=>(
           <div key={o} className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
             style={{backgroundColor:ODS_LIST.find(l=>l.id===o)?.color??'#94a3b8'}}>{o}</div>
@@ -515,7 +515,7 @@ function PhysicsSlider({ label, value, onChange }: { label: string; value: numbe
         <span className="text-gray-400 text-xs">{value}</span>
       </div>
       <input type="range" min={1} max={100} value={value} onChange={e=>onChange(Number(e.target.value))}
-        className="w-full h-1.5 rounded-full accent-teal-600 cursor-pointer" />
+        className="w-full h-1.5 rounded-full accent-emerald-600 cursor-pointer" />
     </div>
   );
 }
@@ -840,7 +840,7 @@ export function SimbiocreacionDashboard() {
             <div className="flex gap-0 flex-1">
               {([['mis-simbios','Mis Simbios',Network],['explora','Explora',Search],['ranking','Ranking',Trophy]] as const).map(([id,label,Icon])=>(
                 <button key={id} onClick={()=>{ setMainTab(id); if(id==='mis-simbios') setSubView('lista'); }}
-                  className={`flex items-center gap-2 px-5 py-4 text-sm font-medium border-b-2 transition-all ${mainTab===id?'border-teal-600 text-teal-600':'border-transparent text-gray-500 hover:text-gray-900'}`}>
+                  className={`flex items-center gap-2 px-5 py-4 text-sm font-medium border-b-2 transition-all ${mainTab===id?'border-emerald-600 text-emerald-600':'border-transparent text-gray-500 hover:text-gray-900'}`}>
                   <Icon className="w-4 h-4"/>{label}
                 </button>
               ))}
@@ -856,7 +856,7 @@ export function SimbiocreacionDashboard() {
               {/* Edit mode toggle */}
               {subView==='detalle'&&!editMode&&(
                 <button onClick={enterEditMode}
-                  className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:border-teal-400 hover:text-teal-700 transition-all">
+                  className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:border-emerald-400 hover:text-emerald-700 transition-all">
                   <Pencil className="w-3.5 h-3.5"/> Editar grafo
                 </button>
               )}
@@ -892,7 +892,7 @@ export function SimbiocreacionDashboard() {
                 <div className="flex items-center justify-center py-24"><Loader2 className="w-6 h-6 text-gray-300 animate-spin"/></div>
               ) : items.length===0 ? (
                 <div className="bg-white border border-gray-200 rounded-2xl p-16 text-center">
-                  <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-4"><Network className="w-8 h-8 text-teal-300"/></div>
+                  <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4"><Network className="w-8 h-8 text-emerald-300"/></div>
                   <h3 className="text-lg font-semibold text-gray-700 mb-2">Sin simbiocreaciones aún</h3>
                   <p className="text-sm text-gray-400 mb-6">Crea tu primera sesión de co-creación colaborativa.</p>
                   <button onClick={openCrear} className="inline-flex items-center gap-2 px-6 py-3 bg-pink-500 text-white rounded-xl text-sm font-medium hover:bg-pink-600 transition-all">
@@ -902,14 +902,14 @@ export function SimbiocreacionDashboard() {
               ) : (
                 <div className="space-y-2">
                   {items.map(item=>(
-                    <div key={item.id} className="bg-white border border-gray-200 rounded-xl px-4 py-3 hover:shadow-sm hover:border-teal-200 transition-all">
+                    <div key={item.id} className="bg-white border border-gray-200 rounded-xl px-4 py-3 hover:shadow-sm hover:border-emerald-200 transition-all">
                       <div className="grid grid-cols-1 md:grid-cols-[1fr_140px_160px_40px] gap-2 items-center">
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <button onClick={()=>openDetalle(item)} className="font-semibold text-teal-700 hover:text-teal-900 text-sm transition-colors text-left">{item.nombre}</button>
+                            <button onClick={()=>openDetalle(item)} className="font-semibold text-emerald-700 hover:text-emerald-900 text-sm transition-colors text-left">{item.nombre}</button>
                             {item.privado?<Lock className="w-3.5 h-3.5 text-gray-400"/>:<Globe className="w-3.5 h-3.5 text-gray-400"/>}
                             {item.ods.length>0&&<span className="text-xs text-gray-400 flex items-center gap-1"><Leaf className="w-3 h-3"/>{item.ods.length} ODS</span>}
-                            {item.graphData&&<span className="text-xs text-teal-500 flex items-center gap-1"><Network className="w-3 h-3"/>grafo personalizado</span>}
+                            {item.graphData&&<span className="text-xs text-emerald-500 flex items-center gap-1"><Network className="w-3 h-3"/>grafo personalizado</span>}
                           </div>
                           {!item.privado&&<ShareRow id={item.id}/>}
                         </div>
@@ -972,7 +972,7 @@ export function SimbiocreacionDashboard() {
                     Cancelar
                   </button>
                   <button onClick={saveGraph} disabled={savingGraph}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50 transition-all">
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-all">
                     {savingGraph?<><Loader2 className="w-3 h-3 animate-spin"/>Guardando…</>:<><Check className="w-3 h-3"/>Guardar grafo</>}
                   </button>
                 </div>
@@ -1041,7 +1041,7 @@ export function SimbiocreacionDashboard() {
                   {/* ── Info overlay (view mode) ── */}
                   {!editMode&&(
                     <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl border border-gray-200 px-4 py-3 shadow-sm text-sm text-gray-700 space-y-1 max-w-[200px] z-10">
-                      <div className="flex items-center gap-2"><Users className="w-4 h-4 text-teal-600"/><span className="font-medium">{selected.tags.length*2} participantes</span></div>
+                      <div className="flex items-center gap-2"><Users className="w-4 h-4 text-emerald-600"/><span className="font-medium">{selected.tags.length*2} participantes</span></div>
                       <div className="flex items-center gap-2"><Network className="w-4 h-4 text-pink-500"/><span className="font-medium">{selected.tags.length} grupos</span></div>
                       <div className="flex items-center gap-2"><Leaf className="w-4 h-4 text-emerald-500"/><span className="font-medium">{selected.ods.length} ODS</span></div>
                     </div>
@@ -1073,7 +1073,7 @@ export function SimbiocreacionDashboard() {
                           <div>
                             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Enlaces externos</p>
                             <ul className="space-y-1">{selected.extraUrls.map((url,i)=>(
-                              <li key={i} className="text-xs text-teal-600 flex items-center gap-1">
+                              <li key={i} className="text-xs text-emerald-600 flex items-center gap-1">
                                 <span className="text-gray-400">•</span>
                                 <a href={url.startsWith('http')?url:`https://${url}`} target="_blank" rel="noopener noreferrer" className="truncate hover:underline">{url}</a>
                               </li>
@@ -1137,13 +1137,13 @@ export function SimbiocreacionDashboard() {
                               Vincular usuario EYWA
                             </label>
                             {editSelectedNode.userId?(
-                              <div className="flex items-center gap-2 p-2 bg-teal-50 border border-teal-200 rounded-xl">
-                                <div className="w-7 h-7 rounded-full bg-teal-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                              <div className="flex items-center gap-2 p-2 bg-emerald-50 border border-emerald-200 rounded-xl">
+                                <div className="w-7 h-7 rounded-full bg-emerald-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                                   {editLabelDraft.charAt(0).toUpperCase()||'U'}
                                 </div>
-                                <span className="text-sm text-teal-800 font-medium flex-1 truncate">{editLabelDraft}</span>
+                                <span className="text-sm text-emerald-800 font-medium flex-1 truncate">{editLabelDraft}</span>
                                 <button onClick={()=>{ graphRef.current?.updateNodeUserId(editSelId,null); graphRef.current?.updateNodeLabel(editSelId,'Persona'); setEditLabelDraft('Persona'); }}
-                                  className="text-teal-400 hover:text-red-500 transition-colors flex-shrink-0" title="Desvincular">
+                                  className="text-emerald-400 hover:text-red-500 transition-colors flex-shrink-0" title="Desvincular">
                                   <X className="w-3.5 h-3.5"/>
                                 </button>
                               </div>
@@ -1154,7 +1154,7 @@ export function SimbiocreacionDashboard() {
                                   <input type="text" placeholder="Buscar por nombre o empresa…"
                                     value={userSearchQ}
                                     onChange={e=>setUserSearchQ(e.target.value)}
-                                    className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-300 bg-gray-50"/>
+                                    className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-300 bg-gray-50"/>
                                 </div>
                                 {(userSearchRes.length>0||userSearching)&&(
                                   <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
@@ -1169,8 +1169,8 @@ export function SimbiocreacionDashboard() {
                                           setUserSearchQ('');
                                           setUserSearchRes([]);
                                         }}
-                                        className="flex items-center gap-3 w-full px-3 py-2.5 hover:bg-teal-50 transition-colors text-left">
-                                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-400 to-teal-700 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                        className="flex items-center gap-3 w-full px-3 py-2.5 hover:bg-emerald-50 transition-colors text-left">
+                                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-700 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                                           {(u.fullName||u.company||'U').charAt(0).toUpperCase()}
                                         </div>
                                         <div className="min-w-0">
@@ -1228,7 +1228,7 @@ export function SimbiocreacionDashboard() {
                             </div>
                           ))}
                           <button onClick={()=>{ setEditInteract('connect'); setConnectFromId(editSelId); setEditSelId(null); }}
-                            className="mt-2 flex items-center gap-1.5 px-3 py-2 w-full border border-dashed border-teal-300 rounded-lg text-xs text-teal-600 hover:bg-teal-50 transition-all justify-center">
+                            className="mt-2 flex items-center gap-1.5 px-3 py-2 w-full border border-dashed border-emerald-300 rounded-lg text-xs text-emerald-600 hover:bg-emerald-50 transition-all justify-center">
                             <Link2 className="w-3.5 h-3.5"/> Conectar con otro nodo
                           </button>
                         </div>
@@ -1301,8 +1301,8 @@ export function SimbiocreacionDashboard() {
                       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
                         <div className="flex items-center gap-2">
                           {activePanel==='mis-grupos'&&<Lightbulb className="w-5 h-5 text-pink-500"/>}
-                          {activePanel==='busquedas'&&<Users className="w-5 h-5 text-teal-600"/>}
-                          {activePanel==='stats'&&<BarChart2 className="w-5 h-5 text-teal-600"/>}
+                          {activePanel==='busquedas'&&<Users className="w-5 h-5 text-emerald-600"/>}
+                          {activePanel==='stats'&&<BarChart2 className="w-5 h-5 text-emerald-600"/>}
                           <h3 className="font-semibold text-gray-900 text-sm">
                             {activePanel==='mis-grupos'?'Grupos':activePanel==='busquedas'?'Búsquedas':'Stats de Simbiocreación'}
                           </h3>
@@ -1323,7 +1323,7 @@ export function SimbiocreacionDashboard() {
                             <div className="divide-y divide-gray-50">
                               {selected.tags.map((tag,i)=>(
                                 <div key={i} className="py-2.5">
-                                  <span className="inline-flex items-center px-3 py-1.5 bg-teal-600 text-white rounded-lg text-xs font-semibold max-w-full">
+                                  <span className="inline-flex items-center px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-semibold max-w-full">
                                     <span className="truncate">{tag||'(vacío)'}</span>
                                   </span>
                                 </div>
@@ -1403,7 +1403,7 @@ export function SimbiocreacionDashboard() {
                                           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                                             <button onClick={()=>editNodeFromList(n.id, n.label)}
                                               title="Editar"
-                                              className="p-1.5 rounded-lg text-gray-400 hover:text-teal-600 hover:bg-teal-50 transition-colors">
+                                              className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors">
                                               <Pencil className="w-3.5 h-3.5"/>
                                             </button>
                                             <button onClick={()=>deleteNodeFromList(n.id)}
@@ -1433,21 +1433,21 @@ export function SimbiocreacionDashboard() {
                                       const parent = parentOf(n.id);
                                       return (
                                         <div key={n.id} className="flex items-center gap-2 py-2.5 group">
-                                          <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold ring-2 ${n.userId?'ring-teal-400 bg-teal-600':'ring-transparent'}`}
+                                          <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold ring-2 ${n.userId?'ring-emerald-400 bg-emerald-600':'ring-transparent'}`}
                                             style={n.userId?{}:{backgroundColor:n.color||'#94a3b8'}}>
                                             {name.charAt(0).toUpperCase()||'P'}
                                           </div>
                                           <div className="min-w-0 flex-1">
                                             <div className="flex items-center gap-1.5">
                                               <span className="text-sm font-semibold text-gray-800 truncate">{name}</span>
-                                              {n.userId&&<span className="text-[10px] bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">EYWA</span>}
+                                              {n.userId&&<span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">EYWA</span>}
                                             </div>
                                             <div className="text-xs text-gray-400 truncate">en {parent}</div>
                                           </div>
                                           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                                             <button onClick={()=>editNodeFromList(n.id, name)}
                                               title="Editar"
-                                              className="p-1.5 rounded-lg text-gray-400 hover:text-teal-600 hover:bg-teal-50 transition-colors">
+                                              className="p-1.5 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors">
                                               <Pencil className="w-3.5 h-3.5"/>
                                             </button>
                                             <button onClick={()=>deleteNodeFromList(n.id)}
@@ -1476,7 +1476,7 @@ export function SimbiocreacionDashboard() {
                             <div className="flex items-center justify-between"><span className="text-sm text-gray-600">Grupos</span><span className="text-2xl font-extrabold text-pink-600">{selected.tags.length}</span></div>
                           </div>
                           <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-teal-50 border border-teal-100 rounded-xl p-3 text-center"><div className="text-xs text-teal-600 mb-1">ODS</div><div className="text-xl font-bold text-teal-700">{selected.ods.length}</div></div>
+                            <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-center"><div className="text-xs text-emerald-600 mb-1">ODS</div><div className="text-xl font-bold text-emerald-700">{selected.ods.length}</div></div>
                             <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 text-center"><div className="text-xs text-gray-500 mb-1">Grupos</div><div className="text-xl font-bold text-gray-700">{selected.tags.length}</div></div>
                           </div>
                           {selected.ods.length>0&&(
@@ -1570,7 +1570,7 @@ export function SimbiocreacionDashboard() {
                       onChange={e=>setF('nombre',e.target.value)} className={inputClass}/>
                   </div>
                   <label className="flex items-center gap-2 cursor-pointer pb-3 flex-shrink-0">
-                    <input type="checkbox" checked={form.privado} onChange={e=>setF('privado',e.target.checked)} className="w-4 h-4 accent-teal-600 rounded"/>
+                    <input type="checkbox" checked={form.privado} onChange={e=>setF('privado',e.target.checked)} className="w-4 h-4 accent-emerald-600 rounded"/>
                     <span className="text-sm text-gray-600">Privado</span>
                   </label>
                 </div>
@@ -1582,7 +1582,7 @@ export function SimbiocreacionDashboard() {
                     <input type="date" value={form.fecha} onChange={e=>setF('fecha',e.target.value)} className={inputClass}/>
                   </div>
                   <label className="flex items-center gap-2 cursor-pointer flex-shrink-0">
-                    <input type="checkbox" checked={form.establecerHora} onChange={e=>setF('establecerHora',e.target.checked)} className="w-4 h-4 accent-teal-600 rounded"/>
+                    <input type="checkbox" checked={form.establecerHora} onChange={e=>setF('establecerHora',e.target.checked)} className="w-4 h-4 accent-emerald-600 rounded"/>
                     <span className="text-sm text-gray-600">Establecer hora de inicio</span>
                   </label>
                 </div>
@@ -1591,10 +1591,10 @@ export function SimbiocreacionDashboard() {
                 </div></div>)}
                 <div className="mb-4">
                   <textarea placeholder="Descripción" value={form.descripcion} onChange={e=>setF('descripcion',e.target.value)} rows={4}
-                    className="w-full px-4 py-3 border-0 border-b border-gray-200 bg-gray-50 rounded-lg text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-teal-500 transition-colors resize-y"/>
+                    className="w-full px-4 py-3 border-0 border-b border-gray-200 bg-gray-50 rounded-lg text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-emerald-500 transition-colors resize-y"/>
                 </div>
                 <div className="flex justify-end mb-4">
-                  <button onClick={()=>setMasDetalles(v=>!v)} className="text-sm text-teal-600 hover:text-teal-700 flex items-center gap-1 transition-colors">
+                  <button onClick={()=>setMasDetalles(v=>!v)} className="text-sm text-emerald-600 hover:text-emerald-700 flex items-center gap-1 transition-colors">
                     {masDetalles?<><ChevronUp className="w-4 h-4"/>Menos detalles</>:<><ChevronDown className="w-4 h-4"/>Más detalles</>}
                   </button>
                 </div>
@@ -1615,7 +1615,7 @@ export function SimbiocreacionDashboard() {
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {ODS_LIST.map(ods=>(
-                          <label key={ods.id} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border cursor-pointer transition-all text-xs ${form.ods.includes(ods.id)?'border-teal-500 bg-teal-50 text-teal-800':'border-gray-200 text-gray-600 hover:border-gray-300'}`}>
+                          <label key={ods.id} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border cursor-pointer transition-all text-xs ${form.ods.includes(ods.id)?'border-emerald-500 bg-emerald-50 text-emerald-800':'border-gray-200 text-gray-600 hover:border-gray-300'}`}>
                             <div className="w-3 h-3 rounded-sm flex-shrink-0 border-2" style={{borderColor:ods.color,backgroundColor:form.ods.includes(ods.id)?ods.color:'transparent'}}/>
                             <input type="checkbox" checked={form.ods.includes(ods.id)} onChange={()=>toggleOds(ods.id)} className="sr-only"/>
                             {ods.label}
@@ -1649,7 +1649,7 @@ export function SimbiocreacionDashboard() {
           <div className="flex gap-2 mb-7">
             {([['todas','Todas'],['proximas','Próximas'],['pasadas','Pasadas']] as const).map(([id,label])=>(
               <button key={id} onClick={()=>setExploraFilter(id)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all ${exploraFilter===id?'bg-teal-600 text-white shadow-sm':'bg-white border border-gray-200 text-gray-600 hover:border-teal-200 hover:text-teal-700'}`}>
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all ${exploraFilter===id?'bg-emerald-600 text-white shadow-sm':'bg-white border border-gray-200 text-gray-600 hover:border-emerald-200 hover:text-emerald-700'}`}>
                 {exploraFilter===id&&<Check className="w-3.5 h-3.5"/>}{label}
               </button>
             ))}
@@ -1680,15 +1680,15 @@ export function SimbiocreacionDashboard() {
                 const rankColors=['text-pink-500','text-pink-400','text-pink-300'];
                 const isMe=entry.userId===user?.id;
                 return (
-                  <div key={entry.userId} className={`flex items-center gap-4 px-5 py-4 border-b border-gray-100 last:border-0 rounded-xl transition-all ${isMe?'bg-teal-50 border-teal-100':'bg-white hover:bg-gray-50'}`}>
+                  <div key={entry.userId} className={`flex items-center gap-4 px-5 py-4 border-b border-gray-100 last:border-0 rounded-xl transition-all ${isMe?'bg-emerald-50 border-emerald-100':'bg-white hover:bg-gray-50'}`}>
                     <span className={`text-2xl font-extrabold w-8 flex-shrink-0 ${rankColors[i]??'text-gray-400'}`}>{entry.rank}</span>
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-teal-700 flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-700 flex items-center justify-center flex-shrink-0">
                       <span className="text-white text-sm font-bold">{(entry.user?.fullName??entry.user?.company??'?')[0].toUpperCase()}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-teal-700 text-sm flex items-center gap-2">
+                      <div className="font-semibold text-emerald-700 text-sm flex items-center gap-2">
                         {entry.user?.fullName??entry.user?.company??'Usuario'}
-                        {isMe&&<span className="text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full">Tú</span>}
+                        {isMe&&<span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Tú</span>}
                       </div>
                       {entry.user?.company&&entry.user.fullName&&<div className="text-xs text-gray-400 truncate">{entry.user.company}</div>}
                       <div className="text-xs text-gray-400 mt-0.5">PUNTAJE: <span className="font-semibold text-gray-700">{entry.puntaje}</span><span className="mx-1">·</span>{entry.total} simbiocreaci{entry.total===1?'ón':'ones'}</div>

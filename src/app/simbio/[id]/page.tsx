@@ -45,14 +45,14 @@ export default function SimbioPublicPage({ params }: { params: Promise<{ id: str
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between">
           <a href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center">
               <Network className="w-4 h-4 text-white" />
             </div>
             <span className="font-bold text-gray-900">EYWA</span>
             <span className="text-gray-300">·</span>
             <span className="text-sm text-gray-500">Simbiocreación</span>
           </a>
-          <a href="/" className="text-sm font-medium text-teal-600 hover:text-teal-700 flex items-center gap-1">
+          <a href="/" className="text-sm font-medium text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
             Ir a la plataforma <ArrowRight className="w-4 h-4" />
           </a>
         </div>
@@ -81,7 +81,7 @@ export default function SimbioPublicPage({ params }: { params: Promise<{ id: str
                 ? 'El enlace puede haber cambiado, o su autor la marcó como privada.'
                 : 'Ocurrió un problema al obtener el contenido. Intenta de nuevo más tarde.'}
             </p>
-            <a href="/" className="px-5 py-2.5 bg-teal-600 text-white rounded-xl text-sm font-semibold hover:bg-teal-700 transition-colors">
+            <a href="/" className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-colors">
               Conocer EYWA
             </a>
           </div>
@@ -95,7 +95,7 @@ export default function SimbioPublicPage({ params }: { params: Promise<{ id: str
               {/* Encabezado del proyecto */}
               <div className="bg-white rounded-2xl border border-gray-200 p-6 md:p-8 mb-6">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="px-2.5 py-1 rounded-full bg-teal-50 text-teal-700 text-xs font-semibold">Proyecto público</span>
+                  <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold">Proyecto público</span>
                   {autor && <span className="text-xs text-gray-400">por {autor}</span>}
                 </div>
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">{item.nombre}</h1>
@@ -107,7 +107,7 @@ export default function SimbioPublicPage({ params }: { params: Promise<{ id: str
                   {item.fecha && <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" />{item.fecha}{item.horaInicio ? ` · ${item.horaInicio}` : ''}</span>}
                   {item.link && (
                     <a href={item.link.startsWith('http') ? item.link : `https://${item.link}`} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-teal-600 hover:underline">
+                      className="flex items-center gap-1.5 text-emerald-600 hover:underline">
                       <Link2 className="w-4 h-4" />Más información
                     </a>
                   )}
@@ -124,7 +124,7 @@ export default function SimbioPublicPage({ params }: { params: Promise<{ id: str
               {/* Grafo */}
               <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                 <div className="px-6 py-3 border-b border-gray-100 flex items-center gap-2">
-                  <Network className="w-4 h-4 text-teal-500" />
+                  <Network className="w-4 h-4 text-emerald-500" />
                   <span className="text-sm font-semibold text-gray-700">Mapa de la simbiocreación</span>
                   <span className="ml-auto text-xs text-gray-400 hidden md:block">Arrastra para explorar · usa la rueda para acercar</span>
                 </div>
@@ -134,12 +134,12 @@ export default function SimbioPublicPage({ params }: { params: Promise<{ id: str
               </div>
 
               {/* CTA */}
-              <div className="mt-6 rounded-2xl bg-gradient-to-br from-teal-600 to-teal-800 p-6 md:p-8 text-center">
+              <div className="mt-6 rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-800 p-6 md:p-8 text-center">
                 <h2 className="text-lg md:text-xl font-bold text-white mb-2">Crea y dimensiona tus propios proyectos</h2>
-                <p className="text-teal-100 text-sm mb-5 max-w-lg mx-auto">
+                <p className="text-emerald-100 text-sm mb-5 max-w-lg mx-auto">
                   EYWA te ayuda a maquetar proyectos sostenibles, mapear a sus actores y medir su impacto.
                 </p>
-                <a href="/" className="inline-flex items-center gap-2 px-6 py-3 bg-white text-teal-700 rounded-xl text-sm font-semibold hover:bg-teal-50 transition-colors">
+                <a href="/" className="inline-flex items-center gap-2 px-6 py-3 bg-white text-emerald-700 rounded-xl text-sm font-semibold hover:bg-emerald-50 transition-colors">
                   Empezar en EYWA <ArrowRight className="w-4 h-4" />
                 </a>
               </div>

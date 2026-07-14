@@ -188,7 +188,7 @@ function EcosystemGraph() {
         </filter>
         <radialGradient id="rootGrad" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="#14b8a6"/>
-          <stop offset="100%" stopColor="#0d9488"/>
+          <stop offset="100%" stopColor="#059669"/>
         </radialGradient>
       </defs>
 
@@ -238,7 +238,7 @@ function EcosystemGraph() {
 
       {/* Root */}
       <g>
-        <circle cx={cx} cy={cy} r={rootR + 12} fill="#0d9488" fillOpacity={0.08}/>
+        <circle cx={cx} cy={cy} r={rootR + 12} fill="#059669" fillOpacity={0.08}/>
         <circle cx={cx} cy={cy} r={rootR}
           fill="url(#rootGrad)"
           stroke="white" strokeWidth={3}
@@ -333,9 +333,9 @@ function CopyButton({ url }: { url: string }) {
   return (
     <button
       onClick={() => { navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-      className="inline-flex items-center gap-2 text-sm font-mono text-teal-700 bg-teal-50 border border-teal-200 px-4 py-2 rounded-xl hover:bg-teal-100 transition-colors">
+      className="inline-flex items-center gap-2 text-sm font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-4 py-2 rounded-xl hover:bg-emerald-100 transition-colors">
       <span>{url}</span>
-      {copied ? <Check className="w-3.5 h-3.5 text-teal-600"/> : <Copy className="w-3.5 h-3.5 text-teal-500"/>}
+      {copied ? <Check className="w-3.5 h-3.5 text-emerald-600"/> : <Copy className="w-3.5 h-3.5 text-emerald-500"/>}
     </button>
   );
 }
@@ -347,7 +347,7 @@ export default function ResumenPage() {
     <div className="min-h-screen bg-gray-50">
 
       {/* ── FASE 1 BANNER ── */}
-      <div className="bg-gradient-to-r from-teal-600 to-emerald-600 text-white">
+      <div className="bg-gradient-to-r from-emerald-600 to-emerald-600 text-white">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <span className="bg-white/20 border border-white/30 text-white text-xs font-bold px-3 py-1 rounded-full tracking-wider">
@@ -362,11 +362,11 @@ export default function ResumenPage() {
       {/* ── HERO ── */}
       <section className="bg-white border-b border-gray-100">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-14 text-center">
-          <div className="inline-flex items-center gap-2 bg-teal-50 border border-teal-100 text-teal-700 text-xs font-semibold px-4 py-1.5 rounded-full mb-6">
+          <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-semibold px-4 py-1.5 rounded-full mb-6">
             <Globe className="w-3.5 h-3.5"/> Plataforma de Sostenibilidad
           </div>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 tracking-tight mb-4">
-            ¿Qué es <span className="text-teal-600">EYWA</span>?
+            ¿Qué es <span className="text-emerald-600">EYWA</span>?
           </h1>
           <p className="text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed mb-8">
             EYWA es una plataforma integrada que acompaña a organizaciones en su camino hacia la sostenibilidad.
@@ -473,7 +473,7 @@ export default function ResumenPage() {
         {/* ── FASE 1 ENTREGABLES ── */}
         <section>
           <div className="text-center mb-6">
-            <span className="inline-flex items-center gap-2 bg-teal-50 border border-teal-200 text-teal-700 text-xs font-bold px-4 py-1.5 rounded-full mb-4">
+            <span className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold px-4 py-1.5 rounded-full mb-4">
               <Rocket className="w-3.5 h-3.5"/> FASE 1 · MVP
             </span>
             <h2 className="text-2xl font-bold text-gray-900">Lo construido en Fase 1</h2>
@@ -591,16 +591,16 @@ export default function ResumenPage() {
         </section>
 
         {/* ── CTA ── */}
-        <section className="bg-gradient-to-br from-teal-600 to-teal-800 rounded-3xl p-10 text-center text-white">
+        <section className="bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-3xl p-10 text-center text-white">
           <div className="inline-flex items-center gap-2 bg-white/15 border border-white/25 text-white text-xs font-bold px-3 py-1.5 rounded-full mb-5 tracking-wider">
             FASE 1 · EN PRODUCCIÓN
           </div>
           <h2 className="text-2xl font-extrabold mb-3">Explora la plataforma</h2>
-          <p className="text-teal-100 mb-7 max-w-xl mx-auto">
+          <p className="text-emerald-100 mb-7 max-w-xl mx-auto">
             Accede al MVP funcional de EYWA. Todas las herramientas de Fase 1 están disponibles y corriendo en producción.
           </p>
           <a href="/"
-            className="inline-flex items-center gap-2 bg-white text-teal-700 font-bold px-7 py-3.5 rounded-2xl hover:bg-teal-50 transition-colors shadow-lg">
+            className="inline-flex items-center gap-2 bg-white text-emerald-700 font-bold px-7 py-3.5 rounded-2xl hover:bg-emerald-50 transition-colors shadow-lg">
             Ir a la plataforma <ArrowRight className="w-4 h-4"/>
           </a>
         </section>

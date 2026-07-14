@@ -12,7 +12,7 @@ const CATEGORY_CONFIG: Record<ActorCategory, { label: string; icon: typeof Build
   intermediarios:          { label: 'Intermediarios',         icon: Network,   color: 'text-blue-700',    bg: 'bg-blue-50 border-blue-200',       dot: 'bg-blue-500' },
   bancos:                  { label: 'Bancos',                 icon: Landmark,  color: 'text-purple-700',  bg: 'bg-purple-50 border-purple-200',   dot: 'bg-purple-500' },
   gobierno_multilaterales: { label: 'Gobierno y Multilaterales', icon: Users2, color: 'text-amber-700',   bg: 'bg-amber-50 border-amber-200',     dot: 'bg-amber-500' },
-  empresa_social:          { label: 'Empresa Social',         icon: Sprout,    color: 'text-teal-700',    bg: 'bg-teal-50 border-teal-200',       dot: 'bg-teal-500' },
+  empresa_social:          { label: 'Empresa Social',         icon: Sprout,    color: 'text-emerald-700',    bg: 'bg-emerald-50 border-emerald-200',       dot: 'bg-emerald-500' },
 };
 
 const COUNTRY_LABEL: Record<string, string> = { PE: '🇵🇪 Perú', CO: '🇨🇴 Colombia' };
@@ -105,7 +105,7 @@ export function ActorsDirectory({ embedded = false }: { embedded?: boolean } = {
         <div className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center">
                 <Building2 className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -128,12 +128,12 @@ export function ActorsDirectory({ embedded = false }: { embedded?: boolean } = {
               value={q}
               onChange={e => setQ(e.target.value)}
               placeholder="Buscar por nombre, descripción o subcategoría…"
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
             />
           </div>
           <div className="flex items-center gap-2">
             <Globe className="w-4 h-4 text-gray-400" />
-            <select value={country} onChange={e => setCountry(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+            <select value={country} onChange={e => setCountry(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
               <option value="all">Todos los países</option>
               <option value="PE">🇵🇪 Perú</option>
               <option value="CO">🇨🇴 Colombia</option>
@@ -141,7 +141,7 @@ export function ActorsDirectory({ embedded = false }: { embedded?: boolean } = {
           </div>
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-gray-400" />
-            <select value={sector} onChange={e => setSector(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 max-w-[180px]">
+            <select value={sector} onChange={e => setSector(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 max-w-[180px]">
               <option value="all">Todos los sectores</option>
               {sectors.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
@@ -151,7 +151,7 @@ export function ActorsDirectory({ embedded = false }: { embedded?: boolean } = {
         {/* Resultados */}
         {loading ? (
           <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
-            <Loader2 className="w-8 h-8 text-teal-500 mx-auto mb-3 animate-spin" />
+            <Loader2 className="w-8 h-8 text-emerald-500 mx-auto mb-3 animate-spin" />
             <p className="text-gray-500 text-sm">Cargando directorio…</p>
           </div>
         ) : error ? (
@@ -161,7 +161,7 @@ export function ActorsDirectory({ embedded = false }: { embedded?: boolean } = {
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-gray-500">{filtered.length} de {actors.length} actores</p>
               {(country !== 'all' || category !== 'all' || sector !== 'all' || q) && (
-                <button onClick={() => { setQ(''); setCountry('all'); setCategory('all'); setSector('all'); }} className="text-xs text-teal-600 hover:text-teal-700 font-medium">
+                <button onClick={() => { setQ(''); setCountry('all'); setCategory('all'); setSector('all'); }} className="text-xs text-emerald-600 hover:text-emerald-700 font-medium">
                   Limpiar filtros
                 </button>
               )}
@@ -264,12 +264,12 @@ function ActorDetail({ actor, canSeeContact, onClose }: { actor: Actor; canSeeCo
           )}
           {actor.instruments?.length > 0 && (
             <Field icon={Layers} label="Instrumentos">
-              <div className="flex flex-wrap gap-1.5">{actor.instruments.map(s => <span key={s} className="px-2 py-1 bg-teal-50 text-teal-700 rounded-lg text-xs">{s}</span>)}</div>
+              <div className="flex flex-wrap gap-1.5">{actor.instruments.map(s => <span key={s} className="px-2 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs">{s}</span>)}</div>
             </Field>
           )}
 
           {web && (
-            <a href={web} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-teal-600 hover:underline">
+            <a href={web} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-emerald-600 hover:underline">
               <Link2 className="w-4 h-4" />{actor.website}
             </a>
           )}
@@ -279,7 +279,7 @@ function ActorDetail({ actor, canSeeContact, onClose }: { actor: Actor; canSeeCo
             <div className="rounded-xl bg-gray-50 border border-gray-200 p-4 space-y-2">
               <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Contacto (interno)</div>
               {actor.contact_name && <div className="flex items-center gap-2 text-sm text-gray-700"><User className="w-4 h-4 text-gray-400" />{actor.contact_name}</div>}
-              {actor.contact_email && <a href={`mailto:${actor.contact_email}`} className="flex items-center gap-2 text-sm text-teal-600 hover:underline"><Mail className="w-4 h-4" />{actor.contact_email}</a>}
+              {actor.contact_email && <a href={`mailto:${actor.contact_email}`} className="flex items-center gap-2 text-sm text-emerald-600 hover:underline"><Mail className="w-4 h-4" />{actor.contact_email}</a>}
             </div>
           )}
 

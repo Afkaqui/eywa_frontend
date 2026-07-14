@@ -33,7 +33,7 @@ export async function generateCertificatePdf(data: CertificatePdfData): Promise<
   const H = 210;
   const cx = W / 2;
 
-  const TEAL: [number, number, number]  = [31, 78, 78];
+  const TEAL: [number, number, number]  = [6, 95, 70];
   const GREEN: [number, number, number] = [16, 185, 129];
   const GREY: [number, number, number]  = [107, 114, 128];
   const DARK: [number, number, number]  = [17, 24, 39];
