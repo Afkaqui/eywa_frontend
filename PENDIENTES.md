@@ -305,6 +305,18 @@ scope y cuenta el uso. UI de admin (superadmin) para crear/revocar/ajustar.
 2. Metodología **documentada y versionada** (`/v1/`); definir reproducibilidad cuando entre IA.
 3. Nunca abierta sin key; medir uso, poder revocar.
 
+**Caso de uso concreto (usuario 2026-07-14): la empresa embebe SUS datos en SU web.**
+Un widget/badge "ESG verificado por EYWA" en la página del cliente. **Fuente ya construida:**
+`GET /api/dataroom/public/:slug` (creado para la mini-landing) ya devuelve en JSON el perfil,
+el % de completitud y los documentos públicos de esa empresa. Falta para volverlo producto:
+- Endpoint versionado estable `GET /v1/empresa/:slug` + **CORS** (que el navegador del cliente lo llame).
+- **Badge copy-paste** (`<script data-empresa="slug">` → sello con % y enlace al perfil) → el de mayor
+  adopción; no exige que el cliente sepa programar y reparte marca EYWA por la web.
+- Sumar al payload (opt-in) el **índice ESG/nivel** y las **certificaciones** de la Academia.
+- Privacidad: solo lo marcado como público (misma regla de dos capas ya verificada).
+- Honestidad: si el score es heurístico, el badge dice "autoevaluación/preliminar", no "certificado".
+Es un **quick win**: la fuente de datos ya existe y está probada; el trabajo es empaquetado + CORS + badge.
+
 **Abierto:** ¿API gratuita, freemium o de pago? ¿open data del directorio con licencia (CC)?
 Definir el producto antes de construir.
 
