@@ -273,6 +273,43 @@ y NAB Colombia (89 orgs, 5 campos). Son el catálogo de **instituciones** del ec
 
 ---
 
+## 9. API pública / de datos y cálculo (proyectado 2026-07-14 — EN EXPLORACIÓN, no construir aún)
+
+**Idea:** exponer los datos y los cálculos de EYWA vía API. Dos naturalezas con riesgos
+distintos → **dos capas** (decisión del usuario 2026-07-14: keys por consumidor, límites
+por usuario, revocables, permisos ajustables, + una capa pública).
+
+**Capa PÚBLICA (sin key, rate-limit por IP):** bajo riesgo, solo lectura.
+- `GET /v1/actors`, `/v1/actors/:id`, `/v1/actors/facets` — directorio de 320 actores
+  **SIN PII** (contacto/correo nunca salen). La lógica de filtrado ya existe.
+- `GET /v1/certificates/verify/:code` — verificación de certificados (ya es público hoy).
+
+**Capa con API KEY (por consumidor):** para cálculos y datos sensibles.
+- `POST /v1/esg-score` — recibe datos de un proyecto → devuelve el reporte del Validador
+  (`overallScore`, `esgScores {E,S,G}`, `riskLevel`, `viability`, fortalezas/debilidades/
+  recomendaciones, **`generatedBy: heuristic|ai`**). Motor YA construido (`validator-service.ts`).
+- `POST /v1/diagnostic/score` — recibe respuestas → score + nivel + desglose (motor listo;
+  ojo: preguntas hoy placeholder).
+- `POST /v1/match` — **el caso estrella**: score ESG + a qué financiadores del directorio
+  encaja (une cálculo + datos; es la tesis de EYWA vuelta API).
+- Endpoints con PII solo para keys con scope explícito.
+
+**Modelo `ApiKey` (a construir):** `hash` de la clave, `consumerName`, `scopes[]`
+(actors:read, esg:score, pii:read…), `rateLimit`/`quota`, `status` (activa/revocada),
+`tier`, `createdBy`, `lastUsedAt`, `revokedAt`. Middleware que valida la key, aplica el
+scope y cuenta el uso. UI de admin (superadmin) para crear/revocar/ajustar.
+
+**⚠️ Reglas innegociables para la capa de CÁLCULO (un score es un dictamen):**
+1. Etiquetar el origen (`generatedBy`) y, mientras sea heurístico, marcar el resultado
+   como **"puntaje preliminar — no es una calificación crediticia ni una certificación"**.
+2. Metodología **documentada y versionada** (`/v1/`); definir reproducibilidad cuando entre IA.
+3. Nunca abierta sin key; medir uso, poder revocar.
+
+**Abierto:** ¿API gratuita, freemium o de pago? ¿open data del directorio con licencia (CC)?
+Definir el producto antes de construir.
+
+---
+
 ## 8. Dataroom por empresa — ✅ BASE CONSTRUIDA (2026-07-14)
 
 **Vive en "Mi Organización" → pestaña "Dataroom".** Verificado en vivo:
