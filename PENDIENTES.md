@@ -461,7 +461,42 @@ Por decisión de producto, cuando un dato no está mapeado a la base de datos se
 
 Falta **definir el origen de cada métrica** antes de poder calcularlas.
 
-### 🟠 Contenido del diagnóstico ESG — preparación (2026-07-10)
+### 🟠 Contenido del diagnóstico ESG — METODOLOGÍA RECIBIDA (GENES Perú, 2026-07-15)
+Fuente: `C:\Users\Asus\Desktop\EYWA\Proceso_ESG\CUADRO FINAL GENES PERU V10.xlsx`.
+**Decisiones del usuario (2026-07-15):** adoptar la metodología GENES (ponderada, 4
+categorías, escala 0-5, bandas) + modo **autoevaluación** (la empresa elige).
+
+**Rúbrica GENES = 4 categorías · 14 criterios · escala 0-5 · pesos suman 1.0:**
+- **Perfil de Emprendimiento (0.34):** RUC legalizado (0.03) · CEO mujer (0.04) · Segmento
+  de clientes identificado (0.07) · Potencial de crecimiento (0.10) · Sistema de M&E de impacto (0.10).
+- **Ambiental (0.16):** Usa insumos sostenibles (0.10) · Mide huella ecológica (0.03) · Certificación ambiental (0.03).
+- **Social (0.25):** Comercio justo/empleo local (0.08) · Oportunidad laboral mujeres/vulnerables (0.07) · Reconocimientos desarrollo humano (0.10).
+- **Económico (0.25):** Economía circular (0.07) · Ha recibido apoyo financiero (0.03) · Viabilidad económica (0.15).
+
+**Escala:** 5 supera · 4 cumple plenamente · 3 parcial · 2 mínimo · 0 no cumple. Valor = puntos × peso.
+**Bandas de clasificación:** 0-30 No cumple · 31-45 Mínimamente · 46-60 Parcialmente · 61-75 Plenamente.
+Trae también tabla de referencia de los 17 ODS.
+
+**⚠️ PRIVACIDAD:** las hojas `data` y `RESPUESTAS` tienen PII de empresas reales (contactos,
+correos, RUC, respuestas de la cohorte GENES). **Solo la metodología** se usa; los datos de
+esas empresas son confidenciales de terceros → NO cargar ni exponer.
+
+**Gap con el motor actual (requiere migración):** hoy el motor es plano (sin peso ni
+categoría, suma simple). Para GENES falta agregar `weight` (float) y `category` a
+`DiagnosticQuestion`, scoring ponderado y bandas. Además, las **4 categorías GENES ≠ las 5
+del radar EsgDashboard** (Ambiental/Social/Gobernanza/Innovación/Cadena) → decidir mapeo.
+
+**Contenido pendiente de validar con Eduardo:** el Excel da la escala GENÉRICA (mismos 5
+niveles para todos) + las preguntas del formulario de admisión, pero NO una redacción por
+nivel específica de cada criterio. Al construir la autoevaluación hay que redactar las 5
+opciones por criterio (borrador derivado de GENES + formulario) → validar con Eduardo antes
+de cargar (no inventar puntajes; la escala 0-5 y los pesos SÍ son oficiales del Excel).
+
+**Plan de build:** 1) schema `weight`+`category` + migración. 2) scoring ponderado + bandas.
+3) seed de los 14 criterios (opciones = escala GENES; descripción = pregunta del formulario).
+4) frontend: agrupar por categoría + mostrar % ponderado + banda. 5) limpiar los 3 placeholders.
+
+### 🟠 Contenido del diagnóstico ESG — preparación (2026-07-10, superado por lo de arriba)
 **Decisiones tomadas:** el contenido lo pasan el usuario/Eduardo; **la estructura
 (plana vs mapeada a las 5 dimensiones) queda pendiente de analizar un Excel** que
 Eduardo tiene. Cuando llegue el Excel → lo audito y defino estructura + cargo.
