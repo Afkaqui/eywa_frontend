@@ -83,6 +83,22 @@ export interface Organization {
   updatedAt: string;
 }
 
+// ── Fondos (catálogo de oportunidades de financiamiento) ──
+
+export interface Fund {
+  id: string;
+  scope: 'nacional' | 'internacional';
+  name: string;
+  instrument_type: string;
+  eligible_profile: string | null;
+  sectors: string | null;
+  amounts: string | null;
+  deadline: string | null;      // ISO si el cierre es fecha concreta
+  deadline_text: string | null; // "Por convocatoria", "Abierto", "Ventanilla…"
+  checklist: string | null;
+  url: string | null;
+}
+
 // ── Simbiocreacion ──
 
 export interface StoredGraph {

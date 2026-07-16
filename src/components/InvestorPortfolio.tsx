@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Search, Filter, Download, TrendingUp, AlertCircle, X, FileText, Calendar, CheckSquare, Loader2 } from 'lucide-react';
 import { PortfolioRepository } from '@/lib/repositories/portfolio-repository';
 import { ActorsDirectory } from '@/components/ActorsDirectory';
+import { FundsDirectory } from '@/components/FundsDirectory';
 import type { PortfolioCompany } from '@/lib/types/database';
 
 const logo = "/logo.png";
@@ -13,7 +14,7 @@ export function InvestorPortfolio() {
   const [companies, setCompanies] = useState<PortfolioCompany[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [showReportModal, setShowReportModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'empresas' | 'directorio'>('empresas');
+  const [activeTab, setActiveTab] = useState<'empresas' | 'directorio' | 'fondos'>('empresas');
 
   const fetchCompanies = useCallback(async () => {
     try {
@@ -132,7 +133,7 @@ export function InvestorPortfolio() {
       {/* Tabs */}
       <div className="max-w-[1600px] mx-auto px-8 pt-4">
         <div className="flex items-center gap-1 border-b border-gray-200">
-          {([['empresas', 'Mis Empresas', companies.length], ['directorio', 'Directorio de Actores', null]] as const).map(([id, label, count]) => (
+          {([['empresas', 'Mis Empresas', companies.length], ['directorio', 'Directorio de Actores', null], ['fondos', 'Fondos', null]] as const).map(([id, label, count]) => (
             <button
               key={id}
               onClick={() => setActiveTab(id)}
@@ -147,6 +148,13 @@ export function InvestorPortfolio() {
       </div>
 
       {/* Directorio de Actores (embebido) */}
+      {/* Catálogo de Fondos (embebido, solo Premium) */}
+      {activeTab === 'fondos' && (
+        <div className="max-w-[1600px] mx-auto px-8 py-8">
+          <FundsDirectory embedded={false} />
+        </div>
+      )}
+
       {activeTab === 'directorio' && (
         <div className="max-w-[1600px] mx-auto px-8 py-8">
           <ActorsDirectory embedded />
