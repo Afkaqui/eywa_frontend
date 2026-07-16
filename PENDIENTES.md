@@ -82,14 +82,13 @@ su destino es convertirse en el panel de **Actores** (personal/áreas/institucio
 Se retiró del panel el andamiaje ficticio (ver *Descartado*): niveles fabricados,
 chevrons decorativos y el botón muerto "Añadir participante".
 
-### 🟡 El grafo auto-generado inventa participantes
-Cuando no hay grafo personalizado, `buildGraph` dibuja **siempre 2 nodos tipo `person`**
-por grupo, con etiqueta `●` y sin usuario asociado. Si no hay tags, inventa además 2
-grupos vacíos (`G1`, `G2`). Una simbiocreación vacía se ve poblada de gente que no existe,
-y la pestaña *Participantes* de Búsquedas lista esos mismos puntos.
-
-El modo edición **sí** permite vincular un usuario real a un nodo (`updateNodeUserId`),
-así que el concepto existe — lo que falta es dejar de fingirlo en el auto-generado.
+### ✅ El grafo auto-generado inventa participantes — RESUELTO (2026-07-16, Fase 5)
+`buildGraph` ya NO inventa personas `●` ni grupos vacíos G1/G2: el auto-grafo solo dibuja
+centro + categorías (ODS) + grupos de tags reales. Los actores se agregan en edición:
+personas (vinculables a usuarios EYWA) e **instituciones** (vinculables al Directorio de
+Actores vía `actorId`). El overlay muestra conteos reales (personas/instituciones del
+grafo guardado, antes fingía tags×2) y la pestaña de Búsquedas pasó de "Personas" a
+**"Actores"** (personas + instituciones, badges EYWA/Directorio).
 
 ### 🟡 Dos fórmulas distintas de "puntaje"
 - Backend (`/ranking`): `nº simbiocreaciones × 10`
@@ -273,8 +272,11 @@ y NAB Colombia (89 orgs, 5 campos). Son el catálogo de **instituciones** del ec
      Backend `ee72850`, frontend `179db65`.
      Pendiente menor: CRUD de fondos para el gestor (hoy el catálogo se actualiza re-corriendo
      el importador) y re-import periódico cuando Neo actualice la matriz.
-5. ⬜ **Simbiocreación**: actores como nodos "institución" del grafo (nodo lleva `actorId`).
-   Conecta con el Panel de Actores (§1).
+5. ✅ **Simbiocreación Fase 5 — HECHA (2026-07-16)**: nodo tipo **"Institución"** en el
+   grafo, vinculable a un actor real del Directorio (búsqueda sobre los 320; el nodo
+   guarda `actorId`; badge "Directorio"; desvincular). Zod del backend acepta
+   `institution` + `actorId`. Además se eliminaron los participantes fantasma
+   (ver §1). Backend `8774776`, frontend `9ddf2c6`.
 
 **Abierto:** confirmar el mapeo fino de subcategorías/sectores/instrumentos al importar
 (algunos textos de los Excel vienen con espacios/variantes).
