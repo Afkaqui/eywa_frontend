@@ -260,11 +260,19 @@ y NAB Colombia (89 orgs, 5 campos). Son el catálogo de **instituciones** del ec
    filtro `?favorites=true`, campos `is_favorite`/`can_edit`. UI: estrella en card y detalle
    + filtro "Favoritos" con contador. **Verificado en vivo**: usuario normal NO puede editar
    el directorio (403) pero SÍ marcar favoritos; los favoritos son aislados por usuario.
-   - ⬜ **"Fondos" = ENTIDAD NUEVA** (decisión del usuario 2026-07-14): no es una vista
-     filtrada de actores, sino un concepto propio con sus propios campos.
-     **PENDIENTE DE DEFINIR:** qué campos tiene un fondo (¿tamaño/AUM, tesis de inversión,
-     ticket mín/máx, etapa, sectores, instrumentos, contacto?) y **de dónde salen los datos**
-     (¿los carga el admin a mano? ¿hay un Excel como el de actores?).
+   - ✅ **"Fondos" — CONSTRUIDO Y DESPLEGADO (2026-07-16)**. Fuente:
+     `BD_Fondos/Neo - Hoja Matriz de oportunidades.xlsx` (146 fondos: 131 internacionales
+     + 15 nacionales, sin PII). Decisiones del usuario: **pestaña en Portfolio** (junto a
+     Actores), **solo Premium** (gestor+ también; plan verificado contra BD, free ven teaser
+     honesto con conteos vía `GET /api/funds/summary`), campos internos de Neo
+     (prioridad/estado/responsable) **descartados**, vencidos visibles con badge "Cerrado"
+     + filtro. Modelo `Fund` (scope, instrumentType, eligibleProfile, sectors, amounts,
+     deadline/deadlineText, checklist, url), seed idempotente `prisma/seed-funds.sql`
+     (generador en scratchpad `gen_funds_seed.py`). UI `FundsDirectory.tsx`: búsqueda +
+     filtros ámbito/instrumento/vigencia, filas expandibles con Gate 0 y link.
+     Backend `ee72850`, frontend `179db65`.
+     Pendiente menor: CRUD de fondos para el gestor (hoy el catálogo se actualiza re-corriendo
+     el importador) y re-import periódico cuando Neo actualice la matriz.
 5. ⬜ **Simbiocreación**: actores como nodos "institución" del grafo (nodo lleva `actorId`).
    Conecta con el Panel de Actores (§1).
 
