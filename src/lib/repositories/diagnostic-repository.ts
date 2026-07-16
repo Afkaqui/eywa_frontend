@@ -48,6 +48,8 @@ function normalizeQuestion(q: RawQuestion): DiagnosticQuestion {
   return {
     id:                  String(q.id ?? ''),
     sort_order:          Number(pick<number>(q, 'sort_order', 'sortOrder') ?? 0),
+    category:            String(pick<string>(q, 'category') ?? 'general'),
+    weight:              Number(pick<number>(q, 'weight') ?? 0),
     title:               String(q.title ?? ''),
     description:         String(q.description ?? ''),
     context_title:       pick<string>(q, 'context_title', 'contextTitle') ?? null,

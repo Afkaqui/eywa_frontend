@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ArrowLeft, Check, CheckCircle2, Loader2, RefreshCw, TrendingUp, Award, FileText } from 'lucide-react';
 import { DiagnosticRepository } from '@/lib/repositories/diagnostic-repository';
-import { getScoreLevel } from '@/lib/constants/scoring';
+import { GENES_SCALE, GENES_MAX_POINTS } from '@/lib/constants/scoring';
 import type { DiagnosticQuestion } from '@/lib/types/database';
 
 const logo = "/logo.png";
@@ -12,6 +12,8 @@ const logo = "/logo.png";
 const fallbackQuestions = [
   {
     title: 'Estado de Certificación Orgánica',
+    category: 'general',
+    weight: 0,
     description: 'Seleccione el estado actual de certificación orgánica de su empresa.',
     options: [
       { label: 'Certificación Orgánica', value: 'yes', score: 15 },
@@ -23,6 +25,8 @@ const fallbackQuestions = [
   },
   {
     title: 'Gestión de Emisiones de Carbono',
+    category: 'general',
+    weight: 0,
     description: 'Indique el nivel de implementación de sistemas de medición y reducción de emisiones.',
     options: [
       { label: 'Sistema Completo Implementado', value: 'complete', score: 20 },
@@ -34,6 +38,8 @@ const fallbackQuestions = [
   },
   {
     title: 'Prácticas de Gobernanza Social',
+    category: 'general',
+    weight: 0,
     description: 'Evalúe las prácticas de gobernanza y responsabilidad social de su organización.',
     options: [
       { label: 'Gobernanza Completa', value: 'complete', score: 15 },
@@ -49,7 +55,7 @@ interface DiagnosticInterfaceProps {
   onScoreComplete?: (result: {
     score: number;
     maxScore: number;
-    breakdown: { label: string; score: number; maxScore: number }[];
+    breakdown: { label: string; score: number; maxScore: number; category?: string }[];
     completedAt: string;
   }) => void;
 }
@@ -75,6 +81,8 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
           return {
             title: q.title,
             description: q.description,
+            category: q.category ?? 'general',
+            weight: q.weight ?? 0,
             options: [...opts]
               .sort((a, b) => (a.sort_order ?? (a as any).sortOrder ?? 0) - (b.sort_order ?? (b as any).sortOrder ?? 0))
               .map(o => ({ label: o.label, value: o.value, score: o.score })),
@@ -115,23 +123,34 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
   const selectedAnswer = answers[currentQuestion];
   const isCompleted = currentQuestion === totalSteps;
 
+  // Puntaje PONDERADO (metodología GENES): cada criterio se puntúa 0-5 y aporta
+  // (puntos × peso); los pesos suman 1.0, así que el ponderado va de 0 a 5 y se
+  // lleva a la escala 0-75 de las bandas. Si no hay pesos (fallback), usa el máximo.
   const calculateScore = () => {
-    let totalScore = 0;
-    diagnosticQuestions.forEach((question, index) => {
-      const answer = answers[index];
-      const selectedOption = question.options.find(opt => opt.value === answer);
-      if (selectedOption) {
-        totalScore += selectedOption.score;
-      }
+    const totalWeight = diagnosticQuestions.reduce((s, q) => s + (q.weight ?? 0), 0);
+    if (totalWeight > 0) {
+      const weighted = diagnosticQuestions.reduce((s, q, i) => {
+        const sel = q.options.find(o => o.value === answers[i]);
+        return s + (sel?.score ?? 0) * (q.weight ?? 0);
+      }, 0) / totalWeight; // 0..5
+      return Math.round(weighted * (GENES_SCALE / GENES_MAX_POINTS)); // 0..75
+    }
+    // Fallback (sin pesos): normaliza por el máximo a la escala 0-75.
+    let sum = 0, max = 0;
+    diagnosticQuestions.forEach((q, i) => {
+      const sel = q.options.find(o => o.value === answers[i]);
+      sum += sel?.score ?? 0;
+      max += Math.max(...q.options.map(o => o.score), 0);
     });
-    return totalScore;
+    return max > 0 ? Math.round((sum / max) * GENES_SCALE) : 0;
   };
 
+  // Bandas oficiales GENES sobre la escala 0-75.
   const getDiagnosticScoreLevel = (score: number) => {
-    if (score >= 45) return { level: 'Excelente', color: 'emerald', description: 'Su empresa demuestra un compromiso solido con la sostenibilidad' };
-    if (score >= 30) return { level: 'Bueno', color: 'green', description: 'Buen progreso en sostenibilidad con areas de mejora identificadas' };
-    if (score >= 15) return { level: 'Moderado', color: 'yellow', description: 'Se requiere mayor inversion en iniciativas de sostenibilidad' };
-    return { level: 'Inicial', color: 'orange', description: 'Oportunidad significativa para desarrollo de practicas sostenibles' };
+    if (score >= 61) return { level: 'Cumple plenamente', color: 'emerald', description: 'Su empresa cumple plenamente los criterios de sostenibilidad evaluados' };
+    if (score >= 46) return { level: 'Cumple parcialmente', color: 'green', description: 'Cumplimiento parcial; hay áreas claras de mejora identificadas' };
+    if (score >= 31) return { level: 'Cumple mínimamente', color: 'yellow', description: 'Cumplimiento mínimo; se requiere mayor inversión en sostenibilidad' };
+    return { level: 'No cumple', color: 'orange', description: 'Oportunidad significativa para desarrollar prácticas sostenibles' };
   };
 
   const handleNext = () => {
@@ -160,20 +179,19 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
 
       // Send result to parent
       if (onScoreComplete) {
-        const totalScore = calculateScore();
-        const maxScore = diagnosticQuestions.reduce((max, q) => max + Math.max(...q.options.map(o => o.score)), 0);
+        const totalScore = calculateScore(); // ya en escala GENES (0-75)
         const breakdown = diagnosticQuestions.map((q, i) => {
-          const answer = answers[i];
-          const selected = q.options.find(opt => opt.value === answer);
+          const selected = q.options.find(opt => opt.value === answers[i]);
           return {
             label: q.title,
-            score: selected?.score || 0,
-            maxScore: Math.max(...q.options.map(o => o.score)),
+            score: selected?.score ?? 0,
+            maxScore: GENES_MAX_POINTS,
+            category: q.category ?? 'general',
           };
         });
         onScoreComplete({
           score: totalScore,
-          maxScore,
+          maxScore: GENES_SCALE,
           breakdown,
           completedAt: new Date().toISOString(),
         });
@@ -228,8 +246,8 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
 
   // Results Screen
   if (showResults) {
-    const totalScore = calculateScore();
-    const maxScore = diagnosticQuestions.reduce((max, q) => max + Math.max(...q.options.map(o => o.score)), 0);
+    const totalScore = calculateScore(); // escala GENES (0-75)
+    const maxScore = GENES_SCALE;
     const scorePercentage = (totalScore / maxScore) * 100;
     const scoreLevel = getDiagnosticScoreLevel(totalScore);
 

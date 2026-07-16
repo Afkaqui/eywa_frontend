@@ -1,6 +1,6 @@
 import type { DiagnosticQuestion, DiagnosticResult } from '@/lib/types/database';
 import { DiagnosticRepository } from '@/lib/repositories/diagnostic-repository';
-import { calculatePercentage, getScoreLevel } from '@/lib/constants/scoring';
+import { calculatePercentage, getGenesBand } from '@/lib/constants/scoring';
 
 export class DiagnosticService {
   constructor(private repository: DiagnosticRepository) {}
@@ -22,8 +22,9 @@ export class DiagnosticService {
   }
 
   async saveResult(userId: string, result: DiagnosticResult): Promise<void> {
+    // result.score viene en escala GENES (0-75); la banda se calcula sobre ese score.
     const percentage = calculatePercentage(result.score, result.maxScore);
-    const level = getScoreLevel(percentage);
+    const level = getGenesBand(result.score);
 
     await this.repository.saveResult({
       user_id: userId,

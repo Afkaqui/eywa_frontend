@@ -30,6 +30,8 @@ export interface PortfolioCompany {
 export interface DiagnosticQuestion {
   id: string;
   sort_order: number;
+  category: string; // GENES: perfil | ambiental | social | economico
+  weight: number;   // peso del criterio (los pesos GENES suman 1.0)
   title: string;
   description: string;
   context_title: string | null;
