@@ -174,7 +174,17 @@ Hoy corre con un **heurístico determinista**, no con IA. El *seam* ya está lis
 **Verificado: en el VPS no están configuradas.** Falta que ARS entregue credenciales
 y confirmar el contrato de su API.
 
-### 🟠 Subida real de documentos con almacenamiento — plan de trabajo (B(b))
+### ✅ Subida real de documentos — FASES 1 Y 2 HECHAS (2026-07-16, DESPLEGADO)
+Tabla `plan_documents` (cascade con project_plans) + storage en el volumen VPS
+(`UPLOAD_DIR/validator/<planId>/`). Endpoints: POST multipart (PDF/Word/Excel/imagen/
+TXT/CSV, 10 MB, límite free=1 / premium=10 verificado contra BD), GET download (solo
+dueño), DELETE por documento; borrar el plan limpia su carpeta del disco. UI: el
+formulario sube archivos REALES al crear (reintento sin duplicar el plan); cada card
+tiene sección Documentos con adjuntar/descargar/eliminar. El Json legado
+`project_plans.documents` queda ignorado. Backend `a5cfe0d`, frontend `e6ac5cd`.
+**Falta la Fase 3** (extracción de texto para la IA) → va junto con la integración de ARS.
+
+### 🟠 Plan de trabajo original (B(b), referencia)
 **Estado hoy:** el campo `documents` (Json) guarda solo **metadata** (nombre/tipo);
 el archivo no se sube a ningún lado. Para que la IA (y el usuario) tengan el contenido
 real hace falta almacenamiento + extracción de texto. Plan por fases:
@@ -478,7 +488,8 @@ persiste categoría y banda. Cálculo es client-side (`DiagnosticInterface`); ba
 Opciones **adecuadas por criterio** (2026-07-15): binarias donde aplica (RUC: Sí/En trámite/No;
 CEO mujer), rangos de % (inclusión laboral: >50%/26-50%/…/0%) y escala de madurez donde hay
 espectro. 53 opciones, puntos GENES 0-5, pesos siguen sumando 1.0 (máximo = 75). Aplicado a prod.
-**Pendiente menor:** (a) que Eduardo valide/afine la redacción exacta de las opciones;
+**Pendiente menor:** (a) ~~validación de Eduardo~~ → ✅ APROBADO (2026-07-16): Eduardo dio
+el visto bueno a la redacción de las 53 opciones — el contenido del diagnóstico queda SELLADO;
 (b) ~~desglose por categoría~~ → RESUELTO 2026-07-16: `EsgIndexPanel` (Mi Organización →
 Índice ESG) muestra índice 0-5, banda y las 4 categorías. Queda opcional: radar/desglose
 también en la pantalla de resultados del propio diagnóstico. Fuente: `Proceso_ESG/CUADRO FINAL GENES...`.
