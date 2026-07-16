@@ -113,13 +113,12 @@ y decidir qué campos se exponen sin sesión.
 
 ## 2. Academia
 
-### 🟠 Página pública de verificación de certificados
-El backend ya expone `GET /api/certificates/verify/:code` **sin autenticación** y
-devuelve titular, curso, nota y fecha. **No existe UI ni ruta proxy**, así que hoy
-solo se puede verificar con `curl`. El certificado PDF imprime el código pero nadie
-puede comprobarlo desde el navegador.
-
-Falta: página `/verificar/[codigo]` (pública, sin login) + enlace en el PDF.
+### ✅ Página pública de verificación de certificados — HECHA (2026-07-16)
+`/verificar` (formulario por código) y `/verificar/[codigo]` (enlace directo que
+auto-verifica), públicas y con marca EYWA. Consume el `GET /api/certificates/verify/:code`
+que ya era público, vía proxy sin sesión. Válido → titular, curso, instructor,
+calificación y fecha; inválido → aviso claro. El PDF del certificado ahora imprime
+el enlace directo de verificación. `9335a95`.
 
 ### 🟡 El seed general borra el curso demo
 Correr `npm run db:seed` reinserta 6 cursos de ejemplo y **elimina** el curso demo
