@@ -72,6 +72,18 @@ function UserAvatar({ userId, size = 40 }: { userId?: string; size?: number }) {
 export function NavigationSidebar({ currentView, userRole, userName, userEmail, userId, onNavigate, onLogout }: NavigationSidebarProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
+  // Conteo REAL de notificaciones (antes había un "3" hardcodeado).
+  // Se refresca al cambiar de vista: completar una acción hace desaparecer su aviso.
+  const [noticeCount, setNoticeCount] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    fetch('/api/proxy/notifications', { credentials: 'include' })
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (alive && Array.isArray(d?.notifications)) setNoticeCount(d.notifications.length); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [currentView]);
+
   const baseItems = [
     { id: 'hero', icon: LayoutDashboard, label: 'Panel Principal' },
     { id: 'fase1', icon: PieChart, label: 'Fase 1', href: '/fase1' },
@@ -172,18 +184,20 @@ export function NavigationSidebar({ currentView, userRole, userName, userEmail, 
           >
             <div className="relative flex-shrink-0">
               <Bell className={`w-5 h-5 ${currentView === 'notifications' ? 'text-white' : ''}`} />
-              {!isExpanded && (
+              {!isExpanded && noticeCount > 0 && (
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 text-white text-xs font-semibold rounded-full flex items-center justify-center">
-                  3
+                  {noticeCount}
                 </span>
               )}
             </div>
             {isExpanded && (
               <>
                 <span className="font-medium text-sm">Notificaciones</span>
-                <span className="ml-auto w-5 h-5 text-xs font-semibold rounded-full flex items-center justify-center bg-emerald-500 text-white">
-                  3
-                </span>
+                {noticeCount > 0 && (
+                  <span className="ml-auto w-5 h-5 text-xs font-semibold rounded-full flex items-center justify-center bg-emerald-500 text-white">
+                    {noticeCount}
+                  </span>
+                )}
               </>
             )}
             {!isExpanded && (

@@ -20,6 +20,7 @@ import { EdutechDashboard } from '@/components/EdutechDashboard';
 import { OrganizationProfile } from '@/components/OrganizationProfile';
 import { SimbiocreacionDashboard } from '@/components/SimbiocreacionDashboard';
 import { SettingsDashboard } from '@/components/SettingsDashboard';
+import { NotificationsPanel } from '@/components/NotificationsPanel';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import type { DiagnosticResult } from '@/lib/types/database';
 
@@ -93,12 +94,7 @@ export default function Page() {
         {currentView === 'gestor' && hasMinimumRole(role, 'gestor') && <GestorDashboard />}
 
         {currentView === 'notifications' && (
-          <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 md:p-8">
-            <div className="text-center">
-              <h2 className="text-2xl md:text-3xl font-light text-gray-900 mb-4">Notificaciones</h2>
-              <p className="text-sm md:text-base text-gray-600">Panel de notificaciones en desarrollo</p>
-            </div>
-          </div>
+          <NotificationsPanel onNavigate={(view) => setCurrentView(view as ViewType)} />
         )}
         {currentView === 'settings' && <SettingsDashboard />}
       </div>
