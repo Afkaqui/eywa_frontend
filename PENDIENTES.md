@@ -498,9 +498,12 @@ CEO mujer), rangos de % (inclusión laboral: >50%/26-50%/…/0%) y escala de mad
 espectro. 53 opciones, puntos GENES 0-5, pesos siguen sumando 1.0 (máximo = 75). Aplicado a prod.
 **Pendiente menor:** (a) ~~validación de Eduardo~~ → ✅ APROBADO (2026-07-16): Eduardo dio
 el visto bueno a la redacción de las 53 opciones — el contenido del diagnóstico queda SELLADO;
-(b) ~~desglose por categoría~~ → RESUELTO 2026-07-16: `EsgIndexPanel` (Mi Organización →
-Índice ESG) muestra índice 0-5, banda y las 4 categorías. Queda opcional: radar/desglose
-también en la pantalla de resultados del propio diagnóstico. Fuente: `Proceso_ESG/CUADRO FINAL GENES...`.
+(b) ~~desglose por categoría~~ → RESUELTO 2026-07-16 en TODAS las vistas: `EsgIndexPanel`
+(Mi Organización), pantalla "ya completado" y la pantalla de RESULTADOS del test (barras
+por categoría + criterios agrupados). Además: **informe PDF descargable real** (jsPDF,
+`lib/diagnostic-pdf.ts`), fix del badge de banda (clases Tailwind dinámicas purgadas) y
+"Próximos Pasos" honesto (fuera el "informe en 48 horas" falso). `11f3d1f`.
+Fuente: `Proceso_ESG/CUADRO FINAL GENES...`.
 
 ### ✅ Índice ESG = diagnóstico + imágenes de perfil (2026-07-16, DESPLEGADO)
 **Decisión del usuario: "El diagnóstico ES el índice".** `EsgIndexPanel.tsx` reemplazó al
