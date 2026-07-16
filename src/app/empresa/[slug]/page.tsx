@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from 'react';
 import { publicDownloadUrl, type PublicLandingData } from '@/lib/repositories/dataroom-repository';
 import {
-  Leaf, MapPin, Layers, Link2, Download, FileText, ShieldCheck,
+  MapPin, Layers, Link2, Download, FileText, ShieldCheck,
   Loader2, SearchX, ArrowRight, Building2,
 } from 'lucide-react';
 
@@ -47,11 +47,13 @@ export default function EmpresaLandingPage({ params }: { params: Promise<{ slug:
       {/* Marca EYWA */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center">
-              <Leaf className="w-4 h-4 text-white" />
+          <a href="/" className="flex items-center gap-2 md:gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="EYWA Logo" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
+            <div>
+              <div className="text-gray-900 font-bold text-base md:text-xl tracking-tight">EYWA</div>
+              <div className="text-emerald-600 text-[10px] md:text-xs tracking-wider hidden sm:block">ORQUESTACIÓN DE ECOSISTEMAS</div>
             </div>
-            <span className="font-bold text-gray-900">EYWA</span>
           </a>
           <a href="/" className="text-sm font-medium text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
             Ir a la plataforma <ArrowRight className="w-4 h-4" />
