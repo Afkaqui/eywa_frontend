@@ -343,9 +343,8 @@ Definir el producto antes de construir.
 - Todo documento **nace privado** (`is_public=false`); publicar es explícito y por documento.
 
 **FALTA (en orden de valor):**
-1. ⬜ **Mini-landing pública** `/empresa/[slug]` — el `is_public` por documento ya existe y
-   se puede alternar desde la UI, pero **la página pública aún no está hecha**, así que
-   marcar "público" todavía no publica nada en ninguna parte.
+1. ✅ **Mini-landing pública** `/empresa/[slug]` — HECHA (2026-07-15/16): cabecera con
+   logo de la empresa + marca EYWA, sello de completitud, documentos públicos descargables.
 2. ⬜ **Invitaciones** (inversores/auditores) → **bloqueado por el correo** (Resend + dominio),
    misma dependencia que recuperar contraseña (§3).
 3. ⬜ **Permiso delegado a gestores** (`DataroomAccessGrant`): hoy solo el dueño y el
@@ -353,7 +352,7 @@ Definir el producto antes de construir.
 4. ⬜ *(sugerido)* Registro de accesos (quién vio qué documento y cuándo).
 5. ⬜ Auto-poblar la carpeta 7 (Sostenibilidad y ASG) desde el diagnóstico ESG y los
    certificados de la Academia.
-6. ⬜ Incluir `~/eywa-uploads` en los backups del VPS.
+6. ✅ Incluir `~/eywa-uploads` en los backups del VPS — HECHO (pg_backup.sh lo tarea).
 
 ### Referencia y diseño original (proyectado 2026-07-13)
 
