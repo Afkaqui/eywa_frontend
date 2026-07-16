@@ -91,9 +91,18 @@ export default function EmpresaLandingPage({ params }: { params: Promise<{ slug:
               {/* Encabezado de la empresa */}
               <div className="bg-white rounded-2xl border border-gray-200 p-6 md:p-8 mb-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center flex-shrink-0">
-                    <Building2 className="w-7 h-7 text-white" />
-                  </div>
+                  {org.has_logo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={`/api/proxy/media/organization/${org.id}/logo`}
+                      alt={`Logo de ${org.name}`}
+                      className="w-14 h-14 rounded-2xl object-cover border border-gray-200 flex-shrink-0 bg-white"
+                    />
+                  ) : (
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center flex-shrink-0">
+                      <Building2 className="w-7 h-7 text-white" />
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{org.name}</h1>
                     {org.description && (

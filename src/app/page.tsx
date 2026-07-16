@@ -73,6 +73,7 @@ export default function Page() {
         userRole={role}
         userName={profile?.fullName || 'Usuario'}
         userEmail={profile?.email || ''}
+        userId={profile?.id ?? user?.id}
         onNavigate={(view) => setCurrentView(view as ViewType)}
         onLogout={signOut}
       />
@@ -81,7 +82,7 @@ export default function Page() {
         {currentView === 'hero' && <HeroDashboard diagnosticResult={diagnosticResult} onStartDiagnostic={() => setCurrentView('diagnostic')} />}
         {currentView === 'diagnostic' && <DiagnosticInterface onScoreComplete={(result) => { handleDiagnosticComplete(result); setCurrentView('hero'); }} />}
         {currentView === 'validator' && <ValidadorProyectos />}
-        {currentView === 'organization' && <OrganizationProfile />}
+        {currentView === 'organization' && <OrganizationProfile onNavigate={(view) => setCurrentView(view as ViewType)} />}
         {currentView === 'simbiocreacion' && <SimbiocreacionDashboard />}
         {currentView === 'portfolio' && <InvestorPortfolio />}
         {currentView === 'mobile' && <MobileApp />}

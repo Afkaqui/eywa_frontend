@@ -53,7 +53,7 @@ export interface DiagnosticOption {
 export interface DiagnosticResult {
   score: number;
   maxScore: number;
-  breakdown: { label: string; score: number; maxScore: number }[];
+  breakdown: { label: string; score: number; maxScore: number; category?: string }[];
   completedAt: string;
 }
 
@@ -71,6 +71,7 @@ export interface Organization {
   externalLinks: string[];
   country: string | null;
   sector: string | null;
+  imageUrl: string | null;
   createdAt: string;
   updatedAt: string;
 }

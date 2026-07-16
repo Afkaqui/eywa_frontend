@@ -5,6 +5,7 @@ import {
   User, Lock, Check, Loader2, Eye, EyeOff, AlertCircle, Settings,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { ImageUploader } from '@/components/ImageUploader';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -184,12 +185,7 @@ export function SettingsDashboard() {
           <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8">
 
             {/* Avatar */}
-            <div className="flex items-center gap-4 mb-8 pb-6 border-b border-gray-100">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-700 flex items-center justify-center flex-shrink-0">
-                <span className="text-2xl font-semibold text-white">
-                  {(user?.name ?? user?.email ?? 'U')[0].toUpperCase()}
-                </span>
-              </div>
+            <div className="mb-8 pb-6 border-b border-gray-100 space-y-4">
               <div>
                 <div className="font-semibold text-gray-900 text-lg">{user?.name || 'Sin nombre'}</div>
                 <div className="text-sm text-gray-500">{user?.email}</div>
@@ -197,6 +193,13 @@ export function SettingsDashboard() {
                   {user?.plan === 'premium' ? 'Plan Premium' : 'Plan Gratuito'}
                 </span>
               </div>
+              <ImageUploader
+                currentUrl={user?.id ? `/api/proxy/media/profile/${user.id}/avatar` : null}
+                endpoint="/api/proxy/media/profile/avatar"
+                shape="circle"
+                size={72}
+                label="Cambiar foto"
+              />
             </div>
 
             <div className="space-y-5">

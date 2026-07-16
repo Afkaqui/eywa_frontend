@@ -9,7 +9,8 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { OrganizationRepository } from '@/lib/repositories/organization-repository';
 import { Dataroom } from '@/components/Dataroom';
-import { EsgDashboard } from '@/components/EsgDashboard';
+import { EsgIndexPanel } from '@/components/EsgIndexPanel';
+import { ImageUploader } from '@/components/ImageUploader';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -101,7 +102,7 @@ const COUNTRIES = [
 const inputCls = 'w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white placeholder-gray-400';
 const labelCls = 'block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5';
 
-export function OrganizationProfile() {
+export function OrganizationProfile({ onNavigate }: { onNavigate?: (view: string) => void } = {}) {
   const { profile } = useAuth();
   const orgRepo = useMemo(() => new OrganizationRepository(), []);
 
@@ -112,6 +113,8 @@ export function OrganizationProfile() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [orgId, setOrgId] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   // Autocomplete states
   const [countryQuery, setCountryQuery] = useState('');
@@ -139,6 +142,10 @@ export function OrganizationProfile() {
       .then(org => {
         if (org) {
           setOrgType((org.type as OrgType) ?? null);
+          setOrgId(org.id);
+          if (org.imageUrl) {
+            setLogoUrl(`/api/proxy/media/organization/${org.id}/logo?v=${Date.parse(org.updatedAt) || Date.now()}`);
+          }
           setCountryQuery(org.country ?? '');
           setSectorQuery(org.sector ?? '');
           setForm({
@@ -198,7 +205,7 @@ export function OrganizationProfile() {
     setSaving(true);
     setError(null);
     try {
-      await orgRepo.save({
+      const saved = await orgRepo.save({
         type:            orgType,
         institutionType: form.institutionType || null,
         name:            form.name.trim(),
@@ -209,6 +216,7 @@ export function OrganizationProfile() {
         country:         form.country || null,
         sector:          form.sector || null,
       });
+      if (saved?.id) setOrgId(saved.id); // habilita la subida de logo al crear
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch {
@@ -284,7 +292,7 @@ export function OrganizationProfile() {
         </div>
 
         {/* ESG Tab */}
-        {activeTab === 'esg' && <EsgDashboard embedded />}
+        {activeTab === 'esg' && <EsgIndexPanel onNavigate={onNavigate} />}
 
         {/* Dataroom Tab */}
         {activeTab === 'dataroom' && <Dataroom />}
@@ -373,6 +381,25 @@ export function OrganizationProfile() {
               >
                 Cambiar tipo
               </button>
+            </div>
+
+            {/* Logo de la organización */}
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 mb-5">
+              <label className={labelCls}>Logo de la organización</label>
+              {orgId ? (
+                <ImageUploader
+                  currentUrl={logoUrl}
+                  endpoint="/api/proxy/media/organization/logo"
+                  shape="square"
+                  size={96}
+                  label="Subir logo"
+                  onUploaded={(url) => setLogoUrl(url)}
+                />
+              ) : (
+                <p className="text-sm text-gray-400">
+                  Guarda primero los datos de la organización para poder subir el logo.
+                </p>
+              )}
             </div>
 
             <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 space-y-5">

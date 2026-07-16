@@ -30,11 +30,36 @@ interface NavigationSidebarProps {
   userRole: UserRole;
   userName: string;
   userEmail: string;
+  userId?: string;
   onNavigate: (view: string) => void;
   onLogout: () => void;
 }
 
-export function NavigationSidebar({ currentView, userRole, userName, userEmail, onNavigate, onLogout }: NavigationSidebarProps) {
+// Avatar del usuario: intenta la imagen subida y cae a un ícono si no existe (404).
+function UserAvatar({ userId, size = 40 }: { userId?: string; size?: number }) {
+  const [failed, setFailed] = useState(false);
+  const showImg = userId && !failed;
+  return (
+    <div
+      className="rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center flex-shrink-0 overflow-hidden"
+      style={{ width: size, height: size }}
+    >
+      {showImg ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={`/api/proxy/media/profile/${userId}/avatar`}
+          alt="Avatar"
+          className="w-full h-full object-cover"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <User className="w-5 h-5 text-white" />
+      )}
+    </div>
+  );
+}
+
+export function NavigationSidebar({ currentView, userRole, userName, userEmail, userId, onNavigate, onLogout }: NavigationSidebarProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const baseItems = [
@@ -183,9 +208,7 @@ export function NavigationSidebar({ currentView, userRole, userName, userEmail, 
           {isExpanded ? (
             <div className="mb-3 px-4 py-3 bg-gray-50 rounded-xl">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center flex-shrink-0">
-                  <User className="w-5 h-5 text-white" />
-                </div>
+                <UserAvatar userId={userId} size={40} />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold text-gray-900 truncate">{userName}</div>
                   <div className="text-xs text-gray-500 truncate">{userEmail}</div>
@@ -197,9 +220,7 @@ export function NavigationSidebar({ currentView, userRole, userName, userEmail, 
             </div>
           ) : (
             <div className="mb-3 flex justify-center">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center">
-                <User className="w-5 h-5 text-white" />
-              </div>
+              <UserAvatar userId={userId} size={40} />
             </div>
           )}
 

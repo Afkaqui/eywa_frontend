@@ -104,6 +104,7 @@ export interface LandingState {
 
 // ── Datos de la landing pública (sin sesión) ──────────────────────────────────
 export interface PublicOrg {
+  id: string;
   name: string;
   type: string;
   description: string | null;
@@ -111,6 +112,7 @@ export interface PublicOrg {
   country: string | null;
   website: string | null;
   externalLinks: string[];
+  has_logo: boolean;
 }
 
 export interface PublicDoc {
