@@ -3,7 +3,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ArrowLeft, Check, CheckCircle2, Loader2, RefreshCw, TrendingUp, Award, FileText } from 'lucide-react';
 import { DiagnosticRepository } from '@/lib/repositories/diagnostic-repository';
-import { GENES_SCALE, GENES_MAX_POINTS } from '@/lib/constants/scoring';
+import { GENES_SCALE, GENES_MAX_POINTS, GENES_CATEGORIES } from '@/lib/constants/scoring';
+import { generateDiagnosticReportPdf } from '@/lib/diagnostic-pdf';
+import { useAuth } from '@/contexts/AuthContext';
 import type { DiagnosticQuestion } from '@/lib/types/database';
 
 const logo = "/logo.png";
@@ -62,6 +64,7 @@ interface DiagnosticInterfaceProps {
 
 export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProps) {
   const diagnosticRepo = useMemo(() => new DiagnosticRepository(), []);
+  const { user } = useAuth();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<{[key: number]: string}>({});
   const [isProcessing, setIsProcessing] = useState(false);
@@ -146,11 +149,12 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
   };
 
   // Bandas oficiales GENES sobre la escala 0-75.
+  // OJO: clases Tailwind COMPLETAS (las dinámicas tipo bg-${color}-100 se purgan en el build).
   const getDiagnosticScoreLevel = (score: number) => {
-    if (score >= 61) return { level: 'Cumple plenamente', color: 'emerald', description: 'Su empresa cumple plenamente los criterios de sostenibilidad evaluados' };
-    if (score >= 46) return { level: 'Cumple parcialmente', color: 'green', description: 'Cumplimiento parcial; hay áreas claras de mejora identificadas' };
-    if (score >= 31) return { level: 'Cumple mínimamente', color: 'yellow', description: 'Cumplimiento mínimo; se requiere mayor inversión en sostenibilidad' };
-    return { level: 'No cumple', color: 'orange', description: 'Oportunidad significativa para desarrollar prácticas sostenibles' };
+    if (score >= 61) return { level: 'Cumple plenamente', badge: 'bg-emerald-100 text-emerald-700', description: 'Su empresa cumple plenamente los criterios de sostenibilidad evaluados' };
+    if (score >= 46) return { level: 'Cumple parcialmente', badge: 'bg-lime-100 text-lime-700', description: 'Cumplimiento parcial; hay áreas claras de mejora identificadas' };
+    if (score >= 31) return { level: 'Cumple mínimamente', badge: 'bg-amber-100 text-amber-700', description: 'Cumplimiento mínimo; se requiere mayor inversión en sostenibilidad' };
+    return { level: 'No cumple', badge: 'bg-rose-100 text-rose-700', description: 'Oportunidad significativa para desarrollar prácticas sostenibles' };
   };
 
   const handleNext = () => {
@@ -251,6 +255,35 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
     const scorePercentage = (totalScore / maxScore) * 100;
     const scoreLevel = getDiagnosticScoreLevel(totalScore);
 
+    // Desglose por categoría GENES (promedio 0-5 de los criterios respondidos)
+    const CATEGORY_ORDER = ['perfil', 'ambiental', 'social', 'economico', 'general'];
+    const CATEGORY_BAR: Record<string, string> = {
+      perfil: 'bg-indigo-500', ambiental: 'bg-emerald-500', social: 'bg-amber-500',
+      economico: 'bg-sky-500', general: 'bg-gray-400',
+    };
+    const categories = CATEGORY_ORDER.map((key) => {
+      const qs = diagnosticQuestions
+        .map((q, i) => ({ q, i }))
+        .filter(({ q }) => (q.category ?? 'general') === key);
+      if (!qs.length) return null;
+      const sum = qs.reduce((s, { q, i }) => s + (q.options.find(o => o.value === answers[i])?.score ?? 0), 0);
+      return { key, label: GENES_CATEGORIES[key] ?? key, avg: sum / qs.length, questions: qs };
+    }).filter((c): c is NonNullable<typeof c> => c !== null);
+
+    const handleDownloadReport = () => {
+      generateDiagnosticReportPdf({
+        companyName: user?.company ?? null,
+        holderName:  user?.name ?? null,
+        score:       totalScore,
+        completedAt: new Date().toISOString(),
+        categories:  categories.map(c => ({ label: c.label, avg: c.avg })),
+        criteria: categories.flatMap(c => c.questions.map(({ q, i }) => {
+          const sel = q.options.find(o => o.value === answers[i]);
+          return { category: c.label, title: q.title, points: sel?.score ?? 0, answer: sel?.label ?? 'Sin respuesta' };
+        })),
+      }).catch(() => alert('No se pudo generar el informe'));
+    };
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-emerald-50">
         {/* Header */}
@@ -278,7 +311,7 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
                   </div>
                 </div>
               </div>
-              <div className={`inline-block px-4 py-2 rounded-full bg-${scoreLevel.color}-100 text-${scoreLevel.color}-700 font-semibold mb-3`}>
+              <div className={`inline-block px-4 py-2 rounded-full font-semibold mb-3 ${scoreLevel.badge}`}>
                 {scoreLevel.level}
               </div>
               <h2 className="text-2xl font-light text-gray-900 mb-2">
@@ -304,31 +337,59 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
               </div>
             </div>
 
-            {/* Breakdown by Question */}
-            <div className="grid grid-cols-3 gap-6 mb-8">
-              {diagnosticQuestions.map((question, index) => {
-                const answer = answers[index];
-                const selectedOption = question.options.find(opt => opt.value === answer);
-                return (
-                  <div key={index} className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                    <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">
-                      Pregunta {index + 1}
+            {/* Desglose por categoría GENES */}
+            <div className="mb-10">
+              <div className="flex items-center gap-2 mb-4">
+                <TrendingUp className="w-4 h-4 text-gray-400" />
+                <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">Desglose por categoría</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-4">
+                {categories.map((c) => (
+                  <div key={c.key}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-sm text-gray-600">{c.label}</span>
+                      <span className="text-sm font-semibold text-gray-800">{c.avg.toFixed(1)} / 5</span>
                     </div>
-                    <div className="text-sm font-medium text-gray-900 mb-3">
-                      {question.title}
-                    </div>
-                    <div className="flex items-baseline gap-2">
-                      <div className="text-3xl font-bold text-emerald-600">
-                        {selectedOption?.score || 0}
-                      </div>
-                      <div className="text-sm text-gray-500">puntos</div>
-                    </div>
-                    <div className="mt-3 text-xs text-gray-600">
-                      {selectedOption?.label}
+                    <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-700 ${CATEGORY_BAR[c.key] ?? 'bg-emerald-500'}`}
+                        style={{ width: `${(c.avg / GENES_MAX_POINTS) * 100}%` }}
+                      />
                     </div>
                   </div>
-                );
-              })}
+                ))}
+              </div>
+            </div>
+
+            {/* Criterios agrupados por categoría */}
+            <div className="space-y-8 mb-8">
+              {categories.map((c) => (
+                <div key={c.key}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className={`w-2.5 h-2.5 rounded-full ${CATEGORY_BAR[c.key] ?? 'bg-emerald-500'}`} />
+                    <h4 className="text-sm font-semibold text-gray-800">{c.label}</h4>
+                    <span className="text-xs text-gray-400">{c.questions.length} criterio{c.questions.length === 1 ? '' : 's'}</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {c.questions.map(({ q, i }) => {
+                      const selectedOption = q.options.find(opt => opt.value === answers[i]);
+                      const pts = selectedOption?.score ?? 0;
+                      return (
+                        <div key={i} className="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                          <div className="text-sm font-medium text-gray-900 mb-2">{q.title}</div>
+                          <div className="flex items-baseline gap-2">
+                            <div className={`text-2xl font-bold ${pts >= 4 ? 'text-emerald-600' : pts >= 2 ? 'text-amber-600' : 'text-rose-600'}`}>
+                              {pts}
+                            </div>
+                            <div className="text-xs text-gray-500">de {GENES_MAX_POINTS} puntos</div>
+                          </div>
+                          <div className="mt-2 text-xs text-gray-600">{selectedOption?.label}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Action Buttons */}
@@ -341,10 +402,11 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
                 Rectificar Respuestas
               </button>
               <button
+                onClick={handleDownloadReport}
                 className="px-8 py-3 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-all flex items-center gap-2 shadow-lg"
               >
                 <FileText className="w-4 h-4" />
-                Descargar Informe
+                Descargar Informe (PDF)
               </button>
             </div>
           </div>
@@ -356,10 +418,12 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
                 <Award className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Próximos Pasos</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">¿Qué pasa con tu resultado?</h3>
                 <p className="text-gray-700 text-sm leading-relaxed">
-                  Nuestro equipo revisará su diagnóstico y preparará un plan de acción personalizado para mejorar 
-                  su puntaje de sostenibilidad. Recibirá un informe detallado en las próximas 48 horas.
+                  Tu resultado ya actualizó automáticamente tu <strong>Índice ESG</strong> (Mi Organización),
+                  tu ficha en el <strong>portfolio</strong> ante inversionistas y el ítem &quot;Reporte de
+                  sostenibilidad&quot; de tu <strong>Dataroom</strong>. Puedes rehacer la evaluación cuando
+                  mejores tus prácticas: la nueva reemplaza a la anterior.
                 </p>
               </div>
             </div>
