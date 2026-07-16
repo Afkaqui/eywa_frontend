@@ -466,8 +466,11 @@ Motor ponderado GENES en producción: 4 categorías, 14 criterios, pesos suman 1
 escala 0-5 → 0-75, bandas (No cumple/Mínimamente/Parcialmente/Plenamente). **Verificado**:
 API expone weight/category; fórmula da 75/45/0 para todo-5/todo-3/todo-0; POST /results
 persiste categoría y banda. Cálculo es client-side (`DiagnosticInterface`); backend guarda.
-**Pendiente menor:** (a) redacción fina de opciones por criterio (hoy escala genérica GENES) —
-validar con Eduardo; (b) UI de resultados que agrupe por categoría y muestre el radar/banda
+Opciones **adecuadas por criterio** (2026-07-15): binarias donde aplica (RUC: Sí/En trámite/No;
+CEO mujer), rangos de % (inclusión laboral: >50%/26-50%/…/0%) y escala de madurez donde hay
+espectro. 53 opciones, puntos GENES 0-5, pesos siguen sumando 1.0 (máximo = 75). Aplicado a prod.
+**Pendiente menor:** (a) que Eduardo valide/afine la redacción exacta de las opciones;
+(b) UI de resultados que agrupe por categoría y muestre el radar/banda
 (hoy muestra % + banda, sin desglose por categoría). Fuente: `Proceso_ESG/CUADRO FINAL GENES...`.
 
 ### 📎 Metodología GENES (referencia, recibida 2026-07-15)
