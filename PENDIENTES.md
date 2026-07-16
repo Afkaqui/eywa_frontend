@@ -502,6 +502,20 @@ rutas `/api/esg` + `/api/proxy/esg`, modelos `EsgScore`/`EsgHistory` (verificar 
 - Deploys: backend `c37ea8b`, frontend `bae1631`. Verificado por API (404/401 correctos,
   volumen montado); falta smoke test con sesión (subir imagen real desde la UI).
 
+### ✅ Notificaciones reales (2026-07-16, DESPLEGADO) — arquitectura derivada del estado
+Antes era cascarón: panel "en desarrollo" + badge "3" hardcodeado. Ahora:
+`GET /api/notifications` calcula los avisos del usuario **al momento** (sin tabla) —
+se autoresuelven al completar la acción, no hay "marcar como leída". `NotificationsPanel`
+con CTA que navega; badge del nav con conteo real (se refresca al cambiar de vista).
+- **Caso 1 (activo):** registro incompleto — usuario sin Mi Organización completada
+  (menciona la empresa declarada al registrarse, ej. BANKCOIN) → CTA "Completar Mi Organización".
+- **Casos futuros (el usuario los irá definiendo):** se suman como bloques en la misma
+  ruta. Candidatos naturales: sin diagnóstico ESG, dataroom incompleto, fondo por cerrar
+  que matchea el sector, curso empezado sin terminar. Si algún caso futuro es de EVENTO
+  (no de estado), ahí sí tocará tabla + leída/no-leída.
+El mismo caso también se ve en el Portfolio como badge ámbar "Registro incompleto"
+(profiles con company pero sin organización entran al listado con todo "Pendiente").
+
 ### ✅ Portfolio híbrido (2026-07-16, DESPLEGADO) — "las empresas del portafolio son las vinculadas a un usuario"
 **Corrección + decisión del usuario:** el Portfolio se alimenta de las ORGANIZACIONES
 reales (empresas de usuarios) en modo **híbrido** (el gestor puede además agregar
