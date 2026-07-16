@@ -494,6 +494,23 @@ rutas `/api/esg` + `/api/proxy/esg`, modelos `EsgScore`/`EsgHistory` (verificar 
 - Deploys: backend `c37ea8b`, frontend `bae1631`. Verificado por API (404/401 correctos,
   volumen montado); falta smoke test con sesión (subir imagen real desde la UI).
 
+### ✅ Portfolio híbrido (2026-07-16, DESPLEGADO) — "las empresas del portafolio son las vinculadas a un usuario"
+**Corrección + decisión del usuario:** el Portfolio se alimenta de las ORGANIZACIONES
+reales (empresas de usuarios) en modo **híbrido** (el gestor puede además agregar
+empresas EXTERNAS a mano), y las columnas salen del **diagnóstico GENES**.
+- `GET /api/portfolio` = unión: `organizations` (score = % del último diagnóstico, banda,
+  estado Diagnóstico realizado/pendiente, riesgo derivado: ≥61 bajo · ≥46 medio · <46 alto,
+  logo + slug de mini-landing, `source=plataforma`) + `portfolio_companies`
+  (`source=manual`, campos a mano del gestor).
+- UI: badge **Verificada** (plataforma) vs **Externa** (manual); editar/eliminar SOLO
+  externas ("vía su perfil" para las de plataforma); "Agregar Empresa Externa";
+  score sin diagnóstico → "Pendiente"; fuera la paginación falsa "1-5 de 24".
+- Las **5 empresas demo del seed se borraron de prod** (inventadas; backup CSV en
+  `/tmp/portfolio_demo_backup_20260716.csv` del contenedor postgres_db).
+- Deploys: backend `637c09d`, frontend `2d0af78`.
+- Nota: esto acerca "Portafolio v2" (fuente de actores/empresas reales para
+  Simbiocreación); la forma del "actor persona" sigue pendiente.
+
 ### 📎 Metodología GENES (referencia, recibida 2026-07-15)
 Fuente: `C:\Users\Asus\Desktop\EYWA\Proceso_ESG\CUADRO FINAL GENES PERU V10.xlsx`.
 **Decisiones del usuario (2026-07-15):** adoptar la metodología GENES (ponderada, 4
