@@ -31,15 +31,15 @@ const TOOLS: Tool[] = [
     icon: Stethoscope,
     color: '#10b981',
     name: 'Diagnóstico ESG',
-    tagline: 'Evalúa tu madurez en sostenibilidad',
-    what: 'Cuestionario guiado que mide el nivel de madurez de una organización en las tres dimensiones de la sostenibilidad: Ambiental, Social y de Gobernanza (ESG).',
+    tagline: 'Autoevaluación con metodología GENES Perú',
+    what: 'Autoevaluación basada en la metodología GENES Perú: 14 criterios ponderados en 4 categorías (Perfil de Emprendimiento, Ambiental, Social y Económico), con escala 0-5 y bandas de cumplimiento oficiales.',
     how: [
-      'Responde una serie de preguntas cuantitativas sobre prácticas actuales',
-      'El sistema pondera las respuestas y calcula un puntaje de 0 a 100',
-      'Recibes un desglose detallado por dimensión',
-      'Los resultados quedan guardados para medir progreso en el tiempo',
+      'Responde los 14 criterios con opciones adaptadas a cada uno (binarias, rangos, madurez)',
+      'El sistema pondera cada respuesta con los pesos oficiales de la metodología',
+      'Recibes tu nota global (0-5), tu banda de cumplimiento y el desglose por categoría',
+      'El resultado ES tu Índice ESG: alimenta Mi Organización y el portfolio automáticamente',
     ],
-    why: 'Sin saber dónde estás, no puedes saber hacia dónde ir. El diagnóstico revela brechas concretas y prioriza qué trabajar primero para avanzar hacia la sostenibilidad.',
+    why: 'Sin saber dónde estás, no puedes saber hacia dónde ir. El diagnóstico revela brechas concretas con una metodología real de evaluación de emprendimientos sostenibles.',
     forWho: 'Empresas, cooperativas, pymes e instituciones que quieran conocer su punto de partida en sostenibilidad.',
   },
   {
@@ -63,16 +63,16 @@ const TOOLS: Tool[] = [
     id: 'esg',
     icon: Leaf,
     color: '#0ea5e9',
-    name: 'Panel ESG',
-    tagline: 'Monitorea tu desempeño sostenible continuamente',
-    what: 'Panel de control con 15 indicadores distribuidos en cinco dimensiones: Gestión Ambiental, Social, Gobernanza, Innovación y Cadena de Valor. Registra y compara tu evolución.',
+    name: 'Índice ESG',
+    tagline: 'Tu nota de sostenibilidad, derivada del diagnóstico',
+    what: 'El índice ESG de cada organización se calcula directamente de su diagnóstico GENES: nota global 0-5, banda de cumplimiento y desglose por las 4 categorías. Sin edición manual — el dato nace de la metodología.',
     how: [
-      'Ingresa valores para cada indicador (escala 1–10) en cualquier momento',
-      'El sistema guarda un historial de cada actualización',
-      'Visualiza radar charts y tendencias por dimensión',
-      'Compara reportes anteriores para medir mejora real',
+      'Completa el Diagnóstico ESG (metodología GENES)',
+      'El índice se calcula automáticamente: nota 0-5, % de cumplimiento y banda',
+      'Se muestra en Mi Organización y ante inversionistas en el portfolio',
+      'Rehaz la evaluación cuando mejores prácticas: el índice se actualiza solo',
     ],
-    why: 'Los compromisos ESG sin métricas son solo intenciones. Este panel convierte la sostenibilidad en datos concretos, auditables y comparables, esenciales para reportes e inversionistas.',
+    why: 'Los compromisos ESG sin métricas son solo intenciones. Un índice trazable a una metodología real es auditable y comparable — esencial para reportes e inversionistas.',
     forWho: 'Áreas de sostenibilidad, responsables ESG, inversionistas de impacto y organismos reguladores.',
   },
   {
@@ -80,15 +80,15 @@ const TOOLS: Tool[] = [
     icon: BarChart3,
     color: '#f59e0b',
     name: 'Portfolio de Inversión',
-    tagline: 'Gestiona el impacto de tu cartera de empresas',
-    what: 'Módulo para inversionistas y gestores de fondos que permite registrar empresas del portafolio, asignarles un score ESG, clasificar su riesgo y dar seguimiento a auditorías.',
+    tagline: 'Empresas reales, actores del ecosistema y fondos',
+    what: 'Vista consolidada del ecosistema: las empresas de la plataforma (con su score ESG del diagnóstico GENES), empresas externas curadas por el gestor, el Directorio de Actores (320 organizaciones del ecosistema de impacto de Perú y Colombia) y el catálogo de Fondos (146 oportunidades de financiamiento).',
     how: [
-      'Agrega empresas con sector, país y métricas de carbono',
-      'Asigna puntaje ESG y nivel de riesgo (bajo / medio / alto)',
-      'Registra la fecha del último diagnóstico o auditoría',
-      'Filtra y ordena por riesgo, puntaje o tendencia',
+      'Las empresas verificadas entran solas al registrarse: score, banda y riesgo salen de su diagnóstico',
+      'El gestor puede sumar empresas externas al portafolio',
+      'Explora actores por país y categoría, con favoritos personales',
+      'Filtra fondos por ámbito, instrumento y fecha de cierre (catálogo Premium)',
     ],
-    why: 'Los capitales se mueven hacia activos sostenibles. Tener una visión consolidada del desempeño ESG de tu portafolio te permite tomar mejores decisiones de inversión y cumplir con marcos de reporte (TCFD, GRI, etc.).',
+    why: 'Los capitales se mueven hacia activos sostenibles. Una visión consolidada de empresas con scores trazables, actores y financiamiento disponible permite mejores decisiones de inversión.',
     forWho: 'Fondos de inversión, family offices, bancas de desarrollo e instituciones financieras con mandato ESG.',
   },
   {
@@ -96,15 +96,15 @@ const TOOLS: Tool[] = [
     icon: GraduationCap,
     color: '#8b5cf6',
     name: 'Academia',
-    tagline: 'Formación continua en sostenibilidad y tecnología',
-    what: 'Plataforma de cursos orientada a desarrollar capacidades en ESG, Agrotech, Finanzas Sostenibles y Educación para el impacto. Los usuarios se inscriben y llevan su propio progreso.',
+    tagline: 'Cursos con examen y certificados verificables',
+    what: 'Plataforma de cursos por secciones (video + recursos) con progreso guardado, examen final corregido en servidor y certificado con código único de verificación pública.',
     how: [
-      'Explora el catálogo de cursos por categoría y nivel',
-      'Inscríbete en los cursos de tu interés',
-      'Avanza a tu ritmo y registra el progreso',
-      'Los administradores pueden crear y publicar nuevos cursos',
+      'Explora el catálogo e inscríbete en los cursos de tu interés',
+      'Avanza sección por sección: el progreso se guarda automáticamente',
+      'Al completar todo el contenido se desbloquea el examen final',
+      'Aprueba y descarga tu certificado en PDF, verificable por su código',
     ],
-    why: 'El conocimiento es la base de cualquier transformación. La Academia democratiza el acceso a formación especializada en sostenibilidad para equipos de todo nivel.',
+    why: 'El conocimiento es la base de cualquier transformación. Un certificado verificable convierte la formación en una credencial real ante terceros.',
     forWho: 'Profesionales, equipos organizacionales, estudiantes y cualquier persona que quiera profundizar en sostenibilidad.',
   },
   {
@@ -112,15 +112,15 @@ const TOOLS: Tool[] = [
     icon: Building2,
     color: '#3b82f6',
     name: 'Mi Organización',
-    tagline: 'El perfil base que conecta todos los módulos',
-    what: 'Registro completo de la identidad de la organización: tipo, sector, descripción, país, sitio web y vínculos externos. Es el contexto compartido que enriquece el diagnóstico y el panel ESG.',
+    tagline: 'Perfil, índice ESG, dataroom y mini-landing pública',
+    what: 'El centro de la empresa en EYWA: perfil completo con logo, su Índice ESG (del diagnóstico), y un Dataroom con 10 carpetas y 50 documentos requeridos con % de completitud — el sello de confianza ante inversores. Puede activar una mini-landing pública en /empresa/[slug].',
     how: [
-      'Completa el perfil de tu organización una sola vez',
-      'El sistema usa estos datos para contextualizar el diagnóstico',
-      'Mantén actualizado el tipo de institución y sector',
-      'Agrega links a reportes de sostenibilidad o redes existentes',
+      'Completa el perfil de tu organización y sube tu logo',
+      'Organiza tu documentación corporativa en el Dataroom (todo nace privado)',
+      'Publica documento por documento lo que quieras mostrar',
+      'Activa tu mini-landing pública para compartir con inversores y bancos',
     ],
-    why: 'Un diagnóstico o un score ESG descontextualizado pierde valor. Saber el sector y tipo de organización permite comparaciones relevantes y recomendaciones más precisas.',
+    why: 'Una empresa ordenada y verificable genera confianza. El dataroom con completitud medible le abre la puerta a inversión y financiamiento.',
     forWho: 'Cualquier organización que use EYWA: el perfil es el punto de partida.',
   },
   {
@@ -128,15 +128,15 @@ const TOOLS: Tool[] = [
     icon: CheckCircle2,
     color: '#06b6d4',
     name: 'Validador de Proyectos',
-    tagline: 'Evalúa la viabilidad e impacto de tus ideas',
-    what: 'Herramienta impulsada por inteligencia artificial que analiza la descripción de un proyecto y entrega retroalimentación sobre su viabilidad, alineación con ODS y áreas de mejora.',
+    tagline: 'Registra y estructura tus proyectos de impacto',
+    what: 'Herramienta para registrar proyectos con su descripción y documentación, listos para ser evaluados. El análisis con inteligencia artificial está en integración y se habilitará próximamente.',
     how: [
-      'Describe tu proyecto en lenguaje natural',
-      'La IA evalúa coherencia, impacto potencial y riesgos',
-      'Recibe sugerencias concretas para fortalecer la propuesta',
-      'Itera y mejora la descripción hasta obtener validación',
+      'Crea tu proyecto con nombre, descripción y objetivos',
+      'Adjunta la documentación de respaldo',
+      'Tus proyectos quedan listados con su estado',
+      'Próximamente: análisis con IA (viabilidad, ODS y áreas de mejora)',
     ],
-    why: 'Muchas buenas ideas fracasan por falta de claridad o estructura. El validador actúa como un primer revisor crítico, objetivo y siempre disponible, antes de presentar el proyecto a una audiencia real.',
+    why: 'Muchas buenas ideas fracasan por falta de claridad o estructura. Registrar y documentar el proyecto es el primer paso; el análisis automatizado llegará encima de esa base.',
     forWho: 'Emprendedores, equipos de innovación, ONGs y cualquier equipo que desarrolle proyectos de impacto.',
   },
 ];
@@ -427,14 +427,14 @@ export default function ResumenPage() {
               },
               {
                 title: 'Mide y colabora',
-                desc:  'El Panel ESG registra tu evolución continua. Simbiocreación documenta el aprendizaje colectivo. El Validador evalúa tus proyectos antes de lanzarlos.',
+                desc:  'Tu Índice ESG nace del diagnóstico y se actualiza con cada evaluación. Simbiocreación documenta el aprendizaje colectivo. El Validador estructura tus proyectos de impacto.',
                 icons: [Leaf, Network, CheckCircle2],
                 colors: ['#0ea5e9', '#ec4899', '#06b6d4'],
                 step: '02',
               },
               {
                 title: 'Crece y reporta',
-                desc:  'El Portfolio muestra el impacto agregado de tu inversión sostenible. La Academia cierra las brechas de conocimiento identificadas en el diagnóstico.',
+                desc:  'El Portfolio conecta empresas verificadas, actores del ecosistema y fondos de financiamiento. La Academia cierra brechas de conocimiento con certificados verificables.',
                 icons: [BarChart3, GraduationCap],
                 colors: ['#f59e0b', '#8b5cf6'],
                 step: '03',
@@ -492,18 +492,20 @@ export default function ResumenPage() {
               </div>
               <ul className="space-y-3">
                 {[
-                  { label: 'Autenticación completa',          sub: 'Registro, login, roles (user / gestor / admin / superadmin)' },
-                  { label: 'Diagnóstico ESG',                  sub: 'Cuestionario multi-paso, puntaje ponderado, historial' },
-                  { label: 'Panel ESG — 15 indicadores',       sub: '5 dimensiones, historial temporal, radar visual' },
-                  { label: 'Simbiocreación',                   sub: 'CRUD, grafo interactivo drag/zoom, editor completo, graphData persistido' },
-                  { label: 'Portfolio de inversión',           sub: 'Empresas, scores ESG, riesgo, tendencias' },
-                  { label: 'Academia (Edutech)',                sub: 'Catálogo de cursos, inscripciones, progreso' },
-                  { label: 'Mi Organización',                  sub: 'Perfil completo, tipo de institución, sector, links' },
-                  { label: 'Validador de Proyectos (IA)',      sub: 'Análisis con Claude AI, feedback estructurado' },
-                  { label: 'Dashboards por rol',               sub: 'Vistas diferenciadas para Gestor, Admin, Superadmin' },
-                  { label: 'Configuración de perfil',          sub: 'Edición de datos personales y cambio de contraseña' },
-                  { label: 'API REST en VPS',                   sub: 'Hono.js · Docker · 161.132.54.226:4001' },
-                  { label: 'Deploy en Vercel',                  sub: 'eywa-hazel.vercel.app — CI/CD automático desde GitHub' },
+                  { label: 'Autenticación completa',           sub: 'Registro, login, roles (user / gestor / admin / superadmin), avatar de usuario' },
+                  { label: 'Diagnóstico ESG — metodología GENES', sub: '14 criterios ponderados, 4 categorías, bandas de cumplimiento' },
+                  { label: 'Índice ESG derivado del diagnóstico', sub: 'Nota 0-5, banda y desglose por categoría en Mi Organización' },
+                  { label: 'Mi Organización + Dataroom',        sub: 'Perfil con logo, 10 carpetas / 50 documentos, % de completitud' },
+                  { label: 'Mini-landing pública por empresa',  sub: '/empresa/[slug] — logo, sello de transparencia y documentos públicos' },
+                  { label: 'Portfolio híbrido',                 sub: 'Empresas verificadas (score del diagnóstico) + externas del gestor' },
+                  { label: 'Directorio de Actores',             sub: '320 organizaciones del ecosistema (Perú y Colombia), filtros y favoritos' },
+                  { label: 'Catálogo de Fondos (Premium)',      sub: '146 oportunidades de financiamiento con filtros y fechas de cierre' },
+                  { label: 'Academia (Edutech)',                sub: 'Secciones con video, examen final y certificados con verificación pública' },
+                  { label: 'Simbiocreación',                    sub: 'CRUD, grafo interactivo drag/zoom, editor completo, visor público' },
+                  { label: 'Validador de Proyectos',            sub: 'Registro de proyectos y documentación (análisis IA en integración)' },
+                  { label: 'Notificaciones',                    sub: 'Avisos accionables derivados del estado de la cuenta' },
+                  { label: 'Dashboards por rol',                sub: 'Vistas diferenciadas para Gestor, Admin, Superadmin' },
+                  { label: 'API REST en VPS + Deploy en Vercel', sub: 'Hono.js · Docker · PostgreSQL · CI/CD automático desde GitHub' },
                 ].map(({ label, sub }) => (
                   <li key={label} className="flex items-start gap-3">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5"/>
@@ -528,12 +530,12 @@ export default function ResumenPage() {
                 </div>
                 <ul className="space-y-2.5">
                   {[
-                    'Notificaciones en tiempo real (WebSocket)',
+                    'Análisis con IA del Validador (integración en curso)',
+                    'Recuperación de contraseña e invitaciones al Dataroom (correo transaccional)',
+                    'Subida de contenido de documentos en el Validador',
+                    'Actores reales como nodos del grafo de Simbiocreación',
+                    'Más casos de notificaciones (diagnóstico, dataroom, fondos por cerrar)',
                     'Módulo de reportes PDF exportables',
-                    'Integración ODS — mapeo automático por sector',
-                    'Panel de métricas comparativas entre organizaciones',
-                    'Onboarding guiado para nuevos usuarios',
-                    'App móvil (React Native / PWA)',
                   ].map(item => (
                     <li key={item} className="flex items-start gap-2.5">
                       <div className="w-4 h-4 rounded-full border-2 border-gray-200 flex-shrink-0 mt-0.5"/>
@@ -606,7 +608,7 @@ export default function ResumenPage() {
         </section>
 
         <p className="text-center text-xs text-gray-400 pb-2">
-          eywa-hazel.vercel.app/fase1 · EYWA Fase 1 · 2025
+          eywa-hazel.vercel.app/fase1 · EYWA Fase 1 · 2026
         </p>
       </div>
     </div>
