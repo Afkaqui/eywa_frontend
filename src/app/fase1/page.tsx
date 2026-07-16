@@ -533,7 +533,7 @@ export default function ResumenPage() {
                     'Análisis con IA del Validador (integración en curso)',
                     'Recuperación de contraseña e invitaciones al Dataroom (correo transaccional)',
                     'Subida de contenido de documentos en el Validador',
-                    'Actores reales como nodos del grafo de Simbiocreación',
+                    'Fórmula real de puntaje y ranking en Simbiocreación',
                     'Más casos de notificaciones (diagnóstico, dataroom, fondos por cerrar)',
                     'Módulo de reportes PDF exportables',
                   ].map(item => (

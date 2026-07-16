@@ -103,7 +103,8 @@ export interface Fund {
 // ── Simbiocreacion ──
 
 export interface StoredGraph {
-  nodes: Array<{ id: string; label: string; type: 'center' | 'category' | 'group' | 'person'; color: string; userId?: string }>;
+  // 'institution' (Fase 5): institución del Directorio de Actores; el nodo lleva actorId
+  nodes: Array<{ id: string; label: string; type: 'center' | 'category' | 'group' | 'person' | 'institution'; color: string; userId?: string; actorId?: string }>;
   edges: Array<{ from: string; to: string }>;
 }
 

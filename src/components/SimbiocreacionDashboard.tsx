@@ -9,7 +9,7 @@ import {
   Tag, Lock, MapPin, Clock, ExternalLink, Leaf, Trash2,
   Pencil, Loader2, Copy, Check, MoreVertical, Users,
   BarChart2, Trophy, Search, ArrowLeft, X,
-  Lightbulb, Settings, Link2, Link2Off,
+  Lightbulb, Settings, Link2, Link2Off, Building2,
 } from 'lucide-react';
 import { SimbiocreacionRepository } from '@/lib/repositories/simbiocreacion-repository';
 import type { Simbiocreacion, StoredGraph } from '@/lib/types/database';
@@ -34,9 +34,10 @@ interface RankingEntry {
 // ── Network graph types ───────────────────────────────────────────────────────
 
 interface GraphNode {
-  id: string; label: string; type: 'center' | 'category' | 'group' | 'person';
+  id: string; label: string; type: 'center' | 'category' | 'group' | 'person' | 'institution';
   x: number; y: number; vx: number; vy: number; r: number; color: string;
-  userId?: string; // optional link to EYWA user
+  userId?: string;  // vínculo opcional a usuario EYWA (nodos person)
+  actorId?: string; // vínculo opcional a Actor del directorio (nodos institution)
 }
 interface GraphEdge { from: string; to: string }
 
@@ -50,6 +51,7 @@ export interface GraphHandle {
   updateNodeLabel:  (id: string, label: string) => void;
   updateNodeColor:  (id: string, color: string) => void;
   updateNodeUserId: (id: string, userId: string | null) => void;
+  updateNodeActorId: (id: string, actorId: string | null) => void;
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -75,9 +77,10 @@ const ODS_LIST = [
 ];
 
 const NODE_PRESETS = [
-  { type: 'category' as const, label: 'Categoría',  color: '#f59e0b', r: 30 },
-  { type: 'group'    as const, label: 'Grupo',       color: '#ec4899', r: 22 },
-  { type: 'person'   as const, label: 'Persona',     color: '#94a3b8', r: 12 },
+  { type: 'category'    as const, label: 'Categoría',   color: '#f59e0b', r: 30 },
+  { type: 'group'       as const, label: 'Grupo',        color: '#ec4899', r: 22 },
+  { type: 'institution' as const, label: 'Institución',  color: '#8b5cf6', r: 26 },
+  { type: 'person'      as const, label: 'Persona',      color: '#94a3b8', r: 12 },
 ];
 
 const NODE_COLORS = ['#059669','#f59e0b','#ec4899','#8b5cf6','#3b82f6','#ef4444','#10b981','#f97316'];
@@ -105,11 +108,12 @@ function buildGraph(item: Simbiocreacion, width: number, height: number): { node
     const stored = item.graphData;
     const nodes: GraphNode[] = stored.nodes.map((sn, i) => {
       const angle = (2 * Math.PI * i) / stored.nodes.length;
-      const dist = sn.type === 'center' ? 0 : sn.type === 'category' ? 160 : sn.type === 'group' ? 280 : 380;
-      const r = sn.type === 'center' ? 52 : sn.type === 'category' ? 30 : sn.type === 'group' ? 22 : 12;
+      const dist = sn.type === 'center' ? 0 : sn.type === 'category' ? 160 : sn.type === 'group' || sn.type === 'institution' ? 280 : 380;
+      const r = sn.type === 'center' ? 52 : sn.type === 'category' ? 30 : sn.type === 'institution' ? 26 : sn.type === 'group' ? 22 : 12;
       return {
         id: sn.id, label: sn.label, type: sn.type, color: sn.color,
         ...(sn.userId ? { userId: sn.userId } : {}),
+        ...(sn.actorId ? { actorId: sn.actorId } : {}),
         x: sn.type === 'center' ? cx : cx + Math.cos(angle) * dist,
         y: sn.type === 'center' ? cy : cy + Math.sin(angle) * dist,
         vx: 0, vy: 0, r,
@@ -146,28 +150,19 @@ function buildGraph(item: Simbiocreacion, width: number, height: number): { node
       vx: 0, vy: 0, r: 30, color: cat.color });
     edges.push({ from: 'root', to: cat.id });
 
+    // Solo grupos que existen de verdad (tags). Nada de grupos vacíos "G1/G2"
+    // ni participantes ● inventados: los actores reales se agregan en edición.
     const groupTags = item.tags.slice(i * 2, i * 2 + 2);
-    const gCount = groupTags.length > 0 ? groupTags.length : 2;
-    for (let g = 0; g < gCount; g++) {
+    groupTags.forEach((tag, g) => {
       const gId = `grp-${i}-${g}`;
-      const gLabel = groupTags[g] ? `G${i*2+g+1}-${groupTags[g].slice(0,8)}` : `G${i*2+g+1}`;
+      const gLabel = `G${i*2+g+1}-${tag.slice(0,8)}`;
       const gAngle = angle + (g === 0 ? -0.55 : 0.55);
       const gDist  = Math.min(width, height) * 0.44;
       nodes.push({ id: gId, label: gLabel, type: 'group',
         x: cx + Math.cos(gAngle) * gDist, y: cy + Math.sin(gAngle) * gDist,
         vx: 0, vy: 0, r: 22, color: '#ec4899' });
       edges.push({ from: cat.id, to: gId });
-
-      for (let p = 0; p < 2; p++) {
-        const pId = `prs-${i}-${g}-${p}`;
-        const pAngle = gAngle + (p === 0 ? -0.45 : 0.45);
-        const pDist  = Math.min(width, height) * 0.58;
-        nodes.push({ id: pId, label: '●', type: 'person',
-          x: cx + Math.cos(pAngle) * pDist, y: cy + Math.sin(pAngle) * pDist,
-          vx: 0, vy: 0, r: 12, color: '#94a3b8' });
-        edges.push({ from: gId, to: pId });
-      }
-    }
+    });
   });
   return { nodes, edges };
 }
@@ -261,6 +256,10 @@ export const NetworkGraph = forwardRef<GraphHandle, NetworkGraphProps>(function 
     updateNodeUserId: (id, userId) => {
       const n = nodesRef.current.find(x => x.id === id);
       if (n) { n.userId = userId ?? undefined; setTick(t => t + 1); }
+    },
+    updateNodeActorId: (id, actorId) => {
+      const n = nodesRef.current.find(x => x.id === id);
+      if (n) { n.actorId = actorId ?? undefined; setTick(t => t + 1); }
     },
   }), []);
 
@@ -414,8 +413,8 @@ export const NetworkGraph = forwardRef<GraphHandle, NetworkGraphProps>(function 
               <circle cx={n.x} cy={n.y} r={n.r}
                 fill={n.type==='person' && n.userId ? '#059669' : n.color}
                 fillOpacity={n.type==='person' ? (n.userId ? 0.85 : 0.45) : 0.92}
-                stroke={n.type==='center' ? '#fff' : n.userId ? '#fff' : 'transparent'}
-                strokeWidth={n.type==='center' ? 3 : n.userId ? 1.5 : 0} />
+                stroke={n.type==='center' ? '#fff' : (n.userId || n.actorId) ? '#fff' : 'transparent'}
+                strokeWidth={n.type==='center' ? 3 : (n.userId || n.actorId) ? 1.5 : 0} />
               {(n.type!=='person' || n.userId) && (
                 <text x={n.x} y={n.y} textAnchor="middle" dominantBaseline="middle"
                   fill="white" fontSize={n.type==='center'?9:n.type==='category'?8:7}
@@ -562,6 +561,11 @@ export function SimbiocreacionDashboard() {
   const [userSearchRes,  setUserSearchRes]  = useState<Array<{id:string;fullName:string|null;company:string|null}>>([]);
   const [userSearching,  setUserSearching]  = useState(false);
 
+  // Búsqueda de instituciones en el Directorio de Actores (Fase 5)
+  const [actorSearchQ,   setActorSearchQ]   = useState('');
+  const [actorSearchRes, setActorSearchRes] = useState<Array<{id:string;name:string;country:string;category:string}>>([]);
+  const [actorSearching, setActorSearching] = useState(false);
+
   // ── Explora / Ranking ──────────────────────────────────────────────────────
   const [explora,        setExplora]        = useState<PublicSimbio[]>([]);
   const [exploraFilter,  setExploraFilter]  = useState<ExploraFilter>('todas');
@@ -601,6 +605,18 @@ export function SimbiocreacionDashboard() {
     }, 350);
     return ()=>clearTimeout(t);
   },[userSearchQ]);
+
+  // ── Actor search (Directorio; debounced 350ms) ─────────────────────────────
+  useEffect(()=>{
+    if (actorSearchQ.trim().length < 2) { setActorSearchRes([]); return; }
+    setActorSearching(true);
+    const t = setTimeout(()=>{
+      apiFetch<{actors:Array<{id:string;name:string;country:string;category:string}>}>(
+        `/api/proxy/actors?q=${encodeURIComponent(actorSearchQ.trim())}&take=6`
+      ).then(d=>setActorSearchRes(d.actors??[])).catch(()=>setActorSearchRes([])).finally(()=>setActorSearching(false));
+    }, 350);
+    return ()=>clearTimeout(t);
+  },[actorSearchQ]);
 
   // ── Form helpers ───────────────────────────────────────────────────────────
   const setF = (key: keyof typeof form, val: unknown) => setForm(p=>({...p,[key]:val}));
@@ -760,7 +776,7 @@ export function SimbiocreacionDashboard() {
     setSavingGraph(true);
     const { nodes, edges } = graphRef.current.getGraph();
     const graphData: StoredGraph = {
-      nodes: nodes.map(n => ({ id: n.id, label: n.label, type: n.type, color: n.color, ...(n.userId ? { userId: n.userId } : {}) })),
+      nodes: nodes.map(n => ({ id: n.id, label: n.label, type: n.type, color: n.color, ...(n.userId ? { userId: n.userId } : {}), ...(n.actorId ? { actorId: n.actorId } : {}) })),
       edges: edges.map(e => ({ from: e.from, to: e.to })),
     };
     try {
@@ -788,20 +804,7 @@ export function SimbiocreacionDashboard() {
     });
   },[explora,exploraFilter]);
 
-  const graphGrupos = useMemo(()=>{
-    if (!selected) return [];
-    const cats = selected.ods.length>0
-      ? selected.ods.slice(0,4).map((o,i)=>({id:`cat-${i}`,label:`ODS ${o}`}))
-      : [{id:'cat-0',label:'Categoría 1'},{id:'cat-1',label:'Categoría 2'},{id:'cat-2',label:'Categoría 3'}];
-    type G={id:string;label:string;nodos:number};
-    const res:G[]=[{id:'root',label:selected.nombre,nodos:cats.length}];
-    cats.forEach((cat,i)=>{
-      const gt=selected.tags.slice(i*2,i*2+2); const gc=Math.max(gt.length,2);
-      res.push({id:cat.id,label:cat.label,nodos:gc});
-      for(let g=0;g<gc;g++) res.push({id:`grp-${i}-${g}`,label:gt[g]?`G${i*2+g+1}-${gt[g]}`:`G${i*2+g+1}`,nodos:2});
-    });
-    return res;
-  },[selected]);
+  // (graphGrupos eliminado: estaba muerto y replicaba los participantes ficticios)
 
   const physicsForce    = 0.01+(sliderForce/100)*0.09;
   const physicsDistance = 10+(sliderDistance/100)*100;
@@ -1039,20 +1042,27 @@ export function SimbiocreacionDashboard() {
                   )}
 
                   {/* ── Info overlay (view mode) ── */}
-                  {!editMode&&(
-                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl border border-gray-200 px-4 py-3 shadow-sm text-sm text-gray-700 space-y-1 max-w-[200px] z-10">
-                      <div className="flex items-center gap-2"><Users className="w-4 h-4 text-emerald-600"/><span className="font-medium">{selected.tags.length*2} participantes</span></div>
-                      <div className="flex items-center gap-2"><Network className="w-4 h-4 text-pink-500"/><span className="font-medium">{selected.tags.length} grupos</span></div>
-                      <div className="flex items-center gap-2"><Leaf className="w-4 h-4 text-emerald-500"/><span className="font-medium">{selected.ods.length} ODS</span></div>
-                    </div>
-                  )}
+                  {!editMode&&(()=>{
+                    // Conteos REALES del grafo guardado (antes se fingía tags×2 "participantes")
+                    const gNodes = selected.graphData?.nodes ?? [];
+                    const nPersonas      = gNodes.filter(n=>n.type==='person').length;
+                    const nInstituciones = gNodes.filter(n=>n.type==='institution').length;
+                    return (
+                      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl border border-gray-200 px-4 py-3 shadow-sm text-sm text-gray-700 space-y-1 max-w-[200px] z-10">
+                        <div className="flex items-center gap-2"><Users className="w-4 h-4 text-emerald-600"/><span className="font-medium">{nPersonas} {nPersonas===1?'persona':'personas'}</span></div>
+                        <div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-violet-500"/><span className="font-medium">{nInstituciones} {nInstituciones===1?'institución':'instituciones'}</span></div>
+                        <div className="flex items-center gap-2"><Network className="w-4 h-4 text-pink-500"/><span className="font-medium">{selected.tags.length} grupos</span></div>
+                        <div className="flex items-center gap-2"><Leaf className="w-4 h-4 text-emerald-500"/><span className="font-medium">{selected.ods.length} ODS</span></div>
+                      </div>
+                    );
+                  })()}
 
                   {/* ── Node detail panel (view mode, click on node) ── */}
                   {!editMode&&selectedNode&&(
                     <div className="absolute right-4 top-16 w-72 bg-white rounded-2xl shadow-2xl z-20 overflow-hidden border border-gray-100 flex flex-col max-h-[calc(100%-5rem)]">
                       <div className="bg-pink-500 px-4 py-3 flex-shrink-0 flex items-start justify-between gap-2">
                         <p className="text-white text-xs font-semibold leading-tight truncate">
-                          {selectedNode.type==='center'?'Simbiocreación':selectedNode.type==='category'?'Categoría':'Grupo'}
+                          {selectedNode.type==='center'?'Simbiocreación':selectedNode.type==='category'?'Categoría':selectedNode.type==='institution'?'Institución':'Grupo'}
                         </p>
                         <button onClick={()=>setSelectedNode(null)} className="text-white/80 hover:text-white"><X className="w-4 h-4"/></button>
                       </div>
@@ -1114,7 +1124,7 @@ export function SimbiocreacionDashboard() {
                           <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Tipo</label>
                           <span className="px-3 py-1 rounded-full text-xs font-medium text-white"
                             style={{backgroundColor:editSelectedNode.color}}>
-                            {editSelectedNode.type==='center'?'Centro':editSelectedNode.type==='category'?'Categoría':editSelectedNode.type==='group'?'Grupo':'Persona'}
+                            {editSelectedNode.type==='center'?'Centro':editSelectedNode.type==='category'?'Categoría':editSelectedNode.type==='group'?'Grupo':editSelectedNode.type==='institution'?'Institución':'Persona'}
                           </span>
                         </div>
 
@@ -1176,6 +1186,61 @@ export function SimbiocreacionDashboard() {
                                         <div className="min-w-0">
                                           <div className="text-sm font-medium text-gray-800 truncate">{u.fullName||'Sin nombre'}</div>
                                           {u.company&&<div className="text-xs text-gray-400 truncate">{u.company}</div>}
+                                        </div>
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Vincular institución del Directorio (solo nodos institution) */}
+                        {editSelectedNode.type==='institution'&&(
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                              Vincular institución del Directorio
+                            </label>
+                            {editSelectedNode.actorId?(
+                              <div className="flex items-center gap-2 p-2 bg-violet-50 border border-violet-200 rounded-xl">
+                                <div className="w-7 h-7 rounded-lg bg-violet-600 flex items-center justify-center flex-shrink-0">
+                                  <Building2 className="w-3.5 h-3.5 text-white"/>
+                                </div>
+                                <span className="text-sm text-violet-800 font-medium flex-1 truncate">{editLabelDraft}</span>
+                                <button onClick={()=>{ graphRef.current?.updateNodeActorId(editSelId,null); graphRef.current?.updateNodeLabel(editSelId,'Institución'); setEditLabelDraft('Institución'); }}
+                                  className="text-violet-400 hover:text-red-500 transition-colors flex-shrink-0" title="Desvincular">
+                                  <X className="w-3.5 h-3.5"/>
+                                </button>
+                              </div>
+                            ):(
+                              <div className="relative">
+                                <div className="relative">
+                                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400"/>
+                                  <input type="text" placeholder="Buscar en el directorio (320 actores)…"
+                                    value={actorSearchQ}
+                                    onChange={e=>setActorSearchQ(e.target.value)}
+                                    className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-300 bg-gray-50"/>
+                                </div>
+                                {(actorSearchRes.length>0||actorSearching)&&(
+                                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+                                    {actorSearching&&<div className="flex items-center justify-center p-3"><Loader2 className="w-4 h-4 animate-spin text-gray-400"/></div>}
+                                    {actorSearchRes.map(a=>(
+                                      <button key={a.id}
+                                        onClick={()=>{
+                                          graphRef.current?.updateNodeActorId(editSelId, a.id);
+                                          graphRef.current?.updateNodeLabel(editSelId, a.name);
+                                          setEditLabelDraft(a.name);
+                                          setActorSearchQ('');
+                                          setActorSearchRes([]);
+                                        }}
+                                        className="flex items-center gap-3 w-full px-3 py-2.5 hover:bg-violet-50 transition-colors text-left">
+                                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-400 to-violet-700 flex items-center justify-center flex-shrink-0">
+                                          <Building2 className="w-3.5 h-3.5 text-white"/>
+                                        </div>
+                                        <div className="min-w-0">
+                                          <div className="text-sm font-medium text-gray-800 truncate">{a.name}</div>
+                                          <div className="text-xs text-gray-400 truncate">{a.country}</div>
                                         </div>
                                       </button>
                                     ))}
@@ -1345,8 +1410,8 @@ export function SimbiocreacionDashboard() {
                           !busquedasQuery || n.label.toLowerCase().includes(busquedasQuery.toLowerCase())
                         );
 
-                        // Participants: person nodes
-                        const personNodes = liveNodes.filter(n=>n.type==='person');
+                        // Actores: personas + instituciones reales del grafo
+                        const personNodes = liveNodes.filter(n=>n.type==='person'||n.type==='institution');
                         const filteredPersons = personNodes.filter(n=>{
                           const name = n.label==='●' ? '' : n.label;
                           return !busquedasQuery || name.toLowerCase().includes(busquedasQuery.toLowerCase());
@@ -1367,7 +1432,7 @@ export function SimbiocreacionDashboard() {
                               </button>
                               <button onClick={()=>{ setBusquedasTab('participantes'); setBusquedasQuery(''); }}
                                 className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${busquedasTab==='participantes'?'bg-pink-500 text-white':'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
-                                Personas <span className="ml-1 opacity-70 text-xs">({personNodes.length})</span>
+                                Actores <span className="ml-1 opacity-70 text-xs">({personNodes.length})</span>
                               </button>
                             </div>
 
@@ -1376,7 +1441,7 @@ export function SimbiocreacionDashboard() {
                               <div className="relative">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400"/>
                                 <input type="text"
-                                  placeholder={busquedasTab==='grupos'?'Buscar grupo…':'Buscar participante…'}
+                                  placeholder={busquedasTab==='grupos'?'Buscar grupo…':'Buscar actor…'}
                                   value={busquedasQuery}
                                   onChange={e=>setBusquedasQuery(e.target.value)}
                                   className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 bg-gray-50"/>
@@ -1421,8 +1486,8 @@ export function SimbiocreacionDashboard() {
                                 personNodes.length===0?(
                                   <div className="text-center py-10">
                                     <Users className="w-10 h-10 text-gray-200 mx-auto mb-3"/>
-                                    <p className="text-sm text-gray-500 mb-1">Sin participantes</p>
-                                    <p className="text-xs text-gray-400">Agrega personas en el editor de grafo.</p>
+                                    <p className="text-sm text-gray-500 mb-1">Sin actores</p>
+                                    <p className="text-xs text-gray-400">Agrega personas o instituciones en el editor de grafo.</p>
                                   </div>
                                 ):filteredPersons.length===0?(
                                   <p className="text-center text-xs text-gray-400 py-8">Sin resultados</p>
@@ -1433,14 +1498,15 @@ export function SimbiocreacionDashboard() {
                                       const parent = parentOf(n.id);
                                       return (
                                         <div key={n.id} className="flex items-center gap-2 py-2.5 group">
-                                          <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold ring-2 ${n.userId?'ring-emerald-400 bg-emerald-600':'ring-transparent'}`}
-                                            style={n.userId?{}:{backgroundColor:n.color||'#94a3b8'}}>
-                                            {name.charAt(0).toUpperCase()||'P'}
+                                          <div className={`w-7 h-7 ${n.type==='institution'?'rounded-lg':'rounded-full'} flex-shrink-0 flex items-center justify-center text-white text-xs font-bold ring-2 ${n.userId?'ring-emerald-400 bg-emerald-600':n.actorId?'ring-violet-400 bg-violet-600':'ring-transparent'}`}
+                                            style={(n.userId||n.actorId)?{}:{backgroundColor:n.color||'#94a3b8'}}>
+                                            {n.type==='institution'?<Building2 className="w-3.5 h-3.5"/>:(name.charAt(0).toUpperCase()||'P')}
                                           </div>
                                           <div className="min-w-0 flex-1">
                                             <div className="flex items-center gap-1.5">
                                               <span className="text-sm font-semibold text-gray-800 truncate">{name}</span>
                                               {n.userId&&<span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">EYWA</span>}
+                                              {n.actorId&&<span className="text-[10px] bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">Directorio</span>}
                                             </div>
                                             <div className="text-xs text-gray-400 truncate">en {parent}</div>
                                           </div>
