@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from 'react';
-import { Camera, Loader2, ImageIcon } from 'lucide-react';
+import { Camera, Loader2, ImageIcon, Check } from 'lucide-react';
 
 const ALLOWED = ['image/png', 'image/jpeg', 'image/webp'];
 const MAX_SIZE = 5 * 1024 * 1024;
@@ -30,11 +30,13 @@ export function ImageUploader({
   const [preview, setPreview] = useState<string | null>(currentUrl ?? null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const rounded = shape === 'circle' ? 'rounded-full' : 'rounded-xl';
 
   async function handleFile(file: File) {
     setError(null);
+    setSuccess(false);
     if (!ALLOWED.includes(file.type)) {
       setError('Usa PNG, JPG o WebP.');
       return;
@@ -56,6 +58,8 @@ export function ImageUploader({
       const url: string = data.image_url ?? data.avatar_url;
       const busted = `${url}?v=${data.version ?? Date.now()}`;
       setPreview(busted);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 4000);
       onUploaded?.(busted);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error al subir');
@@ -102,6 +106,12 @@ export function ImageUploader({
         </button>
         <p className="text-xs text-gray-400 mt-1.5">PNG, JPG o WebP · máx 5 MB</p>
         {error && <p className="text-xs text-rose-500 mt-1">{error}</p>}
+        {success && (
+          <p className="text-xs text-emerald-600 font-medium mt-1 flex items-center gap-1">
+            <Check className="w-3.5 h-3.5" />
+            Imagen subida correctamente
+          </p>
+        )}
       </div>
 
       <input

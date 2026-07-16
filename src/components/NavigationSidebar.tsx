@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   LayoutDashboard,
   Stethoscope,
@@ -36,8 +36,18 @@ interface NavigationSidebarProps {
 }
 
 // Avatar del usuario: intenta la imagen subida y cae a un ícono si no existe (404).
+// Escucha 'eywa:avatar-updated' (lo emite Configuración al subir) para refrescar en vivo.
 function UserAvatar({ userId, size = 40 }: { userId?: string; size?: number }) {
   const [failed, setFailed] = useState(false);
+  const [liveUrl, setLiveUrl] = useState<string | null>(null);
+  useEffect(() => {
+    const handler = (e: Event) => {
+      setLiveUrl((e as CustomEvent).detail as string);
+      setFailed(false);
+    };
+    window.addEventListener('eywa:avatar-updated', handler);
+    return () => window.removeEventListener('eywa:avatar-updated', handler);
+  }, []);
   const showImg = userId && !failed;
   return (
     <div
@@ -47,7 +57,7 @@ function UserAvatar({ userId, size = 40 }: { userId?: string; size?: number }) {
       {showImg ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={`/api/proxy/media/profile/${userId}/avatar`}
+          src={liveUrl ?? `/api/proxy/media/profile/${userId}/avatar`}
           alt="Avatar"
           className="w-full h-full object-cover"
           onError={() => setFailed(true)}

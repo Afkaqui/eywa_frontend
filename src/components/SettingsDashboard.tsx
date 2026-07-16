@@ -199,6 +199,10 @@ export function SettingsDashboard() {
                 shape="circle"
                 size={72}
                 label="Cambiar foto"
+                onUploaded={(url) => {
+                  // Avisa a la barra lateral para que refresque el avatar sin recargar
+                  window.dispatchEvent(new CustomEvent('eywa:avatar-updated', { detail: url }));
+                }}
               />
             </div>
 
