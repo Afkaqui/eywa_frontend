@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { DiagnosticRepository } from '@/lib/repositories/diagnostic-repository';
 import { DiagnosticService } from '@/lib/services/diagnostic-service';
@@ -21,6 +21,7 @@ import { OrganizationProfile } from '@/components/OrganizationProfile';
 import { SimbiocreacionDashboard } from '@/components/SimbiocreacionDashboard';
 import { SettingsDashboard } from '@/components/SettingsDashboard';
 import { NotificationsPanel } from '@/components/NotificationsPanel';
+import { DiagnosticCompleted } from '@/components/DiagnosticCompleted';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import type { DiagnosticResult } from '@/lib/types/database';
 
@@ -35,6 +36,16 @@ export default function Page() {
   const [showLogin, setShowLogin] = useState(false);
   const [currentView, setCurrentView] = useState<ViewType>('hero');
   const [diagnosticResult, setDiagnosticResult] = useState<DiagnosticResult | null>(null);
+
+  // Al ENTRAR a "Diagnóstico" se decide una sola vez si mostrar el resumen de
+  // "ya completado" (evita que la pantalla cambie a mitad del cuestionario si el
+  // resultado llega tarde). "Nueva evaluación" lo apaga y abre el cuestionario.
+  const [showDiagnosticSummary, setShowDiagnosticSummary] = useState(false);
+  const diagnosticResultRef = useRef<DiagnosticResult | null>(null);
+  useEffect(() => { diagnosticResultRef.current = diagnosticResult; }, [diagnosticResult]);
+  useEffect(() => {
+    if (currentView === 'diagnostic') setShowDiagnosticSummary(!!diagnosticResultRef.current);
+  }, [currentView]);
 
   const diagnosticService = useMemo(
     () => new DiagnosticService(new DiagnosticRepository()),
@@ -81,7 +92,17 @@ export default function Page() {
 
       <div className="flex-1 ml-0 md:ml-20 pb-20 md:pb-0 transition-all duration-300">
         {currentView === 'hero' && <HeroDashboard diagnosticResult={diagnosticResult} onStartDiagnostic={() => setCurrentView('diagnostic')} />}
-        {currentView === 'diagnostic' && <DiagnosticInterface onScoreComplete={(result) => { handleDiagnosticComplete(result); setCurrentView('hero'); }} />}
+        {currentView === 'diagnostic' && (
+          diagnosticResult && showDiagnosticSummary ? (
+            <DiagnosticCompleted
+              result={diagnosticResult}
+              onRetake={() => setShowDiagnosticSummary(false)}
+              onNavigate={(view) => setCurrentView(view as ViewType)}
+            />
+          ) : (
+            <DiagnosticInterface onScoreComplete={(result) => { handleDiagnosticComplete(result); setCurrentView('hero'); }} />
+          )
+        )}
         {currentView === 'validator' && <ValidadorProyectos />}
         {currentView === 'organization' && <OrganizationProfile onNavigate={(view) => setCurrentView(view as ViewType)} />}
         {currentView === 'simbiocreacion' && <SimbiocreacionDashboard />}
