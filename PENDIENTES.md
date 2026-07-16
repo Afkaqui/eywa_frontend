@@ -461,7 +461,16 @@ Por decisión de producto, cuando un dato no está mapeado a la base de datos se
 
 Falta **definir el origen de cada métrica** antes de poder calcularlas.
 
-### 🟠 Contenido del diagnóstico ESG — METODOLOGÍA RECIBIDA (GENES Perú, 2026-07-15)
+### ✅ Diagnóstico ESG — MOTOR GENES CONSTRUIDO (2026-07-15)
+Motor ponderado GENES en producción: 4 categorías, 14 criterios, pesos suman 1.0,
+escala 0-5 → 0-75, bandas (No cumple/Mínimamente/Parcialmente/Plenamente). **Verificado**:
+API expone weight/category; fórmula da 75/45/0 para todo-5/todo-3/todo-0; POST /results
+persiste categoría y banda. Cálculo es client-side (`DiagnosticInterface`); backend guarda.
+**Pendiente menor:** (a) redacción fina de opciones por criterio (hoy escala genérica GENES) —
+validar con Eduardo; (b) UI de resultados que agrupe por categoría y muestre el radar/banda
+(hoy muestra % + banda, sin desglose por categoría). Fuente: `Proceso_ESG/CUADRO FINAL GENES...`.
+
+### 📎 Metodología GENES (referencia, recibida 2026-07-15)
 Fuente: `C:\Users\Asus\Desktop\EYWA\Proceso_ESG\CUADRO FINAL GENES PERU V10.xlsx`.
 **Decisiones del usuario (2026-07-15):** adoptar la metodología GENES (ponderada, 4
 categorías, escala 0-5, bandas) + modo **autoevaluación** (la empresa elige).
