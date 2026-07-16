@@ -74,8 +74,10 @@ export function InvestorPortfolio() {
   };
 
   // Calcula lo que se puede del listado real; el resto queda como "Pendiente".
-  const avgScore = companies.length
-    ? Math.round((companies.reduce((a, c) => a + (c.score || 0), 0) / companies.length) * 10) / 10
+  // Solo promedia empresas con score (las "Diagnóstico pendiente" no cuentan).
+  const scored = companies.filter((c) => c.score !== null && c.score !== undefined);
+  const avgScore = scored.length
+    ? Math.round((scored.reduce((a, c) => a + (c.score ?? 0), 0) / scored.length) * 10) / 10
     : null;
   const portfolioStats: { label: string; value: string | number | null; note: string }[] = [
     { label: 'Valor Total del Portfolio', value: null, note: 'En cálculo · requiere valorización' },
@@ -203,24 +205,56 @@ export function InvestorPortfolio() {
               {companies.map((company) => (
                 <tr key={company.id} className="hover:bg-gray-50 transition-colors cursor-pointer">
                   <td className="px-6 py-4">
-                    <div className="font-medium text-gray-900">{company.name}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-gray-600">{company.sector}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <div className="text-2xl font-light text-gray-900" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                        {company.score}
+                    <div className="flex items-center gap-3">
+                      {company.hasLogo && company.orgId ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={`/api/proxy/media/organization/${company.orgId}/logo`}
+                          alt=""
+                          className="w-8 h-8 rounded-lg object-cover border border-gray-200 flex-shrink-0"
+                        />
+                      ) : null}
+                      <div>
+                        <div className="font-medium text-gray-900 flex items-center gap-2">
+                          {company.publicSlug ? (
+                            <a href={`/empresa/${company.publicSlug}`} target="_blank" rel="noopener noreferrer" className="hover:text-emerald-700 hover:underline">
+                              {company.name}
+                            </a>
+                          ) : company.name}
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide ${
+                            company.source === 'plataforma'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-gray-100 text-gray-500 border border-gray-200'
+                          }`}>
+                            {company.source === 'plataforma' ? 'Verificada' : 'Externa'}
+                          </span>
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-400">/100</div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
+                    <div className="text-sm text-gray-600">{company.sector || 'Pendiente'}</div>
+                  </td>
+                  <td className="px-6 py-4">
+                    {company.score !== null && company.score !== undefined ? (
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <div className="text-2xl font-light text-gray-900" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                            {company.score}
+                          </div>
+                          <div className="text-xs text-gray-400">/100</div>
+                        </div>
+                        {company.level && <div className="text-xs text-gray-500">{company.level}</div>}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-amber-600 font-medium">Pendiente</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
                     <span className={`inline-flex px-2.5 py-1 rounded text-xs font-medium ${
-                      company.status === 'Verificado'
+                      company.status === 'Verificado' || company.status === 'Diagnóstico realizado'
                         ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : company.status === 'Auditoria Pendiente'
+                        : company.status === 'Auditoria Pendiente' || company.status === 'Diagnóstico pendiente'
                         ? 'bg-amber-50 text-amber-700 border border-amber-200'
                         : 'bg-blue-50 text-blue-700 border border-blue-200'
                     }`}>
@@ -243,16 +277,20 @@ export function InvestorPortfolio() {
                     <div className="text-sm text-gray-600">{company.lastAudit}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      {company.risk === 'alto' && <AlertCircle className="w-4 h-4 text-red-500" />}
-                      <span className={`text-sm font-medium capitalize ${
-                        company.risk === 'bajo' ? 'text-emerald-600' :
-                        company.risk === 'medio' ? 'text-amber-600' :
-                        'text-red-600'
-                      }`}>
-                        {company.risk}
-                      </span>
-                    </div>
+                    {company.risk ? (
+                      <div className="flex items-center gap-2">
+                        {company.risk === 'alto' && <AlertCircle className="w-4 h-4 text-red-500" />}
+                        <span className={`text-sm font-medium capitalize ${
+                          company.risk === 'bajo' ? 'text-emerald-600' :
+                          company.risk === 'medio' ? 'text-amber-600' :
+                          'text-red-600'
+                        }`}>
+                          {company.risk}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-gray-400">—</span>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -260,18 +298,12 @@ export function InvestorPortfolio() {
           </table>
         </div>
 
-        {/* Pagination */}
+        {/* Conteo real (sin paginación falsa) */}
         <div className="mt-6 flex items-center justify-between">
           <div className="text-sm text-gray-600">
-            Mostrando 1-5 de 24 empresas
-          </div>
-          <div className="flex items-center gap-2">
-            <button className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-all text-sm font-medium">
-              Anterior
-            </button>
-            <button className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-all text-sm font-medium">
-              Siguiente
-            </button>
+            {companies.length === 1 ? '1 empresa' : `${companies.length} empresas`}
+            {' · '}
+            {companies.filter(c => c.source === 'plataforma').length} verificadas de la plataforma
           </div>
         </div>
       </div>

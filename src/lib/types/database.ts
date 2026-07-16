@@ -15,14 +15,21 @@ export interface Profile {
 export interface PortfolioCompany {
   id: string;
   name: string;
-  sector: string;
-  score: number;
+  sector: string | null;
+  // Híbrido: 'plataforma' = organización real de un usuario (score = diagnóstico GENES);
+  // 'manual' = empresa externa agregada por el gestor.
+  source?: 'plataforma' | 'manual';
+  score: number | null; // % del diagnóstico (plataforma) o valor manual; null → "Pendiente"
+  level?: string | null; // banda GENES (solo plataforma)
   status: string;
   carbon: string | null;
   trend: string | null;
   lastAudit: string | null;
-  risk: 'bajo' | 'medio' | 'alto';
-  createdBy: string | null;
+  risk: 'bajo' | 'medio' | 'alto' | null;
+  hasLogo?: boolean;
+  orgId?: string | null;
+  publicSlug?: string | null;
+  createdBy?: string | null;
   createdAt: string;
   updatedAt: string;
 }

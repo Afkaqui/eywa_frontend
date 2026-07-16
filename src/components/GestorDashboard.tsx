@@ -88,8 +88,8 @@ function PortfolioManager() {
   const openEdit = (c: PortfolioCompany) => {
     setEditing(c);
     setForm({
-      name: c.name, sector: c.sector, score: c.score, status: c.status,
-      carbon: c.carbon || '', trend: c.trend || '', lastAudit: c.lastAudit || '', risk: c.risk,
+      name: c.name, sector: c.sector ?? '', score: c.score ?? 0, status: c.status,
+      carbon: c.carbon || '', trend: c.trend || '', lastAudit: c.lastAudit || '', risk: c.risk ?? 'medio',
     });
     setShowModal(true);
   };
@@ -115,7 +115,7 @@ function PortfolioManager() {
 
   const filtered = companies.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.sector.toLowerCase().includes(search.toLowerCase())
+    (c.sector ?? '').toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -137,7 +137,7 @@ function PortfolioManager() {
             className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-all"
           >
             <Plus className="w-4 h-4" />
-            Agregar Empresa
+            Agregar Empresa Externa
           </button>
         </div>
 
@@ -161,29 +161,56 @@ function PortfolioManager() {
               <tbody>
                 {filtered.map((c) => (
                   <tr key={c.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 px-4 font-medium text-gray-900">{c.name}</td>
-                    <td className="py-3 px-4 text-gray-600">{c.sector}</td>
                     <td className="py-3 px-4">
-                      <span className={`font-semibold ${c.score >= 80 ? 'text-emerald-600' : c.score >= 60 ? 'text-amber-600' : 'text-red-600'}`}>
-                        {c.score}
-                      </span>
+                      <div className="flex items-center gap-2 font-medium text-gray-900">
+                        {c.name}
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide ${
+                          c.source === 'plataforma'
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : 'bg-gray-100 text-gray-500'
+                        }`}>
+                          {c.source === 'plataforma' ? 'Verificada' : 'Externa'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-gray-600">{c.sector || 'Pendiente'}</td>
+                    <td className="py-3 px-4">
+                      {c.score !== null && c.score !== undefined ? (
+                        <span className={`font-semibold ${c.score >= 80 ? 'text-emerald-600' : c.score >= 60 ? 'text-amber-600' : 'text-red-600'}`}>
+                          {c.score}
+                        </span>
+                      ) : (
+                        <span className="text-amber-600 text-xs font-medium">Pendiente</span>
+                      )}
                     </td>
                     <td className="py-3 px-4 text-gray-600">{c.status}</td>
                     <td className="py-3 px-4">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        c.risk === 'bajo' ? 'bg-emerald-100 text-emerald-700' :
-                        c.risk === 'medio' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
-                      }`}>
-                        {c.risk}
-                      </span>
+                      {c.risk ? (
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          c.risk === 'bajo' ? 'bg-emerald-100 text-emerald-700' :
+                          c.risk === 'medio' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+                        }`}>
+                          {c.risk}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 text-xs">—</span>
+                      )}
                     </td>
                     <td className="py-3 px-4 text-right">
-                      <button onClick={() => openEdit(c)} className="p-1.5 text-gray-400 hover:text-gray-900 transition-colors">
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handleDelete(c.id)} className="p-1.5 text-gray-400 hover:text-red-600 transition-colors ml-1">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {c.source === 'plataforma' ? (
+                        <span className="text-xs text-gray-400" title="Los datos de las empresas de la plataforma se gestionan desde su propio perfil y diagnóstico">
+                          vía su perfil
+                        </span>
+                      ) : (
+                        <>
+                          <button onClick={() => openEdit(c)} className="p-1.5 text-gray-400 hover:text-gray-900 transition-colors">
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => handleDelete(c.id)} className="p-1.5 text-gray-400 hover:text-red-600 transition-colors ml-1">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))}
