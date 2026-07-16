@@ -230,11 +230,13 @@ export function InvestorPortfolio() {
                             </a>
                           ) : company.name}
                           <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide ${
-                            company.source === 'plataforma'
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : 'bg-gray-100 text-gray-500 border border-gray-200'
+                            company.source !== 'plataforma'
+                              ? 'bg-gray-100 text-gray-500 border border-gray-200'
+                              : company.incomplete
+                              ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                              : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                           }`}>
-                            {company.source === 'plataforma' ? 'Verificada' : 'Externa'}
+                            {company.source !== 'plataforma' ? 'Externa' : company.incomplete ? 'Registro incompleto' : 'Verificada'}
                           </span>
                         </div>
                       </div>
@@ -264,6 +266,8 @@ export function InvestorPortfolio() {
                         ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                         : company.status === 'Auditoria Pendiente' || company.status === 'Diagnóstico pendiente'
                         ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                        : company.status === 'Registro incompleto'
+                        ? 'bg-gray-50 text-gray-500 border border-gray-200'
                         : 'bg-blue-50 text-blue-700 border border-blue-200'
                     }`}>
                       {company.status}

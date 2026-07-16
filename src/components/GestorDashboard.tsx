@@ -165,11 +165,13 @@ function PortfolioManager() {
                       <div className="flex items-center gap-2 font-medium text-gray-900">
                         {c.name}
                         <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide ${
-                          c.source === 'plataforma'
-                            ? 'bg-emerald-100 text-emerald-700'
-                            : 'bg-gray-100 text-gray-500'
+                          c.source !== 'plataforma'
+                            ? 'bg-gray-100 text-gray-500'
+                            : c.incomplete
+                            ? 'bg-amber-100 text-amber-700'
+                            : 'bg-emerald-100 text-emerald-700'
                         }`}>
-                          {c.source === 'plataforma' ? 'Verificada' : 'Externa'}
+                          {c.source !== 'plataforma' ? 'Externa' : c.incomplete ? 'Registro incompleto' : 'Verificada'}
                         </span>
                       </div>
                     </td>

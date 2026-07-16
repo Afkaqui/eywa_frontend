@@ -19,6 +19,7 @@ export interface PortfolioCompany {
   // Híbrido: 'plataforma' = organización real de un usuario (score = diagnóstico GENES);
   // 'manual' = empresa externa agregada por el gestor.
   source?: 'plataforma' | 'manual';
+  incomplete?: boolean; // usuario con empresa declarada pero sin completar Mi Organización
   score: number | null; // % del diagnóstico (plataforma) o valor manual; null → "Pendiente"
   level?: string | null; // banda GENES (solo plataforma)
   status: string;
