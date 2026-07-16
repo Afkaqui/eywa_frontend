@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { Shield, Search, Users, Crown, Loader2 } from 'lucide-react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Shield, Search, Users, Crown, Loader2, FolderLock } from 'lucide-react';
 import { ROLE_LABELS, ROLE_COLORS, PLAN_COLORS, API_ROUTES } from '@/lib/constants/roles';
+import { DataroomRepository } from '@/lib/repositories/dataroom-repository';
 import type { Profile, UserRole, UserPlan } from '@/lib/types/database';
 
 export function SuperAdminDashboard() {
@@ -172,7 +173,124 @@ export function SuperAdminDashboard() {
             </div>
           )}
         </div>
+
+        {/* Permisos de dataroom delegados a gestores */}
+        <DataroomGrantsPanel />
       </div>
+    </div>
+  );
+}
+
+/* ═══════════════════ PERMISOS DE DATAROOM (gestores) ═══════════════════ */
+// El superadmin habilita a un gestor/admin a VER (solo lectura) el dataroom
+// de una organización concreta.
+
+function DataroomGrantsPanel() {
+  const repo = useMemo(() => new DataroomRepository(), []);
+  const [data, setData] = useState<Awaited<ReturnType<DataroomRepository['getGrants']>> | null>(null);
+  const [orgId, setOrgId] = useState('');
+  const [gestorId, setGestorId] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try { setData(await repo.getGrants()); }
+    catch (e) { setError(e instanceof Error ? e.message : 'Error'); }
+  }, [repo]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const add = async () => {
+    if (!orgId || !gestorId) return;
+    setBusy(true); setError(null);
+    try {
+      await repo.createGrant(orgId, gestorId);
+      setOrgId(''); setGestorId('');
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo crear el permiso');
+    } finally { setBusy(false); }
+  };
+
+  const remove = async (id: string) => {
+    setBusy(true); setError(null);
+    try { await repo.deleteGrant(id); await load(); }
+    catch (e) { setError(e instanceof Error ? e.message : 'No se pudo revocar'); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <div className="mt-8 bg-white rounded-xl border border-gray-200 p-6">
+      <div className="flex items-center gap-3 mb-1">
+        <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center">
+          <FolderLock className="w-5 h-5 text-emerald-600" />
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">Datarooms · Permisos de gestores</h2>
+          <p className="text-xs text-gray-500">
+            Habilita a un gestor a VER (solo lectura y descarga) el dataroom de una empresa.
+          </p>
+        </div>
+      </div>
+
+      {data === null ? (
+        <div className="py-8 text-center"><Loader2 className="w-5 h-5 text-gray-300 mx-auto animate-spin" /></div>
+      ) : (
+        <>
+          {/* Crear permiso */}
+          <div className="flex flex-col sm:flex-row gap-2 mt-4 mb-5">
+            <select
+              value={orgId}
+              onChange={(e) => setOrgId(e.target.value)}
+              className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            >
+              <option value="">Empresa…</option>
+              {data.organizations.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+            </select>
+            <select
+              value={gestorId}
+              onChange={(e) => setGestorId(e.target.value)}
+              className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            >
+              <option value="">Gestor…</option>
+              {data.gestores.map(g => (
+                <option key={g.id} value={g.id}>{g.fullName || g.email} ({g.role})</option>
+              ))}
+            </select>
+            <button
+              onClick={add}
+              disabled={busy || !orgId || !gestorId}
+              className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+            >
+              Dar acceso
+            </button>
+          </div>
+
+          {error && <p className="text-xs text-red-600 mb-3">{error}</p>}
+
+          {/* Lista de permisos activos */}
+          {data.grants.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-4">No hay permisos delegados.</p>
+          ) : (
+            <div className="divide-y divide-gray-50 border border-gray-100 rounded-lg">
+              {data.grants.map(g => (
+                <div key={g.id} className="flex items-center gap-3 px-4 py-2.5 text-sm">
+                  <span className="font-medium text-gray-900">{g.organization.name}</span>
+                  <span className="text-gray-400">→</span>
+                  <span className="flex-1 text-gray-600 truncate">{g.gestor.name || g.gestor.email}</span>
+                  <button
+                    onClick={() => remove(g.id)}
+                    disabled={busy}
+                    className="text-xs text-red-500 hover:text-red-700 font-medium disabled:opacity-50"
+                  >
+                    Revocar
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

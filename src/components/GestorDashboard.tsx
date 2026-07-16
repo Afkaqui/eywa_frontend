@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Database, Plus, Pencil, Trash2, X, Search, Loader2, BarChart3, FileText } from 'lucide-react';
+import { Database, Plus, Pencil, Trash2, X, Search, Loader2, BarChart3, FileText, FolderLock, ChevronLeft, Building2 } from 'lucide-react';
 import { PortfolioRepository } from '@/lib/repositories/portfolio-repository';
 import { DiagnosticRepository } from '@/lib/repositories/diagnostic-repository';
+import { DataroomRepository } from '@/lib/repositories/dataroom-repository';
+import { Dataroom } from '@/components/Dataroom';
 import type { PortfolioCompany, DiagnosticQuestion, DiagnosticOption } from '@/lib/types/database';
 
-type Tab = 'portfolio' | 'questions';
+type Tab = 'portfolio' | 'questions' | 'datarooms';
 
 export function GestorDashboard() {
   const [activeTab, setActiveTab] = useState<Tab>('portfolio');
@@ -47,10 +49,88 @@ export function GestorDashboard() {
             <FileText className="w-4 h-4" />
             Preguntas Diagnóstico
           </button>
+          <button
+            onClick={() => setActiveTab('datarooms')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'datarooms' ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            <FolderLock className="w-4 h-4" />
+            Datarooms
+          </button>
         </div>
 
-        {activeTab === 'portfolio' ? <PortfolioManager /> : <QuestionsManager />}
+        {activeTab === 'portfolio' && <PortfolioManager />}
+        {activeTab === 'questions' && <QuestionsManager />}
+        {activeTab === 'datarooms' && <GrantedDatarooms />}
       </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════ DATAROOMS DELEGADOS ═══════════════════════ */
+// Datarooms que el superadmin habilitó a este gestor (solo lectura + descarga).
+
+function GrantedDatarooms() {
+  const repo = useMemo(() => new DataroomRepository(), []);
+  const [orgs, setOrgs] = useState<{ id: string; name: string; sector?: string | null }[] | null>(null);
+  const [selected, setSelected] = useState<{ id: string; name: string } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    repo.getGranted()
+      .then(setOrgs)
+      .catch((e) => { setError(e instanceof Error ? e.message : 'Error'); setOrgs([]); });
+  }, [repo]);
+
+  if (selected) {
+    return (
+      <div>
+        <button
+          onClick={() => setSelected(null)}
+          className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Volver a la lista
+        </button>
+        <Dataroom orgId={selected.id} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-6">
+      <p className="text-sm text-gray-500 mb-5">
+        Datarooms que el superadmin te ha delegado. El acceso es de <strong>solo lectura</strong>:
+        puedes revisar la documentación y descargarla, pero no modificarla.
+      </p>
+      {orgs === null ? (
+        <div className="py-10 text-center"><Loader2 className="w-6 h-6 text-gray-300 mx-auto animate-spin" /></div>
+      ) : error ? (
+        <p className="py-8 text-center text-sm text-red-600">{error}</p>
+      ) : orgs.length === 0 ? (
+        <p className="py-8 text-center text-sm text-gray-400">
+          Aún no te han delegado ningún dataroom. Pídele acceso al superadmin.
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {orgs.map((o) => (
+            <button
+              key={o.id}
+              onClick={() => setSelected(o)}
+              className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl text-left hover:border-emerald-300 hover:bg-emerald-50/40 transition-colors"
+            >
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                <Building2 className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-gray-900 truncate">{o.name}</div>
+                <div className="text-xs text-gray-500 truncate">{o.sector || 'Sector no especificado'}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -15,6 +15,10 @@ export interface DataroomItem {
   name: string;
   hint: string | null;
   completed: boolean;
+  // "Completo vía plataforma": el diagnóstico GENES o los certificados de la
+  // Academia cubren este ítem sin necesidad de archivo (carpeta ASG).
+  platform_complete?: boolean;
+  platform_note?: string | null;
   documents: DataroomDoc[];
 }
 
@@ -32,8 +36,24 @@ export interface DataroomFolder {
 export interface DataroomData {
   has_organization: boolean;
   organization: { id: string; name: string } | null;
+  read_only?: boolean; // vista delegada (gestor/superadmin): solo ver y descargar
   folders: DataroomFolder[];
   completeness: { completed_items: number; total_items: number; percentage: number };
+}
+
+export interface DataroomGrant {
+  id: string;
+  organization: { id: string; name: string };
+  gestor: { id: string; email: string; name: string | null };
+  created_at: string;
+}
+
+export interface AccessLogEntry {
+  id: string;
+  file_name: string;
+  action: 'download' | 'download_public';
+  user: string;
+  created_at: string;
 }
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
@@ -46,8 +66,9 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export class DataroomRepository {
-  async get(): Promise<DataroomData> {
-    return apiFetch<DataroomData>('/api/proxy/dataroom');
+  async get(orgId?: string): Promise<DataroomData> {
+    const qs = orgId ? `?orgId=${encodeURIComponent(orgId)}` : '';
+    return apiFetch<DataroomData>(`/api/proxy/dataroom${qs}`);
   }
 
   async upload(itemId: string, file: File): Promise<DataroomDoc> {
@@ -94,6 +115,42 @@ export class DataroomRepository {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ enabled }),
     });
+  }
+
+  // ── Permisos delegados (superadmin) ─────────────────────────────────────────
+  async getGrants(): Promise<{
+    grants: DataroomGrant[];
+    organizations: { id: string; name: string }[];
+    gestores: { id: string; email: string; fullName: string | null; role: string }[];
+  }> {
+    return apiFetch('/api/proxy/dataroom/grants');
+  }
+
+  async createGrant(organizationId: string, gestorId: string): Promise<void> {
+    await apiFetch('/api/proxy/dataroom/grants', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ organization_id: organizationId, gestor_id: gestorId }),
+    });
+  }
+
+  async deleteGrant(id: string): Promise<void> {
+    await apiFetch(`/api/proxy/dataroom/grants/${id}`, { method: 'DELETE' });
+  }
+
+  // Datarooms que me delegaron (gestor/admin) o todos (superadmin)
+  async getGranted(): Promise<{ id: string; name: string; sector?: string | null }[]> {
+    const data = await apiFetch<{ organizations: { id: string; name: string; sector?: string | null }[] }>(
+      '/api/proxy/dataroom/granted'
+    );
+    return data.organizations ?? [];
+  }
+
+  // ── Bitácora de accesos (dueño / superadmin) ────────────────────────────────
+  async getAccessLog(orgId?: string): Promise<AccessLogEntry[]> {
+    const qs = orgId ? `?orgId=${encodeURIComponent(orgId)}` : '';
+    const data = await apiFetch<{ logs: AccessLogEntry[] }>(`/api/proxy/dataroom/access-log${qs}`);
+    return data.logs ?? [];
   }
 }
 
