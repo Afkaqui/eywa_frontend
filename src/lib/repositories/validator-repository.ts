@@ -17,10 +17,13 @@ export interface ValidationReport {
 
 export type ValidationStatus = 'pending' | 'analyzing' | 'analyzed' | 'failed';
 
+// Documento REAL subido al plan (fila de plan_documents; el archivo vive en el VPS)
 export interface ProjectDocument {
+  id?: string;
   name: string;
   size: number;
   type: string;
+  created_at?: string;
 }
 
 export interface ProjectPlanRow {
@@ -90,5 +93,27 @@ export class ValidatorRepository {
 
   async deletePlan(id: string): Promise<void> {
     await apiFetch<void>(`/api/proxy/validator/plans/${id}`, { method: 'DELETE' });
+  }
+
+  // ── Documentos reales ───────────────────────────────────────────────────────
+  async uploadDocument(planId: string, file: File): Promise<ProjectDocument> {
+    const form = new FormData();
+    form.append('file', file);
+    const res = await fetch(`/api/proxy/validator/plans/${planId}/documents`, {
+      method: 'POST',
+      body: form,
+      credentials: 'include',
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data?.error ?? 'No se pudo subir el documento');
+    return data.document as ProjectDocument;
+  }
+
+  async deleteDocument(planId: string, docId: string): Promise<void> {
+    await apiFetch<void>(`/api/proxy/validator/plans/${planId}/documents/${docId}`, { method: 'DELETE' });
+  }
+
+  documentDownloadUrl(planId: string, docId: string): string {
+    return `/api/proxy/validator/plans/${planId}/documents/${docId}/download`;
   }
 }

@@ -37,6 +37,17 @@ type ProjectPlan = ProjectPlanRow;
 
 const validatorRepo = new ValidatorRepository();
 
+// Tipos de archivo permitidos para los documentos del proyecto (espejo del backend)
+const VALIDATOR_DOC_MIME = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'image/png', 'image/jpeg', 'image/webp',
+  'text/plain', 'text/csv',
+];
+
 export function ValidadorProyectos() {
   const [projects, setProjects] = useState<ProjectPlan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,6 +87,49 @@ export function ValidadorProyectos() {
       alert(err instanceof Error ? err.message : 'No se pudo generar el análisis');
     } finally {
       setAnalyzingId(null);
+    }
+  }, []);
+
+  // ── Documentos del proyecto (adjuntar / eliminar desde la card) ─────────────
+  const [docBusyId, setDocBusyId] = useState<string | null>(null);
+  const [docError, setDocError] = useState<string | null>(null);
+
+  const handleAttachDoc = useCallback(async (planId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setDocError(null);
+    if (!VALIDATOR_DOC_MIME.includes(file.type)) {
+      setDocError('Formato no permitido. Usa PDF, Word, Excel, imagen, TXT o CSV.');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setDocError('El archivo supera el límite de 10 MB.');
+      return;
+    }
+    setDocBusyId(planId);
+    try {
+      await validatorRepo.uploadDocument(planId, file);
+      const updated = await validatorRepo.getPlan(planId);
+      if (updated) setProjects(prev => prev.map(p => (p.id === planId ? updated : p)));
+    } catch (err) {
+      setDocError(err instanceof Error ? err.message : 'No se pudo subir el documento');
+    } finally {
+      setDocBusyId(null);
+    }
+  }, []);
+
+  const handleDeleteDoc = useCallback(async (planId: string, docId: string) => {
+    setDocError(null);
+    setDocBusyId(planId);
+    try {
+      await validatorRepo.deleteDocument(planId, docId);
+      const updated = await validatorRepo.getPlan(planId);
+      if (updated) setProjects(prev => prev.map(p => (p.id === planId ? updated : p)));
+    } catch (err) {
+      setDocError(err instanceof Error ? err.message : 'No se pudo eliminar el documento');
+    } finally {
+      setDocBusyId(null);
     }
   }, []);
 
@@ -373,6 +427,66 @@ export function ValidadorProyectos() {
                   </div>
                 </div>
               )}
+
+              {/* Documentos reales del proyecto */}
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Documentos ({project.documents?.length ?? 0})
+                  </div>
+                  <label className={`inline-flex items-center gap-1.5 text-xs font-medium cursor-pointer ${
+                    docBusyId === project.id ? 'text-gray-400 cursor-wait' : 'text-emerald-600 hover:text-emerald-700'
+                  }`}>
+                    <Plus className="w-3.5 h-3.5" />
+                    {docBusyId === project.id ? 'Procesando…' : 'Adjuntar documento'}
+                    <input
+                      type="file"
+                      className="hidden"
+                      disabled={docBusyId === project.id}
+                      accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.webp,.txt,.csv"
+                      onChange={(e) => handleAttachDoc(project.id, e)}
+                    />
+                  </label>
+                </div>
+                {docError && docBusyId === null && (
+                  <p className="text-xs text-red-600 mb-2">{docError}</p>
+                )}
+                {(project.documents?.length ?? 0) === 0 ? (
+                  <p className="text-xs text-gray-400">Sin documentos aún.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {project.documents.map((doc) => (
+                      <div key={doc.id ?? doc.name} className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5">
+                        <FileText className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                        {doc.id ? (
+                          <a
+                            href={validatorRepo.documentDownloadUrl(project.id, doc.id)}
+                            className="text-xs font-medium text-gray-700 hover:text-emerald-700 hover:underline truncate max-w-[200px]"
+                            title={`Descargar ${doc.name}`}
+                          >
+                            {doc.name}
+                          </a>
+                        ) : (
+                          <span className="text-xs font-medium text-gray-700 truncate max-w-[200px]">{doc.name}</span>
+                        )}
+                        <span className="text-[10px] text-gray-400">
+                          {doc.size < 1024 * 1024 ? `${Math.round(doc.size / 1024)} KB` : `${(doc.size / (1024 * 1024)).toFixed(1)} MB`}
+                        </span>
+                        {doc.id && (
+                          <button
+                            onClick={() => handleDeleteDoc(project.id, doc.id!)}
+                            disabled={docBusyId === project.id}
+                            className="text-gray-300 hover:text-red-500 transition-colors disabled:opacity-50"
+                            title="Eliminar documento"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           ))}
 
@@ -483,14 +597,18 @@ function NewProjectModal({ onClose, onCreated }: { onClose: () => void; onCreate
     objectives: '',
     stakeholders: ''
   });
-  const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; size: number; type: string }>>([]);
+  // Archivos REALES seleccionados (se suben al crear el proyecto)
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  
+  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
+  // Si el plan ya se creó pero falló alguna subida, el reintento NO vuelve a crearlo
+  const [createdPlanId, setCreatedPlanId] = useState<string | null>(null);
+
   const { profile } = useAuth();
   const accountPlan = profile?.plan || 'free';
-  const maxFiles = accountPlan === 'free' ? 1 : Infinity;
+  const maxFiles = accountPlan === 'free' ? 1 : 10;
   const canUploadMore = uploadedFiles.length < maxFiles;
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -498,29 +616,33 @@ function NewProjectModal({ onClose, onCreated }: { onClose: () => void; onCreate
     if (files) {
       const filesArray = Array.from(files);
       const remainingSlots = maxFiles - uploadedFiles.length;
-      
+
       // Si es cuenta gratuita y ya alcanzó el límite
       if (accountPlan === 'free' && uploadedFiles.length >= maxFiles) {
         setShowUpgradeModal(true);
         e.target.value = ''; // Reset input
         return;
       }
-      
-      // Limitar archivos según el plan
-      const filesToAdd = accountPlan === 'free' 
-        ? filesArray.slice(0, remainingSlots)
-        : filesArray;
-      
-      const newFiles = filesToAdd.map(file => ({
-        name: file.name,
-        size: file.size,
-        type: file.type
-      }));
-      
-      setUploadedFiles([...uploadedFiles, ...newFiles]);
-      
+
+      // Validación cliente: tipo y tamaño (el backend re-valida)
+      const valid: File[] = [];
+      for (const f of filesArray) {
+        if (!VALIDATOR_DOC_MIME.includes(f.type)) {
+          setSubmitError(`"${f.name}": formato no permitido (PDF, Word, Excel, imagen, TXT o CSV)`);
+          continue;
+        }
+        if (f.size > 10 * 1024 * 1024) {
+          setSubmitError(`"${f.name}" supera el límite de 10 MB`);
+          continue;
+        }
+        valid.push(f);
+      }
+
+      const filesToAdd = valid.slice(0, remainingSlots);
+      setUploadedFiles([...uploadedFiles, ...filesToAdd]);
+
       // Si intentó subir más archivos de los permitidos
-      if (accountPlan === 'free' && filesArray.length > remainingSlots) {
+      if (accountPlan === 'free' && valid.length > remainingSlots) {
         setTimeout(() => setShowUpgradeModal(true), 300);
       }
     }
@@ -549,24 +671,43 @@ function NewProjectModal({ onClose, onCreated }: { onClose: () => void; onCreate
 
     setSubmitting(true);
     setSubmitError(null);
+    let planId: string | null = createdPlanId;
     try {
-      const payload: CreatePlanPayload = {
-        name:         formData.name,
-        type:         formData.type,
-        description:  formData.description,
-        budget:       Number(formData.budget) || 0,
-        duration:     Number(formData.duration) || 0,
-        carbonGoal:   Number(formData.carbonGoal) || 0,
-        objectives:   formData.objectives || null,
-        stakeholders: formData.stakeholders || null,
-        documents:    uploadedFiles,
-      };
-      await validatorRepo.createPlan(payload);
+      // 1) Crear el plan (solo la primera vez; un reintento tras fallo de subida no lo duplica)
+      if (!planId) {
+        const payload: CreatePlanPayload = {
+          name:         formData.name,
+          type:         formData.type,
+          description:  formData.description,
+          budget:       Number(formData.budget) || 0,
+          duration:     Number(formData.duration) || 0,
+          carbonGoal:   Number(formData.carbonGoal) || 0,
+          objectives:   formData.objectives || null,
+          stakeholders: formData.stakeholders || null,
+        };
+        const plan = await validatorRepo.createPlan(payload);
+        planId = plan.id;
+        setCreatedPlanId(plan.id);
+      }
+
+      // 2) Subir los archivos REALES, uno a uno; los que suben se quitan de la cola
+      const pending = [...uploadedFiles];
+      for (let i = 0; i < pending.length; i++) {
+        setUploadProgress(`Subiendo documento ${i + 1} de ${pending.length}: ${pending[i].name}`);
+        await validatorRepo.uploadDocument(planId, pending[i]);
+        setUploadedFiles((prev) => prev.filter((f) => f !== pending[i]));
+      }
+      setUploadProgress(null);
+
       // Crear NO analiza: el análisis es una acción aparte desde la lista.
       await onCreated();
       onClose();
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'No se pudo crear el proyecto');
+      setUploadProgress(null);
+      const msg = err instanceof Error ? err.message : 'No se pudo crear el proyecto';
+      setSubmitError(planId
+        ? `El proyecto se creó, pero falló una subida: ${msg}. Pulsa "Reintentar subida" para continuar con los archivos restantes.`
+        : msg);
     } finally {
       setSubmitting(false);
     }
@@ -719,7 +860,7 @@ function NewProjectModal({ onClose, onCreated }: { onClose: () => void; onCreate
                   <span className={`text-xs font-medium ${
                     uploadedFiles.length >= maxFiles ? 'text-red-600' : 'text-gray-500'
                   }`}>
-                    {uploadedFiles.length} / {accountPlan === 'free' ? '1' : '∞'}
+                    {uploadedFiles.length} / {maxFiles}
                   </span>
                   {accountPlan === 'free' && (
                     <button
@@ -758,7 +899,7 @@ function NewProjectModal({ onClose, onCreated }: { onClose: () => void; onCreate
                   onChange={handleFileUpload}
                   disabled={!canUploadMore}
                   className="hidden"
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.webp,.txt,.csv"
                 />
                 <label
                   htmlFor={canUploadMore ? "file-upload" : undefined}
@@ -776,7 +917,7 @@ function NewProjectModal({ onClose, onCreated }: { onClose: () => void; onCreate
                           Haz clic para subir archivos o arrastra aquí
                         </p>
                         <p className="text-xs text-gray-500">
-                          PDF, Word, Excel, PowerPoint, Imágenes (Máx. 10MB cada uno)
+                          PDF, Word, Excel, imágenes, TXT o CSV (máx. 10 MB cada uno)
                         </p>
                       </>
                     ) : (
@@ -849,6 +990,12 @@ function NewProjectModal({ onClose, onCreated }: { onClose: () => void; onCreate
           </form>
 
           <div className="px-8 py-6 border-t border-gray-200 bg-gray-50">
+            {uploadProgress && (
+              <div className="mb-3 text-sm text-emerald-700 flex items-center gap-2">
+                <Upload className="w-4 h-4 flex-shrink-0 animate-pulse" />
+                {uploadProgress}
+              </div>
+            )}
             {submitError && (
               <div className="mb-3 text-sm text-red-600 flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 flex-shrink-0" />
@@ -870,7 +1017,9 @@ function NewProjectModal({ onClose, onCreated }: { onClose: () => void; onCreate
                 className="px-6 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all font-medium flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <Upload className={`w-5 h-5 ${submitting ? 'animate-pulse' : ''}`} />
-                {submitting ? 'Creando...' : 'Crear Proyecto'}
+                {submitting
+                  ? (createdPlanId ? 'Subiendo...' : 'Creando...')
+                  : (createdPlanId ? 'Reintentar subida' : 'Crear Proyecto')}
               </button>
             </div>
           </div>
