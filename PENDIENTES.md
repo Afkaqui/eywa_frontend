@@ -359,11 +359,19 @@ Definir el producto antes de construir.
    logo de la empresa + marca EYWA, sello de completitud, documentos públicos descargables.
 2. ⬜ **Invitaciones** (inversores/auditores) → **bloqueado por el correo** (Resend + dominio),
    misma dependencia que recuperar contraseña (§3).
-3. ⬜ **Permiso delegado a gestores** (`DataroomAccessGrant`): hoy solo el dueño y el
-   **superadmin** acceden. El gestor todavía no.
-4. ⬜ *(sugerido)* Registro de accesos (quién vio qué documento y cuándo).
-5. ⬜ Auto-poblar la carpeta 7 (Sostenibilidad y ASG) desde el diagnóstico ESG y los
-   certificados de la Academia.
+3. ✅ **Permiso delegado a gestores** — HECHO (2026-07-16): `DataroomAccessGrant`; el
+   superadmin da/revoca acceso desde Administración; el gestor ve sus datarooms
+   delegados en Gestión de Datos → Datarooms, en **solo lectura** (ver + descargar;
+   subir/borrar/publicar sigue siendo del dueño). Decisión del usuario: solo lectura.
+4. ✅ **Registro de accesos** — HECHO (2026-07-16): `DataroomAccessLog`; toda descarga
+   queda en bitácora (con usuario; las públicas de la mini-landing como "Visitante").
+   El dueño la ve en su Dataroom → "Registro de accesos". El log nunca rompe descargas.
+5. ✅ **Auto-marcar carpeta ASG** — HECHO (2026-07-16, decisión: ítems marcados, sin
+   generar archivos): "Reporte de sostenibilidad" ← diagnóstico GENES hecho;
+   "Certificaciones de calidad / sostenibilidad" ← certificados de la Academia. Badge
+   "Completo vía plataforma" + nota; cuentan para el % (también en el sello público).
+   OJO: el match es por NOMBRE exacto del ítem — si se renombran en la plantilla, actualizar
+   `platformCompletions()` en el repo backend. Backend `5ec8779`, frontend `51db15f`.
 6. ✅ Incluir `~/eywa-uploads` en los backups del VPS — HECHO (pg_backup.sh lo tarea).
 
 ### Referencia y diseño original (proyectado 2026-07-13)
