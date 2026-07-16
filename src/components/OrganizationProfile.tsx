@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Building2, TrendingUp, GraduationCap, ChevronRight, Check,
   Loader2, Phone, Globe, Link as LinkIcon, MapPin, Layers, X, Plus, Leaf, BarChart2,
@@ -125,6 +125,9 @@ export function OrganizationProfile({ onNavigate }: { onNavigate?: (view: string
   // External links chip state
   const [linkInput, setLinkInput] = useState('');
 
+  // La descripción crece con el contenido (algunas son amplias); tope 480px con scroll.
+  const descRef = useRef<HTMLTextAreaElement>(null);
+
   const [form, setForm] = useState({
     name:            '',
     institutionType: '',
@@ -169,6 +172,16 @@ export function OrganizationProfile({ onNavigate }: { onNavigate?: (view: string
 
   const set = (key: keyof typeof form, value: string | string[]) =>
     setForm(prev => ({ ...prev, [key]: value }));
+
+  // Auto-ajusta la altura de la descripción al contenido (también al cargar datos)
+  useEffect(() => {
+    const el = descRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    const capped = Math.min(el.scrollHeight, 480);
+    el.style.height = `${capped}px`;
+    el.style.overflowY = el.scrollHeight > 480 ? 'auto' : 'hidden';
+  }, [form.description, step, activeTab]);
 
   const addLink = () => {
     const trimmed = linkInput.trim();
@@ -435,11 +448,12 @@ export function OrganizationProfile({ onNavigate }: { onNavigate?: (view: string
               <div>
                 <label className={labelCls}>{descLabel}</label>
                 <textarea
+                  ref={descRef}
                   value={form.description}
                   onChange={e => set('description', e.target.value)}
                   placeholder="Breve descripción de la organización y su misión..."
                   rows={3}
-                  className={`${inputCls} resize-none`}
+                  className={`${inputCls} resize-none overflow-hidden`}
                 />
               </div>
 
