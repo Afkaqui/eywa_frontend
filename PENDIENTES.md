@@ -470,8 +470,29 @@ Opciones **adecuadas por criterio** (2026-07-15): binarias donde aplica (RUC: S�
 CEO mujer), rangos de % (inclusión laboral: >50%/26-50%/…/0%) y escala de madurez donde hay
 espectro. 53 opciones, puntos GENES 0-5, pesos siguen sumando 1.0 (máximo = 75). Aplicado a prod.
 **Pendiente menor:** (a) que Eduardo valide/afine la redacción exacta de las opciones;
-(b) UI de resultados que agrupe por categoría y muestre el radar/banda
-(hoy muestra % + banda, sin desglose por categoría). Fuente: `Proceso_ESG/CUADRO FINAL GENES...`.
+(b) ~~desglose por categoría~~ → RESUELTO 2026-07-16: `EsgIndexPanel` (Mi Organización →
+Índice ESG) muestra índice 0-5, banda y las 4 categorías. Queda opcional: radar/desglose
+también en la pantalla de resultados del propio diagnóstico. Fuente: `Proceso_ESG/CUADRO FINAL GENES...`.
+
+### ✅ Índice ESG = diagnóstico + imágenes de perfil (2026-07-16, DESPLEGADO)
+**Decisión del usuario: "El diagnóstico ES el índice".** `EsgIndexPanel.tsx` reemplazó al
+`EsgDashboard` manual (15 indicadores editables) en Mi Organización → el índice sale del
+último resultado GENES: nota global 0-5 (= score/15), % de cumplimiento, banda, desglose
+por las 4 categorías (promedio 0-5 del breakdown), CTA al diagnóstico si no hay resultado.
+Se eliminó "Editar valores". **Código muerto a limpiar:** `EsgDashboard.tsx`, `EsgRepository`,
+rutas `/api/esg` + `/api/proxy/esg`, modelos `EsgScore`/`EsgHistory` (verificar huérfanos).
+
+**Imágenes (ambas, decisión del usuario):** logo de organización + avatar de usuario.
+- BD: `organizations.image_url`, `profiles.avatar_url` (migración `20260716120000_media_images`, aplicada).
+- Backend `/api/media`: POST autenticado (multipart, 5 MB, PNG/JPG/WebP) al volumen VPS
+  `/home/kaqui/eywa-uploads` (el del Dataroom; entra al backup); GET **público** para servir
+  (un `<img>` no envía Authorization; el logo se ve en la mini-landing). Borra la imagen
+  anterior del disco al reemplazar.
+- Frontend: `ImageUploader.tsx` reutilizable; logo en Mi Organización → Perfil y en
+  `/empresa/[slug]` (el public/:slug ahora expone `id` + `has_logo`); avatar en Configuración
+  y en la barra lateral (fallback a ícono si 404).
+- Deploys: backend `c37ea8b`, frontend `bae1631`. Verificado por API (404/401 correctos,
+  volumen montado); falta smoke test con sesión (subir imagen real desde la UI).
 
 ### 📎 Metodología GENES (referencia, recibida 2026-07-15)
 Fuente: `C:\Users\Asus\Desktop\EYWA\Proceso_ESG\CUADRO FINAL GENES PERU V10.xlsx`.
@@ -493,10 +514,10 @@ Trae también tabla de referencia de los 17 ODS.
 correos, RUC, respuestas de la cohorte GENES). **Solo la metodología** se usa; los datos de
 esas empresas son confidenciales de terceros → NO cargar ni exponer.
 
-**Gap con el motor actual (requiere migración):** hoy el motor es plano (sin peso ni
-categoría, suma simple). Para GENES falta agregar `weight` (float) y `category` a
-`DiagnosticQuestion`, scoring ponderado y bandas. Además, las **4 categorías GENES ≠ las 5
-del radar EsgDashboard** (Ambiental/Social/Gobernanza/Innovación/Cadena) → decidir mapeo.
+~~**Gap con el motor actual (requiere migración)**~~ → RESUELTO: `weight`+`category`
+migrados, scoring ponderado y bandas en prod (2026-07-15). El dilema "4 categorías GENES vs
+5 del radar EsgDashboard" se resolvió el 2026-07-16 eliminando el radar manual: el índice
+ESG ahora ES el diagnóstico (ver sección Índice ESG más arriba).
 
 **Contenido pendiente de validar con Eduardo:** el Excel da la escala GENÉRICA (mismos 5
 niveles para todos) + las preguntas del formulario de admisión, pero NO una redacción por
