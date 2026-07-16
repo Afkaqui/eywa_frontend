@@ -24,6 +24,11 @@ export async function POST(req: NextRequest) {
       signal:  AbortSignal.timeout(30000),
     });
     const data = await res.json().catch(() => ({}));
+    // El backend devuelve su ruta interna (/api/media/...); el navegador necesita
+    // la del proxy (/api/proxy/media/...) para que el <img> cargue.
+    if (typeof data.image_url === 'string') {
+      data.image_url = data.image_url.replace(/^\/api\//, '/api/proxy/');
+    }
     return NextResponse.json(data, { status: res.status });
   } catch {
     return NextResponse.json({ error: 'Error al subir la imagen' }, { status: 502 });
