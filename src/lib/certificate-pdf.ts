@@ -126,11 +126,12 @@ export async function generateCertificatePdf(data: CertificatePdfData): Promise<
   doc.setTextColor(...GREY);
   doc.text('Instructor', cx, sigY + 11, { align: 'center' });
 
-  // Código de verificación
+  // Código de verificación + enlace público
+  const origin = typeof window !== 'undefined' ? window.location.host : 'eywa-hazel.vercel.app';
   doc.setFontSize(8.5);
   doc.setTextColor(...GREY);
   doc.text(`Código de verificación: ${data.code}`, 16, H - 16);
-  doc.text('Verificable en la plataforma EYWA', W - 16, H - 16, { align: 'right' });
+  doc.text(`Verifícalo en ${origin}/verificar/${data.code}`, W - 16, H - 16, { align: 'right' });
 
   doc.save(`EYWA_Certificado_${data.code}.pdf`);
 }
