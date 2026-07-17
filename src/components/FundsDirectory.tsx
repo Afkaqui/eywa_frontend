@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Search, Loader2, Landmark, ExternalLink, ChevronDown, ChevronUp,
-  Lock, CalendarClock, Globe2, MapPin,
+  Lock, CalendarClock, Globe2, MapPin, Plus, Pencil, Trash2, X,
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Fund } from '@/lib/types/database';
 
 // Catálogo de Fondos (matriz Neo) — solo Premium o gestor+.
@@ -36,32 +37,50 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
   const [hideClosed, setHideClosed] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
 
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const res = await fetch('/api/proxy/funds', { credentials: 'include' });
-        if (res.status === 403) {
-          // Sin premium: teaser con conteos reales
-          const s = await fetch('/api/proxy/funds/summary', { credentials: 'include' })
-            .then(r => (r.ok ? r.json() : null)).catch(() => null);
-          if (alive) setState({
-            status: 'forbidden',
-            total: s?.total ?? 0,
-            nacionales: s?.nacionales ?? 0,
-            internacionales: s?.internacionales ?? 0,
-          });
-          return;
-        }
-        if (!res.ok) throw new Error();
-        const data = await res.json();
-        if (alive) setState({ status: 'ok', funds: Array.isArray(data?.funds) ? data.funds : [] });
-      } catch {
-        if (alive) setState({ status: 'error' });
+  // CRUD del catálogo (solo gestor/admin/superadmin)
+  const { profile } = useAuth();
+  const canManage = ['gestor', 'admin', 'superadmin'].includes(profile?.role ?? '');
+  const [editing, setEditing] = useState<Fund | 'new' | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch('/api/proxy/funds', { credentials: 'include' });
+      if (res.status === 403) {
+        // Sin premium: teaser con conteos reales
+        const s = await fetch('/api/proxy/funds/summary', { credentials: 'include' })
+          .then(r => (r.ok ? r.json() : null)).catch(() => null);
+        setState({
+          status: 'forbidden',
+          total: s?.total ?? 0,
+          nacionales: s?.nacionales ?? 0,
+          internacionales: s?.internacionales ?? 0,
+        });
+        return;
       }
-    })();
-    return () => { alive = false; };
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setState({ status: 'ok', funds: Array.isArray(data?.funds) ? data.funds : [] });
+    } catch {
+      setState({ status: 'error' });
+    }
   }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleDelete = async (f: Fund) => {
+    if (!confirm(`¿Eliminar "${f.name}" del catálogo?`)) return;
+    setBusyId(f.id);
+    try {
+      const res = await fetch(`/api/proxy/funds/${f.id}`, { method: 'DELETE', credentials: 'include' });
+      if (!res.ok) throw new Error();
+      await load();
+    } catch {
+      alert('No se pudo eliminar el fondo');
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   const tipos = useMemo(() => {
     if (state.status !== 'ok') return [];
@@ -159,6 +178,15 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
           />
           Ocultar cerrados
         </label>
+        {canManage && (
+          <button
+            onClick={() => setEditing('new')}
+            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Agregar fondo
+          </button>
+        )}
       </div>
 
       <div className="text-xs text-gray-400 mb-3">
@@ -225,15 +253,35 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
                     <p><span className="font-medium text-gray-700">Checklist (Gate 0):</span>{' '}
                       <span className="text-gray-600">{f.checklist}</span></p>
                   )}
-                  {f.url && (
-                    <a
-                      href={f.url.startsWith('http') ? f.url : `https://${f.url}`}
-                      target="_blank" rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700 font-medium"
-                    >
-                      Ir a la convocatoria <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                  )}
+                  <div className="flex items-center gap-4 pt-1">
+                    {f.url && (
+                      <a
+                        href={f.url.startsWith('http') ? f.url : `https://${f.url}`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700 font-medium"
+                      >
+                        Ir a la convocatoria <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    )}
+                    {canManage && (
+                      <>
+                        <button
+                          onClick={() => setEditing(f)}
+                          disabled={busyId === f.id}
+                          className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-gray-800 disabled:opacity-50"
+                        >
+                          <Pencil className="w-3.5 h-3.5" /> Editar
+                        </button>
+                        <button
+                          onClick={() => handleDelete(f)}
+                          disabled={busyId === f.id}
+                          className="inline-flex items-center gap-1 text-xs font-medium text-red-500 hover:text-red-700 disabled:opacity-50"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" /> Eliminar
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -244,6 +292,170 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
             Ningún fondo coincide con los filtros.
           </div>
         )}
+      </div>
+
+      {editing && (
+        <FundFormModal
+          fund={editing === 'new' ? null : editing}
+          existingTypes={tipos}
+          onClose={() => setEditing(null)}
+          onSaved={async () => { setEditing(null); await load(); }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── Modal de crear/editar fondo (gestor+) ─────────────────────────────────────
+function FundFormModal({ fund, existingTypes, onClose, onSaved }: {
+  fund: Fund | null;
+  existingTypes: string[];
+  onClose: () => void;
+  onSaved: () => Promise<void>;
+}) {
+  const [form, setForm] = useState({
+    scope:            fund?.scope ?? 'nacional',
+    name:             fund?.name ?? '',
+    instrument_type:  fund?.instrument_type ?? '',
+    eligible_profile: fund?.eligible_profile ?? '',
+    sectors:          fund?.sectors ?? '',
+    amounts:          fund?.amounts ?? '',
+    deadline:         fund?.deadline ? fund.deadline.slice(0, 10) : '',
+    deadline_text:    fund?.deadline_text ?? '',
+    checklist:        fund?.checklist ?? '',
+    url:              fund?.url ?? '',
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const set = (k: keyof typeof form, v: string) => setForm(p => ({ ...p, [k]: v }));
+  const inputCls = 'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500';
+  const labelCls = 'block text-xs font-semibold text-gray-600 mb-1';
+
+  const save = async () => {
+    if (!form.name.trim() || !form.instrument_type.trim()) {
+      setError('Nombre y tipo de instrumento son obligatorios');
+      return;
+    }
+    setSaving(true); setError(null);
+    try {
+      const payload = {
+        scope:            form.scope,
+        name:             form.name,
+        instrument_type:  form.instrument_type,
+        eligible_profile: form.eligible_profile || null,
+        sectors:          form.sectors || null,
+        amounts:          form.amounts || null,
+        deadline:         form.deadline || null,
+        deadline_text:    form.deadline_text || null,
+        checklist:        form.checklist || null,
+        url:              form.url || null,
+      };
+      const res = await fetch(fund ? `/api/proxy/funds/${fund.id}` : '/api/proxy/funds', {
+        method: fund ? 'PATCH' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error ?? 'No se pudo guardar');
+      await onSaved();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo guardar');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900">
+            {fund ? 'Editar fondo' : 'Agregar fondo al catálogo'}
+          </h2>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center">
+            <X className="w-4 h-4 text-gray-500" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>Ámbito *</label>
+              <select value={form.scope} onChange={e => set('scope', e.target.value)} className={inputCls}>
+                <option value="nacional">Nacional</option>
+                <option value="internacional">Internacional</option>
+              </select>
+            </div>
+            <div>
+              <label className={labelCls}>Tipo de instrumento *</label>
+              <input
+                list="fund-types" value={form.instrument_type}
+                onChange={e => set('instrument_type', e.target.value)}
+                placeholder="Fondo/Grant, Fellowship, Venture…" className={inputCls}
+              />
+              <datalist id="fund-types">
+                {existingTypes.map(t => <option key={t} value={t} />)}
+              </datalist>
+            </div>
+          </div>
+
+          <div>
+            <label className={labelCls}>Nombre del fondo / convocatoria *</label>
+            <input value={form.name} onChange={e => set('name', e.target.value)} className={inputCls} />
+          </div>
+
+          <div>
+            <label className={labelCls}>Perfil elegible</label>
+            <textarea value={form.eligible_profile} onChange={e => set('eligible_profile', e.target.value)} rows={2} className={`${inputCls} resize-none`} />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>Sectores</label>
+              <input value={form.sectors} onChange={e => set('sectors', e.target.value)} className={inputCls} />
+            </div>
+            <div>
+              <label className={labelCls}>Montos</label>
+              <input value={form.amounts} onChange={e => set('amounts', e.target.value)} placeholder="USD 50,000 / Asistencia técnica…" className={inputCls} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>Cierre (fecha concreta)</label>
+              <input type="date" value={form.deadline} onChange={e => set('deadline', e.target.value)} className={inputCls} />
+            </div>
+            <div>
+              <label className={labelCls}>Cierre (texto, si no hay fecha)</label>
+              <input value={form.deadline_text} onChange={e => set('deadline_text', e.target.value)} placeholder="Por convocatoria, Abierto…" className={inputCls} disabled={Boolean(form.deadline)} />
+              {form.deadline && <p className="text-[10px] text-gray-400 mt-1">Se usa la fecha; borra la fecha para usar texto.</p>}
+            </div>
+          </div>
+
+          <div>
+            <label className={labelCls}>Checklist (evidencia Gate 0)</label>
+            <textarea value={form.checklist} onChange={e => set('checklist', e.target.value)} rows={2} className={`${inputCls} resize-none`} />
+          </div>
+
+          <div>
+            <label className={labelCls}>URL de la convocatoria</label>
+            <input value={form.url} onChange={e => set('url', e.target.value)} placeholder="https://…" className={inputCls} />
+          </div>
+
+          {error && <p className="text-sm text-red-600">{error}</p>}
+        </div>
+
+        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end gap-2">
+          <button onClick={onClose} disabled={saving} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-white disabled:opacity-50">
+            Cancelar
+          </button>
+          <button onClick={save} disabled={saving} className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2">
+            {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+            {fund ? 'Guardar cambios' : 'Agregar fondo'}
+          </button>
+        </div>
       </div>
     </div>
   );
