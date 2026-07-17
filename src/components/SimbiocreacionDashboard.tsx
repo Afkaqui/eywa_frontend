@@ -26,8 +26,9 @@ type EditInteract = 'move' | 'connect';
 interface PublicSimbio extends Simbiocreacion {
   user?: { id: string; fullName: string | null; company: string | null };
 }
+// Métricas REALES (sin puntaje sintético): totales, públicas y actores mapeados en grafos
 interface RankingEntry {
-  rank: number; userId: string; puntaje: number; total: number;
+  rank: number; userId: string; total: number; publicas: number; actores: number;
   user: { id: string; fullName: string | null; company: string | null } | null;
 }
 
@@ -789,10 +790,14 @@ export function SimbiocreacionDashboard() {
     } catch {/***/} finally { setSavingGraph(false); }
   };
 
-  // ── Derived ────────────────────────────────────────────────────────────────
+  // ── Derived (métricas reales; se eliminó el "puntaje" sintético ×10/×5) ─────
   const totalGrupos = items.reduce((s,i)=>s+i.tags.length,0);
   const totalOds   = new Set(items.flatMap(i=>i.ods)).size;
-  const puntaje    = items.length*10+totalGrupos*5;
+  // Actores mapeados: nodos persona/institución en los grafos de mis simbiocreaciones
+  const actoresMapeados = items.reduce((s,i)=>{
+    const nodes = i.graphData?.nodes ?? [];
+    return s + nodes.filter(n=>n.type==='person'||n.type==='institution').length;
+  },0);
 
   const filteredExplora = useMemo(()=>{
     const now=Date.now();
@@ -875,7 +880,7 @@ export function SimbiocreacionDashboard() {
           {subView==='lista'&&(
             <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-                <StatCard label="Puntaje"                value={puntaje}      accent="bg-gradient-to-br from-pink-500 to-rose-600"/>
+                <StatCard label="Actores Mapeados"       value={actoresMapeados} accent="bg-gradient-to-br from-pink-500 to-rose-600"/>
                 <StatCard label="Total Simbiocreaciones" value={items.length} accent="bg-gradient-to-br from-pink-400 to-pink-500"/>
                 <StatCard label="Total Grupos / Tags"     value={totalGrupos}   accent="bg-gradient-to-br from-pink-300 to-pink-400"/>
                 <StatCard label="ODS Relacionados"       value={totalOds}     accent="bg-gradient-to-br from-pink-200 to-pink-300"/>
@@ -1757,7 +1762,11 @@ export function SimbiocreacionDashboard() {
                         {isMe&&<span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Tú</span>}
                       </div>
                       {entry.user?.company&&entry.user.fullName&&<div className="text-xs text-gray-400 truncate">{entry.user.company}</div>}
-                      <div className="text-xs text-gray-400 mt-0.5">PUNTAJE: <span className="font-semibold text-gray-700">{entry.puntaje}</span><span className="mx-1">·</span>{entry.total} simbiocreaci{entry.total===1?'ón':'ones'}</div>
+                      <div className="text-xs text-gray-400 mt-0.5">
+                        <span className="font-semibold text-gray-700">{entry.total}</span> simbiocreaci{entry.total===1?'ón':'ones'}
+                        <span className="mx-1">·</span>{entry.publicas} pública{entry.publicas===1?'':'s'}
+                        <span className="mx-1">·</span>{entry.actores} actor{entry.actores===1?'':'es'} mapeado{entry.actores===1?'':'s'}
+                      </div>
                     </div>
                   </div>
                 );
