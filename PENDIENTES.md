@@ -275,8 +275,11 @@ y NAB Colombia (89 orgs, 5 campos). Son el catálogo de **instituciones** del ec
      (generador en scratchpad `gen_funds_seed.py`). UI `FundsDirectory.tsx`: búsqueda +
      filtros ámbito/instrumento/vigencia, filas expandibles con Gate 0 y link.
      Backend `ee72850`, frontend `179db65`.
-     Pendiente menor: CRUD de fondos para el gestor (hoy el catálogo se actualiza re-corriendo
-     el importador) y re-import periódico cuando Neo actualice la matriz.
+     ✅ CRUD para gestor+ (2026-07-16): agregar/editar/eliminar fondos inline en la
+     pestaña Fondos (backend `e8fbe33`, frontend `89ee7b4`). OJO: un re-import del seed
+     (`seed-funds.sql`) hace `DELETE FROM funds` y BORRARÍA los fondos agregados a mano —
+     si Neo manda matriz nueva, fusionar en vez de reemplazar. Pendiente menor: re-import
+     periódico cuando Neo actualice la matriz.
 5. ✅ **Simbiocreación Fase 5 — HECHA (2026-07-16)**: nodo tipo **"Institución"** en el
    grafo, vinculable a un actor real del Directorio (búsqueda sobre los 320; el nodo
    guarda `actorId`; badge "Directorio"; desvincular). Zod del backend acepta
