@@ -90,24 +90,20 @@ Actores vía `actorId`). El overlay muestra conteos reales (personas/institucion
 grafo guardado, antes fingía tags×2) y la pestaña de Búsquedas pasó de "Personas" a
 **"Actores"** (personas + instituciones, badges EYWA/Directorio).
 
-### 🟡 Dos fórmulas distintas de "puntaje"
-- Backend (`/ranking`): `nº simbiocreaciones × 10`
-- Frontend (StatCard local): `nº simbiocreaciones × 10 + nº grupos × 5`
+### ✅ Puntaje sintético ELIMINADO — RESUELTO (2026-07-16)
+Fuera el "puntaje" inventado (backend `total×10`, frontend `total×10+grupos×5`, que
+además diferían entre sí). Ahora TODO son **métricas reales y transparentes**:
+- Ranking: `total` simbiocreaciones · `publicas` · `actores` mapeados (nodos
+  persona/institución en los grafos). Ordena por total.
+- StatCard "Puntaje" → **"Actores Mapeados"** (conteo real de mis grafos).
+Si negocio define algún día una fórmula de impacto, se agrega ENCIMA de estas
+métricas, no reemplazándolas. Backend `562b072`, frontend `df3eb59`.
 
-El mismo usuario ve **dos puntajes diferentes** según la pantalla. Hay que unificar
-en cuanto se defina la fórmula real (abajo).
-
-### 🟡 El ranking usa un puntaje sintético
-`puntaje = nº de simbiocreaciones × 10`. No mide calidad, colaboración ni impacto:
-crear 10 simbiocreaciones vacías puntúa más que una con 50 participantes y 8 ODS.
-**Falta definir la fórmula real** con negocio (¿participantes? ¿ODS cubiertos?
-¿actividad reciente?). Hasta entonces el ranking premia el volumen.
-
-### 🟡 `/public` y `/ranking` exigen token
-Se llaman "públicos" pero están detrás de `authMiddleware` (responden 401 sin sesión).
-Sirven para la pestaña *Explora* dentro de la app, pero **no permiten compartir una
-simbiocreación hacia afuera**. Si se quiere compartir, hay que sacarlos del middleware
-y decidir qué campos se exponen sin sesión.
+### ✅ `/public` sin token — RESUELTO (2026-07-16); `/ranking` autenticado a propósito
+`GET /api/simbiocreacion/public` (lista para Explora) ya no exige sesión: solo devuelve
+simbiocreaciones NO privadas, el mismo contenido que el visor `/simbio/[id]`.
+**`/ranking` se queda AUTENTICADO deliberadamente**: expone nombres de usuarios y es un
+leaderboard interno de la comunidad — no es deuda, es decisión.
 
 ---
 
