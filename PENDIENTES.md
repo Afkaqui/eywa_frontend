@@ -501,9 +501,18 @@ dataroom → landing pública) con la caída por paso — el KPI interno más ac
 **Notificaciones**: 2 casos nuevos (sin diagnóstico teniendo organización; convocatoria
 que cierra en ≤15 días).
 
-⚠️ **El match de fondos por sector es APROXIMADO** a propósito: `funds.sectors` es texto
-libre del Excel de Neo y `organizations.sector` es lista fija. Si se quiere exacto, hay
-que normalizar los sectores de fondos al importar.
+✅ **El match de fondos ahora es EXACTO** (2026-07-18, backend `a5bfd0e`, frontend `d30ba8f`):
+taxonomía EYWA de **17 temas** (`lib/sector-tags.ts`), campo `funds.sector_tags`, los 146
+fondos etiquetados por clasificador (`scratchpad/tag_funds.py`) desde el texto libre — que
+se conserva en `sectors` para trazabilidad. Cada industria de empresa mapea a sus temas;
+los fondos `multisectorial` aplican a todos. UI: chips de tema (verde = coincide contigo),
+filtro por tema, banner "N fondos encajan con tu industria" y edición de temas en el CRUD.
+⚠️ **Gotcha encontrado:** `organizations.sector` admite **texto libre** y en prod había
+valores en español ("Energía Renovable") que no están en la lista inglesa `INDUSTRY_SECTORS`
+→ el match daba 0. Se resolvió con normalización (sin tildes/mayúsculas), alias en español
+y coincidencia parcial. **Si se agregan sectores nuevos, revisar `SPANISH_ALIASES`.**
+Pendiente menor: 14 de 146 fondos quedaron solo como "multisectorial" (la mayoría lo son de
+verdad); el gestor puede afinarlos desde la UI.
 
 **Sigue pendiente (necesita captura nueva, no cálculo):**
 - `InvestorPortfolio`: Valor Total y Carbono → requieren valorizaciones y emisiones.
