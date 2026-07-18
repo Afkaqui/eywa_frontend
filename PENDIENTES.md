@@ -253,7 +253,13 @@ y NAB Colombia (89 orgs, 5 campos). Son el catálogo de **instituciones** del ec
    categoría/sector, chips con conteo, cards, panel de detalle, PII gateada por rol.
    **Vive DENTRO de Portafolio** como pestaña "Directorio de Actores" (no es módulo de
    nav aparte; decisión del usuario 2026-07-13). `ActorsDirectory` acepta `embedded`.
-   Pendiente menor: **UI de CRUD admin** (crear/editar; el backend ya lo soporta).
+   ✅ **UI de CRUD admin — HECHA (2026-07-16, `b4a7b76`)**: botón "Agregar actor" en los
+   filtros + Editar/Eliminar en el detalle, visibles solo con `can_edit` (el backend
+   revalida el rol). Modal con todos los campos; sectores/instrumentos por coma (datalist
+   con los existentes); PII en bloque ámbar aparte con aviso; eliminar advierte que afecta
+   a TODOS los usuarios; nombre+país duplicado da mensaje claro (hay `@@unique`).
+   OJO: como en Fondos, re-correr `seed-actors.sql` es destructivo — si llega una fuente
+   actualizada, fusionar en vez de reemplazar para no perder lo agregado a mano.
 4. ✅ **HECHO (reformulada)** — Favoritos personales.
    **Decisiones del usuario (2026-07-14):** el directorio/portafolio es **GLOBAL y solo
    admin/gestor lo modifica**; los usuarios pueden marcar **favoritos** (lista personal).
