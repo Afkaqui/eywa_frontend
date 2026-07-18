@@ -9,8 +9,24 @@ interface HomePageProps {
   onGetStarted: () => void;
 }
 
+interface PublicStats {
+  organizations: number; diagnostics: number; actors: number;
+  funds: number; certificates: number; documents: number;
+}
+
 export function HomePage({ onGetStarted }: HomePageProps) {
   const [fogVisible, setFogVisible] = useState(true);
+
+  // Conteos REALES de la plataforma (2026-07-18). Antes eran tres métricas
+  // inventadas ("Ecosistemas conectados", "Puntos de datos/día", "Millones USD
+  // gestionados") que nadie podía calcular y mostraban "Pendiente".
+  const [stats, setStats] = useState<PublicStats | null>(null);
+  useEffect(() => {
+    fetch('/api/proxy/stats/public')
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (d && typeof d.actors === 'number') setStats(d); })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => setFogVisible(false), 300);
@@ -107,16 +123,16 @@ export function HomePage({ onGetStarted }: HomePageProps) {
             style={{ background: 'radial-gradient(ellipse at center, rgba(17,24,39,0.45) 0%, rgba(17,24,39,0.15) 70%, transparent 100%)' }}
           >
             {[
-              { label: 'Ecosistemas Conectados' },
-              { label: 'Puntos de Datos / Día' },
-              { label: 'Millones USD Gestionados' },
+              { value: stats ? String(stats.actors) : '—', label: 'Actores del Ecosistema' },
+              { value: stats ? String(stats.funds)  : '—', label: 'Oportunidades de Financiamiento' },
+              { value: '14',                               label: 'Criterios ESG · Metodología GENES' },
             ].map((stat, i) => (
               <div key={i} className="border-b border-white/25 pb-4 md:pb-6">
                 <div
-                  className="text-lg md:text-2xl font-medium text-white/70 mb-2"
+                  className="text-2xl md:text-4xl font-semibold text-white mb-2"
                   style={{ textShadow: '0 2px 14px rgba(0,0,0,0.95), 0 0 4px rgba(0,0,0,0.8)' }}
                 >
-                  Pendiente
+                  {stat.value}
                 </div>
                 <div
                   className="text-xs md:text-sm text-white uppercase tracking-wider"
