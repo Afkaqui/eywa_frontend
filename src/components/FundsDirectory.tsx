@@ -19,7 +19,7 @@ const TAG_LABELS: Record<string, string> = {
   finanzas: 'Finanzas e inclusión financiera', emprendimiento: 'Emprendimiento y MYPE',
   innovacion: 'Ciencia e innovación', genero: 'Género', inclusion: 'Inclusión social y derechos',
   gobernanza: 'Gobernanza y transparencia', movilidad: 'Turismo y movilidad',
-  multisectorial: 'Multisectorial',
+  cultura: 'Cultura y creatividad', multisectorial: 'Multisectorial',
 };
 const TAG_KEYS = Object.keys(TAG_LABELS);
 
