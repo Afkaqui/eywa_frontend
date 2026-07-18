@@ -514,10 +514,18 @@ y coincidencia parcial. **Si se agregan sectores nuevos, revisar `SPANISH_ALIASE
 Pendiente menor: 14 de 146 fondos quedaron solo como "multisectorial" (la mayoría lo son de
 verdad); el gestor puede afinarlos desde la UI.
 
+✅ **Landing — RESUELTO (2026-07-18, backend `eb169d8`, frontend `799f801`)**: fuera
+"Ecosistemas Conectados / Puntos de Datos por Día / Millones USD Gestionados" (los tres
+mostraban "Pendiente"). Ahora: **actores del ecosistema** y **oportunidades de
+financiamiento** desde `GET /api/stats/public` (endpoint público, solo conteos agregados,
+nunca nombres) + **14 criterios ESG · metodología GENES**. Si la API no responde muestra
+"—", nunca un número inventado.
+Nota de criterio: NO se muestran "empresas registradas" ni "diagnósticos realizados"
+porque con 2 y 1 restarían credibilidad. Cuando haya tracción, se cambian por esos
+(los datos ya están en el endpoint).
+
 **Sigue pendiente (necesita captura nueva, no cálculo):**
 - `InvestorPortfolio`: Valor Total y Carbono → requieren valorizaciones y emisiones.
-- `HomePage` (landing): se pueden reemplazar por conteos reales (empresas, diagnósticos,
-  320 actores, 146 fondos, certificados) — decisión de marketing, no técnica.
 - **Módulo de huella de carbono**: el único que desbloquearía "carbono capturado" de
   verdad. Es un módulo nuevo, no un KPI.
 
