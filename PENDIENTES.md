@@ -511,8 +511,17 @@ filtro por tema, banner "N fondos encajan con tu industria" y edición de temas 
 valores en español ("Energía Renovable") que no están en la lista inglesa `INDUSTRY_SECTORS`
 → el match daba 0. Se resolvió con normalización (sin tildes/mayúsculas), alias en español
 y coincidencia parcial. **Si se agregan sectores nuevos, revisar `SPANISH_ALIASES`.**
-Pendiente menor: 14 de 146 fondos quedaron solo como "multisectorial" (la mayoría lo son de
-verdad); el gestor puede afinarlos desde la UI.
+✅ **Clasificador v2 (2026-07-18, `c326b4f`)**: de **14 → 5** fondos sin tema específico, y
+esos 5 SÍ son transversales (uno dice literalmente "Multisectorial."). Tres correcciones:
+1. **Audiencia ≠ tema**: `eligible_profile` dice *quién puede postular*, no de qué trata el
+   fondo. Usarlo siempre metía ruido ("admite ONGs" → gobernanza). Ahora `sectors`+`name`
+   son la señal primaria y el perfil solo es **fallback** cuando no hay señal temática.
+2. **Falsos positivos por substring**: "agri**cultura**" activaba el tema cultura y
+   "mater**ia**" el de tecnología. Ahora las claves usan **límite de palabra** (con sufijo
+   libre a propósito: "climat" → climático). `tecnologia` bajó de 60 a 32 al quitar el ruido.
+3. Se quitó "creativ" de cultura ("Creative Destruction Lab" es una aceleradora tech) y
+   "agentes" de tecnología ("agentes de cambio" son personas).
++ Tema nuevo **`cultura`** (Cultura y creatividad). El gestor puede afinar desde la UI.
 
 ✅ **Landing — RESUELTO (2026-07-18, backend `eb169d8`, frontend `799f801`)**: fuera
 "Ecosistemas Conectados / Puntos de Datos por Día / Millones USD Gestionados" (los tres
