@@ -483,14 +483,34 @@ están listados explícitamente en `publicPaths`).
 
 ## 5. Datos y KPIs
 
-### 🟡 KPIs marcados como "Pendiente"
-Por decisión de producto, cuando un dato no está mapeado a la base de datos se muestra
-**"Pendiente"** en vez de inventar un número. Afecta a:
-- `HeroDashboard`: Carbono Capturado, Reducción Gap IMI, Próxima Auditoría, Proyectos Activos.
-- `InvestorPortfolio`: Valor Total y Carbono.
-- `HomePage` (landing): Ecosistemas, Puntos/día, USD gestionados.
+### ✅ KPIs reales — RESUELTO en el dashboard (2026-07-18)
+**Hallazgo:** los KPIs en "Pendiente" no esperaban conexión, esperaban **datos que nadie
+captura** (carbono, valorización USD, gap IMI, auditorías). Se decidió **jubilarlos y
+cambiar la pregunta**: medir lo que la plataforma sí sabe.
 
-Falta **definir el origen de cada métrica** antes de poder calcularlas.
+`HeroDashboard` ahora muestra (backend `9687dfd`, frontend `cb42f73`):
+- **Tu mayor brecha** (categoría GENES más baja + criterios en cero)
+- **Evolución del índice** (variación vs. la evaluación anterior)
+- **Dataroom completo** (%)
+- **Fondos por cerrar** (+ próximo a vencer)
+- Academia: cursos inscritos, **horas formativas reales** (`duration_hours`) y progreso.
+
+`GestorDashboard`: **embudo de activación** (registrados → organización → diagnóstico →
+dataroom → landing pública) con la caída por paso — el KPI interno más accionable.
+
+**Notificaciones**: 2 casos nuevos (sin diagnóstico teniendo organización; convocatoria
+que cierra en ≤15 días).
+
+⚠️ **El match de fondos por sector es APROXIMADO** a propósito: `funds.sectors` es texto
+libre del Excel de Neo y `organizations.sector` es lista fija. Si se quiere exacto, hay
+que normalizar los sectores de fondos al importar.
+
+**Sigue pendiente (necesita captura nueva, no cálculo):**
+- `InvestorPortfolio`: Valor Total y Carbono → requieren valorizaciones y emisiones.
+- `HomePage` (landing): se pueden reemplazar por conteos reales (empresas, diagnósticos,
+  320 actores, 146 fondos, certificados) — decisión de marketing, no técnica.
+- **Módulo de huella de carbono**: el único que desbloquearía "carbono capturado" de
+  verdad. Es un módulo nuevo, no un KPI.
 
 ### ✅ Diagnóstico ESG — MOTOR GENES CONSTRUIDO (2026-07-15)
 Motor ponderado GENES en producción: 4 categorías, 14 criterios, pesos suman 1.0,
