@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Database, Plus, Pencil, Trash2, X, Search, Loader2, BarChart3, FileText, FolderLock, ChevronLeft, Building2 } from 'lucide-react';
+import { Database, Plus, Pencil, Trash2, X, Search, Loader2, BarChart3, FileText, FolderLock, ChevronLeft, Building2, TrendingUp } from 'lucide-react';
+import { StatsRepository, type ActivationStep } from '@/lib/repositories/stats-repository';
 import { PortfolioRepository } from '@/lib/repositories/portfolio-repository';
 import { DiagnosticRepository } from '@/lib/repositories/diagnostic-repository';
 import { DataroomRepository } from '@/lib/repositories/dataroom-repository';
@@ -60,9 +61,62 @@ export function GestorDashboard() {
           </button>
         </div>
 
+        {/* Embudo de activación: dónde se caen los usuarios (KPI interno clave) */}
+        <ActivationFunnel />
+
         {activeTab === 'portfolio' && <PortfolioManager />}
         {activeTab === 'questions' && <QuestionsManager />}
         {activeTab === 'datarooms' && <GrantedDatarooms />}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════ EMBUDO DE ACTIVACIÓN ═══════════════════════ */
+// Registrados → organización → diagnóstico → dataroom → landing pública.
+// Muestra exactamente en qué paso se cae la gente.
+
+function ActivationFunnel() {
+  const repo = useMemo(() => new StatsRepository(), []);
+  const [data, setData] = useState<{ steps: ActivationStep[]; registered: number } | null>(null);
+
+  useEffect(() => { repo.activation().then(setData); }, [repo]);
+
+  if (!data || data.registered === 0) return null;
+
+  const STEP_COLOR = ['bg-gray-800', 'bg-emerald-600', 'bg-emerald-500', 'bg-teal-500', 'bg-sky-500'];
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
+      <div className="flex items-center gap-2 mb-1">
+        <TrendingUp className="w-4 h-4 text-gray-400" />
+        <h2 className="text-sm font-semibold text-gray-700">Embudo de activación</h2>
+      </div>
+      <p className="text-xs text-gray-500 mb-5">
+        Cuántos usuarios llegan a cada paso. La caída te dice dónde se atoran.
+      </p>
+
+      <div className="space-y-3">
+        {data.steps.map((s, i) => (
+          <div key={s.key}>
+            <div className="flex items-center justify-between mb-1 text-sm">
+              <span className="text-gray-700">{s.label}</span>
+              <div className="flex items-center gap-3">
+                {s.drop_from_previous > 0 && (
+                  <span className="text-xs text-rose-500">−{s.drop_from_previous}</span>
+                )}
+                <span className="font-semibold text-gray-900">{s.value}</span>
+                <span className="text-xs text-gray-400 w-10 text-right">{s.percentage}%</span>
+              </div>
+            </div>
+            <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-700 ${STEP_COLOR[i] ?? 'bg-emerald-500'}`}
+                style={{ width: `${Math.max(s.percentage, s.value > 0 ? 3 : 0)}%` }}
+              />
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

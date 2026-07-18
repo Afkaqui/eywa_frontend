@@ -1,9 +1,11 @@
 "use client";
 
-import { TrendingUp, Activity, Calendar, Award, ArrowRight, User, Mail, Briefcase, Crown, Sparkles, Stethoscope } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { TrendingUp, TrendingDown, Activity, Landmark, Award, ArrowRight, User, Mail, Briefcase, Crown, Sparkles, Stethoscope, FolderLock, AlertCircle } from 'lucide-react';
 import { ProfessionalTrustGauge } from './ProfessionalTrustGauge';
 import { useAuth } from '@/contexts/AuthContext';
 import { calculatePercentage, getScoreLevel, getSealLabel } from '@/lib/constants/scoring';
+import { StatsRepository, type UserStats } from '@/lib/repositories/stats-repository';
 import type { DiagnosticResult } from '@/lib/types/database';
 
 const logo = "/logo.png";
@@ -17,6 +19,13 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic }: HeroDashb
   const { profile } = useAuth();
   const accountPlan = profile?.plan || 'free';
   const userEmail = profile?.email || '';
+
+  // KPIs REALES (2026-07-18). Antes había 4 tarjetas "Pendiente" esperando datos
+  // que nadie captura (carbono, gap IMI, auditorías). Ahora se muestra lo que la
+  // plataforma sí sabe; si algo no aplica todavía, se dice explícitamente.
+  const statsRepo = useMemo(() => new StatsRepository(), []);
+  const [stats, setStats] = useState<UserStats | null>(null);
+  useEffect(() => { statsRepo.me().then(setStats); }, [statsRepo]);
 
   const hasScore = diagnosticResult !== null && diagnosticResult !== undefined;
   const score = hasScore ? calculatePercentage(diagnosticResult.score, diagnosticResult.maxScore) : 0;
@@ -184,53 +193,65 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic }: HeroDashb
 
         {/* Data Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
-          {/* Card 1: Carbon Impact */}
-          <div className="bg-white/70 backdrop-blur-xl border border-gray-200/50 rounded-xl shadow-lg p-4 md:p-6">
-            <div className="flex items-start justify-between mb-3 md:mb-4">
-              <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
-                <Activity className="w-5 h-5 text-emerald-600" />
-              </div>
-            </div>
-            <div className="text-xs md:text-sm text-gray-500 uppercase tracking-wider mb-2">Carbono Capturado</div>
-            <div className="text-base md:text-lg font-semibold text-gray-400 mb-1">Pendiente</div>
-            <div className="text-xs text-gray-400">En cálculo · requiere datos ESG</div>
-          </div>
+          {/* KPI 1: mayor brecha ESG (la categoría GENES más baja) */}
+          <KpiCard
+            icon={AlertCircle}
+            iconBg="bg-amber-50"
+            iconColor="text-amber-600"
+            label="Tu mayor brecha"
+            value={stats?.esg?.weakest ? stats.esg.weakest.label : '—'}
+            hint={
+              stats?.esg?.weakest
+                ? `${stats.esg.weakest.avg.toFixed(1)} / 5 · ${stats.esg.zero_criteria} criterio${stats.esg.zero_criteria === 1 ? '' : 's'} en cero`
+                : 'Haz tu diagnóstico para identificarla'
+            }
+          />
 
-          {/* Card 2: IMI Gap */}
-          <div className="bg-white/70 backdrop-blur-xl border border-gray-200/50 rounded-xl shadow-lg p-4 md:p-6">
-            <div className="flex items-start justify-between mb-3 md:mb-4">
-              <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-blue-600" />
-              </div>
-            </div>
-            <div className="text-xs md:text-sm text-gray-500 uppercase tracking-wider mb-2">Reducción Gap IMI</div>
-            <div className="text-base md:text-lg font-semibold text-gray-400 mb-1">Pendiente</div>
-            <div className="text-xs text-gray-400">En cálculo · requiere diagnósticos</div>
-          </div>
+          {/* KPI 2: evolución del índice vs. la evaluación anterior */}
+          <KpiCard
+            icon={stats?.esg?.delta != null && stats.esg.delta < 0 ? TrendingDown : TrendingUp}
+            iconBg="bg-blue-50"
+            iconColor={stats?.esg?.delta != null && stats.esg.delta < 0 ? 'text-rose-600' : 'text-blue-600'}
+            label="Evolución del índice"
+            value={
+              stats?.esg?.delta != null
+                ? `${stats.esg.delta >= 0 ? '+' : ''}${stats.esg.delta.toFixed(2)}`
+                : stats?.esg ? 'Primera medición' : '—'
+            }
+            hint={
+              stats?.esg?.delta != null
+                ? 'puntos vs. tu evaluación anterior'
+                : stats?.esg ? 'Rehaz el diagnóstico para comparar' : 'Sin diagnóstico aún'
+            }
+          />
 
-          {/* Card 3: Next Audit */}
-          <div className="bg-white/70 backdrop-blur-xl border border-gray-200/50 rounded-xl shadow-lg p-4 md:p-6">
-            <div className="flex items-start justify-between mb-3 md:mb-4">
-              <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-purple-600" />
-              </div>
-            </div>
-            <div className="text-xs md:text-sm text-gray-500 uppercase tracking-wider mb-2">Próxima Auditoría</div>
-            <div className="text-base md:text-lg font-semibold text-gray-400 mb-1">Por programar</div>
-            <div className="text-xs text-gray-400">Sin auditorías registradas</div>
-          </div>
+          {/* KPI 3: dataroom */}
+          <KpiCard
+            icon={FolderLock}
+            iconBg="bg-purple-50"
+            iconColor="text-purple-600"
+            label="Dataroom completo"
+            value={stats?.dataroom ? `${stats.dataroom.percentage}%` : '—'}
+            hint={
+              stats?.dataroom
+                ? `${stats.dataroom.completed} de ${stats.dataroom.total} documentos`
+                : 'Crea tu organización para habilitarlo'
+            }
+          />
 
-          {/* Card 4: Active Projects */}
-          <div className="bg-white/70 backdrop-blur-xl border border-gray-200/50 rounded-xl shadow-lg p-4 md:p-6">
-            <div className="flex items-start justify-between mb-3 md:mb-4">
-              <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
-                <Award className="w-5 h-5 text-amber-600" />
-              </div>
-            </div>
-            <div className="text-xs md:text-sm text-gray-500 uppercase tracking-wider mb-2">Proyectos Activos</div>
-            <div className="text-base md:text-lg font-semibold text-gray-400 mb-1">Pendiente</div>
-            <div className="text-xs text-gray-400">Requiere proyectos registrados</div>
-          </div>
+          {/* KPI 4: fondos que cierran pronto */}
+          <KpiCard
+            icon={Landmark}
+            iconBg="bg-emerald-50"
+            iconColor="text-emerald-600"
+            label="Fondos por cerrar"
+            value={stats ? String(stats.funds.closing_soon) : '—'}
+            hint={
+              stats?.funds.next_closing
+                ? `Próximo: ${stats.funds.next_closing.name.slice(0, 28)}${stats.funds.next_closing.name.length > 28 ? '…' : ''}`
+                : stats ? `${stats.funds.open_total} convocatorias vigentes` : 'Cargando…'
+            }
+          />
         </div>
 
         {/* Edutech Program Highlight */}
@@ -253,15 +274,21 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic }: HeroDashb
                 </p>
                 <div className="grid grid-cols-3 gap-3 md:gap-4">
                   <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 md:p-4 border border-blue-200/30">
-                    <div className="text-sm md:text-base font-semibold text-gray-400 mb-1">Pendiente</div>
-                    <div className="text-xs text-gray-600 uppercase tracking-wider">Cursos Activos</div>
+                    <div className="text-sm md:text-base font-semibold text-gray-900 mb-1">
+                      {stats ? stats.academy.enrolled : '—'}
+                    </div>
+                    <div className="text-xs text-gray-600 uppercase tracking-wider">Cursos Inscritos</div>
                   </div>
                   <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 md:p-4 border border-blue-200/30">
-                    <div className="text-sm md:text-base font-semibold text-gray-400 mb-1">Pendiente</div>
+                    <div className="text-sm md:text-base font-semibold text-gray-900 mb-1">
+                      {stats ? `${stats.academy.hours} h` : '—'}
+                    </div>
                     <div className="text-xs text-gray-600 uppercase tracking-wider">Horas Formativas</div>
                   </div>
                   <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 md:p-4 border border-blue-200/30">
-                    <div className="text-sm md:text-base font-semibold text-gray-400 mb-1">Pendiente</div>
+                    <div className="text-sm md:text-base font-semibold text-gray-900 mb-1">
+                      {stats ? `${stats.academy.avg_progress}%` : '—'}
+                    </div>
                     <div className="text-xs text-gray-600 uppercase tracking-wider">Progreso Promedio</div>
                   </div>
                 </div>
@@ -323,6 +350,28 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic }: HeroDashb
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+// Tarjeta de KPI del dashboard. Si el dato aún no aplica, el `hint` explica por qué
+// en vez de mostrar un "Pendiente" mudo.
+function KpiCard({ icon: Icon, iconBg, iconColor, label, value, hint }: {
+  icon: typeof Activity; iconBg: string; iconColor: string;
+  label: string; value: string; hint: string;
+}) {
+  const empty = value === '—';
+  return (
+    <div className="bg-white/70 backdrop-blur-xl border border-gray-200/50 rounded-xl shadow-lg p-4 md:p-6">
+      <div className="flex items-start justify-between mb-3 md:mb-4">
+        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${iconBg}`}>
+          <Icon className={`w-5 h-5 ${iconColor}`} />
+        </div>
+      </div>
+      <div className="text-xs md:text-sm text-gray-500 uppercase tracking-wider mb-2">{label}</div>
+      <div className={`text-base md:text-lg font-semibold mb-1 ${empty ? 'text-gray-400' : 'text-gray-900'}`}>
+        {value}
+      </div>
+      <div className="text-xs text-gray-400">{hint}</div>
     </div>
   );
 }
