@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Leaf, Loader2, TrendingUp, ArrowRight, Info } from 'lucide-react';
-import { DiagnosticRepository, type DiagnosticResultRow } from '@/lib/repositories/diagnostic-repository';
+import { Leaf, Loader2, TrendingUp, ArrowRight, Info, History } from 'lucide-react';
+import {
+  DiagnosticRepository,
+  type DiagnosticResultRow, type DiagnosticHistoryEntry,
+} from '@/lib/repositories/diagnostic-repository';
 import {
   GENES_SCALE,
   GENES_MAX_POINTS,
@@ -57,12 +60,13 @@ function categoryScores(breakdown: DiagnosticResultRow['breakdown']): CategorySc
 export function EsgIndexPanel({ onNavigate }: Props) {
   const [loading, setLoading] = useState(true);
   const [result, setResult] = useState<DiagnosticResultRow | null>(null);
+  const [history, setHistory] = useState<DiagnosticHistoryEntry[]>([]);
 
   useEffect(() => {
     let alive = true;
     const repo = new DiagnosticRepository();
-    repo.getLatestResult()
-      .then((r) => { if (alive) setResult(r); })
+    Promise.all([repo.getLatestResult(), repo.getHistory()])
+      .then(([r, h]) => { if (alive) { setResult(r); setHistory(h); } })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
   }, []);
@@ -177,6 +181,9 @@ export function EsgIndexPanel({ onNavigate }: Props) {
         </div>
       </div>
 
+      {/* Evolución del índice (solo con 2+ evaluaciones: con una no hay tendencia) */}
+      {history.length > 1 && <EsgHistoryChart history={history} />}
+
       {/* Nota + CTA para actualizar */}
       <div className="flex items-start gap-3 bg-emerald-50/70 border border-emerald-100 rounded-xl p-4">
         <Info className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
@@ -189,6 +196,72 @@ export function EsgIndexPanel({ onNavigate }: Props) {
             Rehacer diagnóstico
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Evolución del índice ESG en el tiempo ─────────────────────────────────────
+// Sustituye al viejo "Historial" del panel manual: aquí la serie es REAL — un
+// punto por cada diagnóstico GENES realizado. SVG propio (sin librerías).
+function EsgHistoryChart({ history }: { history: DiagnosticHistoryEntry[] }) {
+  const W = 600, H = 160, PAD = 28;
+  const pts = history.map((h, i) => {
+    const x = PAD + (i / Math.max(history.length - 1, 1)) * (W - PAD * 2);
+    const idx5 = (h.score / GENES_SCALE) * GENES_MAX_POINTS; // 0-5
+    const y = H - PAD - (idx5 / GENES_MAX_POINTS) * (H - PAD * 2);
+    return { x, y, h, idx5 };
+  });
+  const line = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+  const area = `${line} L ${pts[pts.length - 1].x.toFixed(1)} ${H - PAD} L ${pts[0].x.toFixed(1)} ${H - PAD} Z`;
+
+  const first = pts[0].idx5;
+  const last = pts[pts.length - 1].idx5;
+  const delta = last - first;
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-2xl p-6">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <History className="w-4 h-4 text-gray-400" />
+          <h3 className="text-sm font-semibold text-gray-700">Evolución de tu índice</h3>
+        </div>
+        <div className="text-xs">
+          <span className="text-gray-400">{history.length} evaluaciones · </span>
+          <span className={delta > 0 ? 'text-emerald-600 font-semibold' : delta < 0 ? 'text-rose-600 font-semibold' : 'text-gray-500'}>
+            {delta > 0 ? '▲' : delta < 0 ? '▼' : '='} {Math.abs(delta).toFixed(2)} puntos desde la primera
+          </span>
+        </div>
+      </div>
+
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: 180 }}>
+        {/* Guías horizontales (0 a 5) */}
+        {[0, 1, 2, 3, 4, 5].map((v) => {
+          const y = H - PAD - (v / GENES_MAX_POINTS) * (H - PAD * 2);
+          return (
+            <g key={v}>
+              <line x1={PAD} y1={y} x2={W - PAD} y2={y} stroke="#f3f4f6" strokeWidth="1" />
+              <text x={PAD - 6} y={y + 3} textAnchor="end" fontSize="9" fill="#9ca3af">{v}</text>
+            </g>
+          );
+        })}
+
+        <path d={area} fill="#10b981" fillOpacity="0.08" />
+        <path d={line} fill="none" stroke="#10b981" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+
+        {pts.map((p, i) => (
+          <g key={p.h.id}>
+            <circle cx={p.x} cy={p.y} r={i === pts.length - 1 ? 5 : 3.5} fill="#fff" stroke="#059669" strokeWidth="2" />
+            <title>
+              {`${new Date(p.h.created_at).toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' })} · ${p.idx5.toFixed(2)}/5 · ${p.h.level}`}
+            </title>
+          </g>
+        ))}
+      </svg>
+
+      <div className="flex justify-between text-[10px] text-gray-400 px-6">
+        <span>{new Date(history[0].created_at).toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: '2-digit' })}</span>
+        <span>{new Date(history[history.length - 1].created_at).toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: '2-digit' })}</span>
       </div>
     </div>
   );

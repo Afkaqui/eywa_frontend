@@ -1,5 +1,14 @@
 import type { DiagnosticQuestion, DiagnosticOption, DiagnosticResult } from '@/lib/types/database';
 
+export interface DiagnosticHistoryEntry {
+  id: string;
+  score: number;      // escala GENES 0-75
+  max_score: number;
+  percentage: number;
+  level: string;      // banda GENES
+  created_at: string;
+}
+
 export interface DiagnosticResultRow {
   id: string;
   user_id: string;
@@ -99,6 +108,18 @@ export class DiagnosticRepository {
       };
     } catch {
       return null;
+    }
+  }
+
+  // Serie histórica del índice ESG (todos los diagnósticos del usuario, antiguos primero)
+  async getHistory(): Promise<DiagnosticHistoryEntry[]> {
+    try {
+      const data = await apiFetch<{ history: DiagnosticHistoryEntry[] }>(
+        '/api/proxy/diagnostic/results/history'
+      );
+      return Array.isArray(data?.history) ? data.history : [];
+    } catch {
+      return [];
     }
   }
 
