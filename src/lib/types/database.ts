@@ -92,7 +92,8 @@ export interface Fund {
   name: string;
   instrument_type: string;
   eligible_profile: string | null;
-  sectors: string | null;
+  sectors: string | null;        // texto libre original (matriz Neo)
+  sector_tags: string[];         // taxonomía EYWA — base del match exacto
   amounts: string | null;
   deadline: string | null;      // ISO si el cierre es fecha concreta
   deadline_text: string | null; // "Por convocatoria", "Abierto", "Ventanilla…"

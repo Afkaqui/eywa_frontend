@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Search, Loader2, Landmark, ExternalLink, ChevronDown, ChevronUp,
-  Lock, CalendarClock, Globe2, MapPin, Plus, Pencil, Trash2, X,
+  Lock, CalendarClock, Globe2, MapPin, Plus, Pencil, Trash2, X, Target,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Fund } from '@/lib/types/database';
@@ -11,9 +11,21 @@ import type { Fund } from '@/lib/types/database';
 // Catálogo de Fondos (matriz Neo) — solo Premium o gestor+.
 // Los free ven un teaser honesto con los conteos reales (GET /summary).
 
+// Etiquetas temáticas (taxonomía EYWA). Espejo de lib/sector-tags.ts del backend.
+const TAG_LABELS: Record<string, string> = {
+  clima: 'Clima y carbono', ambiente: 'Medio ambiente y biodiversidad', agua: 'Agua y océanos',
+  agro: 'Agro y alimentación', energia: 'Energía', circular: 'Economía circular',
+  salud: 'Salud', educacion: 'Educación', tecnologia: 'Tecnología e IA',
+  finanzas: 'Finanzas e inclusión financiera', emprendimiento: 'Emprendimiento y MYPE',
+  innovacion: 'Ciencia e innovación', genero: 'Género', inclusion: 'Inclusión social y derechos',
+  gobernanza: 'Gobernanza y transparencia', movilidad: 'Turismo y movilidad',
+  multisectorial: 'Multisectorial',
+};
+const TAG_KEYS = Object.keys(TAG_LABELS);
+
 type State =
   | { status: 'loading' }
-  | { status: 'ok'; funds: Fund[] }
+  | { status: 'ok'; funds: Fund[]; myTags: string[]; mySector: string | null }
   | { status: 'forbidden'; total: number; nacionales: number; internacionales: number }
   | { status: 'error' };
 
@@ -34,6 +46,8 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
   const [search, setSearch] = useState('');
   const [scope, setScope] = useState<'todos' | 'nacional' | 'internacional'>('todos');
   const [tipo, setTipo] = useState('todos');
+  const [tag, setTag] = useState('todos');
+  const [onlyMine, setOnlyMine] = useState(false); // solo los que encajan con mi sector
   const [hideClosed, setHideClosed] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
 
@@ -60,7 +74,12 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
       }
       if (!res.ok) throw new Error();
       const data = await res.json();
-      setState({ status: 'ok', funds: Array.isArray(data?.funds) ? data.funds : [] });
+      setState({
+        status: 'ok',
+        funds:  Array.isArray(data?.funds) ? data.funds : [],
+        myTags: Array.isArray(data?.my_tags) ? data.my_tags : [],
+        mySector: data?.my_sector ?? null,
+      });
     } catch {
       setState({ status: 'error' });
     }
@@ -87,22 +106,32 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
     return Array.from(new Set(state.funds.map(f => f.instrument_type))).sort();
   }, [state]);
 
+  // ¿Este fondo encaja con mi industria? (match exacto por etiquetas;
+  // los multisectoriales aplican a todos)
+  const matchesMe = useCallback((f: Fund, myTags: string[]) => {
+    if (!myTags.length) return false;
+    return (f.sector_tags ?? []).some(t => myTags.includes(t) || t === 'multisectorial');
+  }, []);
+
   const filtered = useMemo(() => {
     if (state.status !== 'ok') return [];
     const q = search.toLowerCase();
     return state.funds.filter(f => {
       if (scope !== 'todos' && f.scope !== scope) return false;
       if (tipo !== 'todos' && f.instrument_type !== tipo) return false;
+      if (tag !== 'todos' && !(f.sector_tags ?? []).includes(tag)) return false;
+      if (onlyMine && !matchesMe(f, state.myTags)) return false;
       if (hideClosed && fmtDeadline(f).closed) return false;
       if (q && !(
         f.name.toLowerCase().includes(q) ||
         (f.sectors ?? '').toLowerCase().includes(q) ||
+        (f.sector_tags ?? []).some(t => (TAG_LABELS[t] ?? t).toLowerCase().includes(q)) ||
         (f.eligible_profile ?? '').toLowerCase().includes(q) ||
         f.instrument_type.toLowerCase().includes(q)
       )) return false;
       return true;
     });
-  }, [state, search, scope, tipo, hideClosed]);
+  }, [state, search, scope, tipo, tag, onlyMine, hideClosed, matchesMe]);
 
   if (state.status === 'loading') {
     return (
@@ -169,6 +198,15 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
           <option value="todos">Instrumento: todos</option>
           {tipos.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
+        <select
+          value={tag}
+          onChange={(e) => setTag(e.target.value)}
+          className="px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        >
+          <option value="todos">Tema: todos</option>
+          {TAG_KEYS.filter(k => state.funds.some(f => (f.sector_tags ?? []).includes(k)))
+            .map(k => <option key={k} value={k}>{TAG_LABELS[k]}</option>)}
+        </select>
         <label className="flex items-center gap-2 text-sm text-gray-600 px-2 cursor-pointer select-none">
           <input
             type="checkbox"
@@ -188,6 +226,30 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
           </button>
         )}
       </div>
+
+      {/* Match con mi industria (solo si la organización tiene sector definido) */}
+      {state.myTags.length > 0 && (
+        <button
+          onClick={() => setOnlyMine(v => !v)}
+          className={`w-full mb-4 flex items-center gap-2.5 px-4 py-2.5 rounded-xl border text-sm transition-colors text-left ${
+            onlyMine
+              ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+              : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+          }`}
+        >
+          <Target className={`w-4 h-4 flex-shrink-0 ${onlyMine ? 'text-emerald-600' : 'text-gray-400'}`} />
+          <span className="flex-1">
+            <strong>{state.funds.filter(f => matchesMe(f, state.myTags)).length}</strong> fondos
+            encajan con tu industria{state.mySector ? ` (${state.mySector})` : ''}
+            <span className="text-xs text-gray-400 ml-1.5">
+              · temas: {state.myTags.map(t => TAG_LABELS[t] ?? t).join(', ')}
+            </span>
+          </span>
+          <span className={`text-xs font-semibold ${onlyMine ? 'text-emerald-700' : 'text-gray-400'}`}>
+            {onlyMine ? 'Mostrando solo estos' : 'Ver solo estos'}
+          </span>
+        </button>
+      )}
 
       <div className="text-xs text-gray-400 mb-3">
         {filtered.length} de {state.funds.length} fondos
@@ -225,8 +287,24 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
                       </span>
                     )}
                   </div>
-                  <div className="text-xs text-gray-500 truncate mt-0.5">
-                    {f.sectors || 'Sectores no especificados'}
+                  <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                    {(f.sector_tags ?? []).map(t => {
+                      const mine = state.myTags.includes(t) || t === 'multisectorial' && state.myTags.length > 0;
+                      return (
+                        <span
+                          key={t}
+                          title={mine ? 'Coincide con tu industria' : undefined}
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                            mine ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'
+                          }`}
+                        >
+                          {TAG_LABELS[t] ?? t}
+                        </span>
+                      );
+                    })}
+                    {(f.sector_tags ?? []).length === 0 && (
+                      <span className="text-xs text-gray-400 truncate">{f.sectors || 'Sin tema'}</span>
+                    )}
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0 hidden sm:block">
@@ -241,6 +319,10 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
 
               {isOpen && (
                 <div className="px-4 pb-4 pt-1 border-t border-gray-100 bg-gray-50/50 text-sm space-y-2">
+                  {f.sectors && (
+                    <p><span className="font-medium text-gray-700">Sectores (fuente):</span>{' '}
+                      <span className="text-gray-600">{f.sectors}</span></p>
+                  )}
                   {f.eligible_profile && (
                     <p><span className="font-medium text-gray-700">Perfil elegible:</span>{' '}
                       <span className="text-gray-600">{f.eligible_profile}</span></p>
@@ -319,6 +401,7 @@ function FundFormModal({ fund, existingTypes, onClose, onSaved }: {
     instrument_type:  fund?.instrument_type ?? '',
     eligible_profile: fund?.eligible_profile ?? '',
     sectors:          fund?.sectors ?? '',
+    sector_tags:      (fund?.sector_tags ?? []) as string[],
     amounts:          fund?.amounts ?? '',
     deadline:         fund?.deadline ? fund.deadline.slice(0, 10) : '',
     deadline_text:    fund?.deadline_text ?? '',
@@ -345,6 +428,7 @@ function FundFormModal({ fund, existingTypes, onClose, onSaved }: {
         instrument_type:  form.instrument_type,
         eligible_profile: form.eligible_profile || null,
         sectors:          form.sectors || null,
+        sector_tags:      form.sector_tags,
         amounts:          form.amounts || null,
         deadline:         form.deadline || null,
         deadline_text:    form.deadline_text || null,
@@ -431,6 +515,35 @@ function FundFormModal({ fund, existingTypes, onClose, onSaved }: {
               <label className={labelCls}>Cierre (texto, si no hay fecha)</label>
               <input value={form.deadline_text} onChange={e => set('deadline_text', e.target.value)} placeholder="Por convocatoria, Abierto…" className={inputCls} disabled={Boolean(form.deadline)} />
               {form.deadline && <p className="text-[10px] text-gray-400 mt-1">Se usa la fecha; borra la fecha para usar texto.</p>}
+            </div>
+          </div>
+
+          {/* Etiquetas temáticas: son la base del match con las empresas */}
+          <div>
+            <label className={labelCls}>
+              Temas <span className="font-normal text-gray-400">— con esto se hace el match con las empresas</span>
+            </label>
+            <div className="flex flex-wrap gap-1.5 mt-1">
+              {TAG_KEYS.map(k => {
+                const active = form.sector_tags.includes(k);
+                return (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setForm(p => ({
+                      ...p,
+                      sector_tags: active ? p.sector_tags.filter(t => t !== k) : [...p.sector_tags, k],
+                    }))}
+                    className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                      active
+                        ? 'bg-emerald-600 text-white border-emerald-600'
+                        : 'bg-white text-gray-600 border-gray-300 hover:border-emerald-400'
+                    }`}
+                  >
+                    {TAG_LABELS[k]}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
