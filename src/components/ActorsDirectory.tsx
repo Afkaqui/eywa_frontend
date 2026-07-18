@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { ActorRepository, type Actor, type ActorCategory } from '@/lib/repositories/actor-repository';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import {
+  ActorRepository, type Actor, type ActorCategory, type ActorWritePayload,
+} from '@/lib/repositories/actor-repository';
 import {
   Search, Filter, Globe, Building2, Landmark, Users2, Sprout, Banknote,
   MapPin, Link2, Mail, User, X, Loader2, Network, Tag, Layers, Star,
+  Plus, Pencil, Trash2,
 } from 'lucide-react';
 
 const CATEGORY_CONFIG: Record<ActorCategory, { label: string; icon: typeof Building2; color: string; bg: string; dot: string }> = {
@@ -22,6 +25,8 @@ const actorRepo = new ActorRepository();
 export function ActorsDirectory({ embedded = false }: { embedded?: boolean } = {}) {
   const [actors, setActors] = useState<Actor[]>([]);
   const [canSeeContact, setCanSeeContact] = useState(false);
+  const [canEdit, setCanEdit] = useState(false); // directorio global: solo gestor/admin
+  const [editing, setEditing] = useState<Actor | 'new' | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,22 +51,32 @@ export function ActorsDirectory({ embedded = false }: { embedded?: boolean } = {
     }
   };
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await actorRepo.list({ take: 500 });
-        if (cancelled) return;
-        setActors(res.actors);
-        setCanSeeContact(res.can_see_contact);
-      } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Error al cargar actores');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
+  const load = useCallback(async () => {
+    try {
+      const res = await actorRepo.list({ take: 500 });
+      setActors(res.actors);
+      setCanSeeContact(res.can_see_contact);
+      setCanEdit(res.can_edit);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al cargar actores');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  // Eliminar del directorio GLOBAL (solo gestor/admin)
+  const handleDelete = async (actor: Actor) => {
+    if (!confirm(`¿Eliminar "${actor.name}" del directorio global?\n\nEsto lo quita para TODOS los usuarios.`)) return;
+    try {
+      await actorRepo.remove(actor.id);
+      setSelected(null);
+      await load();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'No se pudo eliminar');
+    }
+  };
 
   // Facetas derivadas de los datos cargados
   const sectors = useMemo(() => {
@@ -175,6 +190,15 @@ export function ActorsDirectory({ embedded = false }: { embedded?: boolean } = {
             <Star className={`w-4 h-4 ${onlyFavorites ? 'fill-amber-400 text-amber-500' : ''}`} />
             Favoritos <span className="text-gray-400">{favCount}</span>
           </button>
+          {canEdit && (
+            <button
+              onClick={() => setEditing('new')}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Agregar actor
+            </button>
+          )}
         </div>
 
         {/* Resultados */}
@@ -260,16 +284,229 @@ export function ActorsDirectory({ embedded = false }: { embedded?: boolean } = {
         <ActorDetail
           actor={selected}
           canSeeContact={canSeeContact}
+          canEdit={canEdit}
           onToggleFavorite={() => toggleFavorite(selected)}
+          onEdit={() => setEditing(selected)}
+          onDelete={() => handleDelete(selected)}
           onClose={() => setSelected(null)}
+        />
+      )}
+
+      {editing && (
+        <ActorFormModal
+          actor={editing === 'new' ? null : editing}
+          knownSectors={sectors}
+          onClose={() => setEditing(null)}
+          onSaved={async () => { setEditing(null); setSelected(null); await load(); }}
         />
       )}
     </div>
   );
 }
 
-function ActorDetail({ actor, canSeeContact, onToggleFavorite, onClose }: {
-  actor: Actor; canSeeContact: boolean; onToggleFavorite: () => void; onClose: () => void;
+// ── Modal de crear/editar actor del directorio global (gestor+) ───────────────
+function ActorFormModal({ actor, knownSectors, onClose, onSaved }: {
+  actor: Actor | null;
+  knownSectors: string[];
+  onClose: () => void;
+  onSaved: () => Promise<void>;
+}) {
+  const [form, setForm] = useState({
+    name:             actor?.name ?? '',
+    country:          actor?.country ?? 'PE',
+    category:         (actor?.category ?? 'proveedores_capital') as ActorCategory,
+    subcategory:      actor?.subcategory ?? '',
+    description:      actor?.description ?? '',
+    services:         actor?.services ?? '',
+    procedencia:      actor?.procedencia ?? '',
+    geoScope:         actor?.geo_scope ?? '',
+    instruments:      (actor?.instruments ?? []).join(', '),
+    sectors:          (actor?.sectors ?? []).join(', '),
+    aum:              actor?.aum ?? '',
+    investmentAmount: actor?.investment_amount ?? '',
+    website:          actor?.website ?? '',
+    contactName:      actor?.contact_name ?? '',
+    contactEmail:     actor?.contact_email ?? '',
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const set = (k: keyof typeof form, v: string) => setForm(p => ({ ...p, [k]: v }));
+  const inputCls = 'w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500';
+  const labelCls = 'block text-xs font-semibold text-gray-600 mb-1';
+
+  // "a, b, c" → ['a','b','c'] (sin vacíos ni duplicados)
+  const toList = (s: string) => [...new Set(s.split(',').map(x => x.trim()).filter(Boolean))];
+
+  const save = async () => {
+    if (!form.name.trim()) { setError('El nombre es obligatorio'); return; }
+    if (form.contactEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.contactEmail.trim())) {
+      setError('El correo de contacto no es válido'); return;
+    }
+    setSaving(true); setError(null);
+    try {
+      const payload: ActorWritePayload = {
+        name:             form.name.trim(),
+        country:          form.country,
+        category:         form.category,
+        subcategory:      form.subcategory.trim() || null,
+        description:      form.description.trim() || null,
+        services:         form.services.trim() || null,
+        procedencia:      form.procedencia.trim() || null,
+        geoScope:         form.geoScope.trim() || null,
+        instruments:      toList(form.instruments),
+        sectors:          toList(form.sectors),
+        aum:              form.aum.trim() || null,
+        investmentAmount: form.investmentAmount.trim() || null,
+        website:          form.website.trim() || null,
+        contactName:      form.contactName.trim() || null,
+        contactEmail:     form.contactEmail.trim() || null,
+      };
+      if (actor) await actorRepo.update(actor.id, payload);
+      else       await actorRepo.create(payload);
+      await onSaved();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'No se pudo guardar';
+      // El backend tiene @@unique([name, country])
+      setError(/unique|duplicad/i.test(msg) ? 'Ya existe un actor con ese nombre en ese país' : msg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">
+              {actor ? 'Editar actor' : 'Agregar actor al directorio'}
+            </h2>
+            <p className="text-xs text-gray-500">Este directorio es global: el cambio lo verán todos los usuarios.</p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center">
+            <X className="w-4 h-4 text-gray-500" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-4">
+          <div>
+            <label className={labelCls}>Nombre *</label>
+            <input value={form.name} onChange={e => set('name', e.target.value)} className={inputCls} />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>País *</label>
+              <select value={form.country} onChange={e => set('country', e.target.value)} className={inputCls}>
+                <option value="PE">🇵🇪 Perú</option>
+                <option value="CO">🇨🇴 Colombia</option>
+              </select>
+            </div>
+            <div>
+              <label className={labelCls}>Categoría *</label>
+              <select value={form.category} onChange={e => set('category', e.target.value)} className={inputCls}>
+                {(Object.keys(CATEGORY_CONFIG) as ActorCategory[]).map(c => (
+                  <option key={c} value={c}>{CATEGORY_CONFIG[c].label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>Subcategoría (fuente original)</label>
+              <input value={form.subcategory} onChange={e => set('subcategory', e.target.value)} className={inputCls} />
+            </div>
+            <div>
+              <label className={labelCls}>Sitio web</label>
+              <input value={form.website} onChange={e => set('website', e.target.value)} placeholder="https://…" className={inputCls} />
+            </div>
+          </div>
+
+          <div>
+            <label className={labelCls}>Descripción</label>
+            <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={3} className={`${inputCls} resize-none`} />
+          </div>
+
+          <div>
+            <label className={labelCls}>Servicios</label>
+            <textarea value={form.services} onChange={e => set('services', e.target.value)} rows={2} className={`${inputCls} resize-none`} />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>Procedencia</label>
+              <input value={form.procedencia} onChange={e => set('procedencia', e.target.value)} placeholder="Nacional / Internacional…" className={inputCls} />
+            </div>
+            <div>
+              <label className={labelCls}>Ámbito geográfico</label>
+              <input value={form.geoScope} onChange={e => set('geoScope', e.target.value)} className={inputCls} />
+            </div>
+          </div>
+
+          <div>
+            <label className={labelCls}>Sectores <span className="font-normal text-gray-400">(separados por coma)</span></label>
+            <input list="actor-sectors" value={form.sectors} onChange={e => set('sectors', e.target.value)} placeholder="Agricultura, Energía…" className={inputCls} />
+            <datalist id="actor-sectors">{knownSectors.map(s => <option key={s} value={s} />)}</datalist>
+          </div>
+
+          <div>
+            <label className={labelCls}>Instrumentos <span className="font-normal text-gray-400">(separados por coma)</span></label>
+            <input value={form.instruments} onChange={e => set('instruments', e.target.value)} placeholder="Deuda, Capital, Grant…" className={inputCls} />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>Monto de inversión</label>
+              <input value={form.investmentAmount} onChange={e => set('investmentAmount', e.target.value)} className={inputCls} />
+            </div>
+            <div>
+              <label className={labelCls}>Activos bajo gestión (AUM)</label>
+              <input value={form.aum} onChange={e => set('aum', e.target.value)} className={inputCls} />
+            </div>
+          </div>
+
+          {/* PII: solo la ve gestor/admin y solo ellos llegan a este modal */}
+          <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 space-y-3">
+            <div className="text-xs font-semibold text-amber-800 uppercase tracking-wider">
+              Contacto (interno · dato sensible)
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>Nombre de contacto</label>
+                <input value={form.contactName} onChange={e => set('contactName', e.target.value)} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Correo de contacto</label>
+                <input type="email" value={form.contactEmail} onChange={e => set('contactEmail', e.target.value)} className={inputCls} />
+              </div>
+            </div>
+            <p className="text-[11px] text-amber-700">
+              Solo visible para gestores y administradores. Nunca se expone a usuarios normales.
+            </p>
+          </div>
+
+          {error && <p className="text-sm text-red-600">{error}</p>}
+        </div>
+
+        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end gap-2">
+          <button onClick={onClose} disabled={saving} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-white disabled:opacity-50">
+            Cancelar
+          </button>
+          <button onClick={save} disabled={saving} className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2">
+            {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+            {actor ? 'Guardar cambios' : 'Agregar actor'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ActorDetail({ actor, canSeeContact, canEdit, onToggleFavorite, onEdit, onDelete, onClose }: {
+  actor: Actor; canSeeContact: boolean; canEdit: boolean;
+  onToggleFavorite: () => void; onEdit: () => void; onDelete: () => void; onClose: () => void;
 }) {
   const cfg = CATEGORY_CONFIG[actor.category];
   const Icon = cfg.icon;
@@ -347,6 +584,24 @@ function ActorDetail({ actor, canSeeContact, onToggleFavorite, onClose }: {
           )}
 
           <div className="text-[11px] text-gray-300 pt-2">Fuente: {actor.source}</div>
+
+          {/* Administración del directorio global (gestor/admin) */}
+          {canEdit && (
+            <div className="flex items-center gap-3 pt-3 border-t border-gray-100">
+              <button
+                onClick={onEdit}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                <Pencil className="w-3.5 h-3.5" /> Editar
+              </button>
+              <button
+                onClick={onDelete}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" /> Eliminar del directorio
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

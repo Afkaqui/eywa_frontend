@@ -74,4 +74,42 @@ export class ActorRepository {
   async remove(id: string): Promise<void> {
     await apiFetch<void>(`/api/proxy/actors/${id}`, { method: 'DELETE' });
   }
+
+  // ── Escritura del directorio global (solo gestor/admin/superadmin) ──────────
+  // OJO: el backend usa camelCase en el body (geoScope, investmentAmount, contactName…)
+  async create(payload: ActorWritePayload): Promise<Actor> {
+    const data = await apiFetch<{ actor: Actor }>('/api/proxy/actors', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    return data.actor;
+  }
+
+  async update(id: string, payload: Partial<ActorWritePayload>): Promise<Actor> {
+    const data = await apiFetch<{ actor: Actor }>(`/api/proxy/actors/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    return data.actor;
+  }
+}
+
+export interface ActorWritePayload {
+  name: string;
+  country: string;
+  category: ActorCategory;
+  subcategory?: string | null;
+  description?: string | null;
+  services?: string | null;
+  procedencia?: string | null;
+  geoScope?: string | null;
+  instruments?: string[];
+  sectors?: string[];
+  aum?: string | null;
+  investmentAmount?: string | null;
+  website?: string | null;
+  contactName?: string | null;
+  contactEmail?: string | null;
 }
