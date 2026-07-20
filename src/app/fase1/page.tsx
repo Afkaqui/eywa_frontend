@@ -341,7 +341,10 @@ function CopyButton({ url }: { url: string }) {
 }
 
 export default function ResumenPage() {
-  const url = 'https://eywa-hazel.vercel.app';
+  // El dominio sale del navegador (así no hay que tocar código al cambiarlo);
+  // el valor por defecto es solo para el render en servidor.
+  const [url, setUrl] = useState('https://eywa.encsust4in4ble.earth');
+  useEffect(() => { setUrl(window.location.origin); }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -608,7 +611,7 @@ export default function ResumenPage() {
         </section>
 
         <p className="text-center text-xs text-gray-400 pb-2">
-          eywa-hazel.vercel.app/fase1 · EYWA Fase 1 · 2026
+          {url.replace(/^https?:\/\//, '')}/fase1 · EYWA Fase 1 · 2026
         </p>
       </div>
     </div>

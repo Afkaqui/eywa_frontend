@@ -127,7 +127,7 @@ export async function generateCertificatePdf(data: CertificatePdfData): Promise<
   doc.text('Instructor', cx, sigY + 11, { align: 'center' });
 
   // Código de verificación + enlace público
-  const origin = typeof window !== 'undefined' ? window.location.host : 'eywa-hazel.vercel.app';
+  const origin = typeof window !== 'undefined' ? window.location.host : 'eywa.encsust4in4ble.earth';
   doc.setFontSize(8.5);
   doc.setTextColor(...GREY);
   doc.text(`Código de verificación: ${data.code}`, 16, H - 16);
