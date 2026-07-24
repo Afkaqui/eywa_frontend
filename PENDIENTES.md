@@ -162,12 +162,30 @@ en vivo** (el módulo está tras login y no hay credenciales en esta sesión).
 
 Sigue **bloqueado**: el análisis real con IA (abajo) y los documentos reales (B(b), abajo).
 
-### 🔴 Enchufar la API de IA real (depende de ARS)
-Hoy corre con un **heurístico determinista**, no con IA. El *seam* ya está listo en
-`validator-service.ts`: si existen `VALIDATOR_AI_URL` y `VALIDATOR_AI_KEY` en el
-`.env`, usa IA real (formato compatible con OpenAI); si no, cae al heurístico.
-**Verificado: en el VPS no están configuradas.** Falta que ARS entregue credenciales
-y confirmar el contrato de su API.
+### ✅ IA del Validador ACTIVA con Groq (2026-07-24, DESPLEGADO)
+**Decisión del usuario:** Groq como puente para el MVP; "IA operativa" como afirmación
+formal se reserva para cuando se consiga el fondo. El *seam* era compatible con OpenAI,
+así que Groq entró sin cambiar código: solo `VALIDATOR_AI_URL/KEY/MODEL` en el `.env`
+del VPS. Modelo: `openai/gpt-oss-120b`.
+**Verificado end-to-end en producción** ejecutando el código desplegado dentro del
+contenedor: `generatedBy: 'ai'`, ~2 s, JSON con la forma exacta de `ValidationReport`.
+
+Dos fallos silenciosos que se encontraron y corrigieron al activarlo:
+1. `docker-compose.yml` **no reenviaba** las variables `VALIDATOR_AI_*` al contenedor:
+   aunque estuvieran en `.env`, `isAiConfigured()` daba false y seguía en heurístico
+   **sin ningún error** (`baedb7b`).
+2. Groq está detrás de Cloudflare y responde **403 "error code: 1010"** a clientes sin
+   `User-Agent` reconocible. Se añadió cabecera explícita (`3cd6157`); sin ella la
+   llamada habría fallado y el fallback lo habría ocultado.
+
+UI actualizada (`48729d1`): la etiqueta sale del dato (`report.generatedBy`), no de
+texto fijo — "Análisis con IA" (verde) o "Análisis preliminar" (ámbar) si cae al
+heurístico. Nunca vuelve a desincronizarse.
+
+⚠️ **Pendiente asociado:** ARS sigue siendo el proveedor previsto a futuro; cambiar
+son las mismas 3 variables. Y la **Fase 3** (extracción de texto de los documentos
+adjuntos para alimentar el prompt) sigue sin hacer: hoy la IA analiza solo los campos
+del formulario, no el contenido de los PDFs subidos.
 
 ### ✅ Subida real de documentos — FASES 1 Y 2 HECHAS (2026-07-16, DESPLEGADO)
 Tabla `plan_documents` (cascade con project_plans) + storage en el volumen VPS
