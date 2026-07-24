@@ -72,7 +72,12 @@ export default function Page() {
     }
   }, [user, diagnosticService]);
 
-  if (loading) return <LoadingScreen />;
+  // SEO: durante `loading` se renderiza la LANDING, no un spinner.
+  // En el servidor la sesión siempre está resolviéndose, así que devolver
+  // <LoadingScreen/> hacía que Google (y todo rastreador que no ejecuta JS)
+  // recibiera una pantalla de carga vacía en la página más importante del sitio.
+  // Coste asumido: un usuario ya logueado ve la landing unos ms al recargar.
+  if (loading) return <HomePage onGetStarted={() => setShowLogin(true)} />;
   if (!user && showLogin) return <LoginPage onBack={() => setShowLogin(false)} />;
   if (!user) return <HomePage onGetStarted={() => setShowLogin(true)} />;
 
