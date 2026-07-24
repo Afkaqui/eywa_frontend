@@ -27,6 +27,7 @@ import {
   X,
   Upload,
   Lightbulb,
+  Sparkles,
   Target,
   Award,
   Activity
@@ -1177,8 +1178,22 @@ function ReportModal({
               <span className="text-xs font-medium px-2 py-1 rounded bg-emerald-100 text-emerald-700">
                 Reporte de Análisis
               </span>
+              {/* Origen del reporte: es el dato que distingue IA de heurístico */}
+              <span className={`text-xs font-semibold px-2 py-1 rounded flex items-center gap-1 ${
+                report.generatedBy === 'ai'
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-amber-100 text-amber-700'
+              }`}>
+                {report.generatedBy === 'ai' ? <Sparkles className="w-3 h-3" /> : <Lightbulb className="w-3 h-3" />}
+                {report.generatedBy === 'ai' ? 'Generado con IA' : 'Análisis preliminar'}
+              </span>
             </div>
             <h2 className="text-2xl font-semibold text-gray-900">{project.name}</h2>
+            <p className="text-xs text-gray-500 mt-1">
+              {report.generatedBy === 'ai'
+                ? 'Análisis generado por inteligencia artificial a partir de los datos del proyecto.'
+                : 'Análisis preliminar basado en reglas: el servicio de IA no estaba disponible.'}
+            </p>
           </div>
           <button
             onClick={onClose}
