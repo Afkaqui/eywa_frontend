@@ -129,14 +129,14 @@ const TOOLS: Tool[] = [
     color: '#06b6d4',
     name: 'Validador de Proyectos',
     tagline: 'Registra y estructura tus proyectos de impacto',
-    what: 'Herramienta para registrar proyectos con su descripción y documentación, listos para ser evaluados. El análisis con inteligencia artificial está en integración y se habilitará próximamente.',
+    what: 'Registra proyectos con su descripción y documentación, y genera un análisis ESG asistido por inteligencia artificial: fortalezas, debilidades, recomendaciones y puntajes por dimensión.',
     how: [
       'Crea tu proyecto con nombre, descripción y objetivos',
       'Adjunta la documentación de respaldo',
-      'Tus proyectos quedan listados con su estado',
-      'Próximamente: análisis con IA (viabilidad, ODS y áreas de mejora)',
+      'Analiza con IA: viabilidad, riesgo y puntajes ESG por dimensión',
+      'Cada reporte indica si lo generó la IA o el análisis preliminar de respaldo',
     ],
-    why: 'Muchas buenas ideas fracasan por falta de claridad o estructura. Registrar y documentar el proyecto es el primer paso; el análisis automatizado llegará encima de esa base.',
+    why: 'Muchas buenas ideas fracasan por falta de claridad o estructura. El validador actúa como un primer revisor crítico, objetivo y siempre disponible, antes de presentar el proyecto a una audiencia real.',
     forWho: 'Emprendedores, equipos de innovación, ONGs y cualquier equipo que desarrolle proyectos de impacto.',
   },
 ];

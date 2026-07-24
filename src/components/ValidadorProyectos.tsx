@@ -37,6 +37,16 @@ type ProjectPlan = ProjectPlanRow;
 
 const validatorRepo = new ValidatorRepository();
 
+// La etiqueta del análisis SALE DEL DATO (`report.generatedBy`), nunca de texto
+// fijo: si la IA está caída y el backend cae al heurístico, la UI lo dice sola.
+// Reportes viejos, anteriores al campo, se tratan como heurísticos.
+function analysisLabel(project: ProjectPlan): { text: string; cls: string; isAi: boolean } {
+  const isAi = project.report?.generatedBy === 'ai';
+  return isAi
+    ? { text: 'Análisis con IA',   cls: 'bg-emerald-100 text-emerald-700', isAi }
+    : { text: 'Análisis preliminar', cls: 'bg-amber-100 text-amber-700',   isAi };
+}
+
 // Tipos de archivo permitidos para los documentos del proyecto (espejo del backend)
 const VALIDATOR_DOC_MIME = [
   'application/pdf',
@@ -162,7 +172,7 @@ export function ValidadorProyectos() {
               <h1 className="text-3xl font-light text-gray-900 mb-2">
                 Validador de Proyectos
               </h1>
-              <p className="text-gray-600">Crea tus proyectos y genera un análisis preliminar ESG (análisis con IA próximamente)</p>
+              <p className="text-gray-600">Crea tus proyectos, adjunta su documentación y genera un análisis ESG asistido por IA</p>
             </div>
             <button
               onClick={() => setShowNewProjectModal(true)}
@@ -226,7 +236,8 @@ export function ValidadorProyectos() {
         </div>
         <div className="mt-3 text-xs text-gray-500 flex items-center gap-1.5">
           <Lightbulb className="w-3.5 h-3.5 text-yellow-500" />
-          Los análisis son <strong>preliminares</strong> (sin IA). El análisis avanzado con IA estará disponible próximamente.
+          Cada reporte indica cómo se generó: <strong>con IA</strong> o, si el servicio no está
+          disponible, con un <strong>análisis preliminar</strong> basado en reglas.
         </div>
       </div>
 
@@ -299,11 +310,11 @@ export function ValidadorProyectos() {
                       {project.id}
                     </span>
                     <span className={`text-xs font-medium px-2 py-1 rounded ${
-                      project.status === 'analyzed' 
-                        ? 'bg-emerald-100 text-emerald-700'
+                      project.status === 'analyzed'
+                        ? analysisLabel(project).cls
                         : 'bg-yellow-100 text-yellow-700'
                     }`}>
-                      {project.status === 'analyzed' ? 'Análisis preliminar' : 'Sin analizar'}
+                      {project.status === 'analyzed' ? analysisLabel(project).text : 'Sin analizar'}
                     </span>
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">{project.name}</h3>
@@ -378,13 +389,13 @@ export function ValidadorProyectos() {
                     </button>
                   ) : (
                     <button
-                      className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-all flex items-center gap-2 font-medium disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all flex items-center gap-2 font-medium disabled:opacity-60 disabled:cursor-not-allowed"
                       onClick={() => handleAnalyze(project.id)}
                       disabled={analyzingId === project.id}
-                      title="Genera un análisis preliminar sin IA. El análisis con IA estará disponible próximamente."
+                      title="Analiza el proyecto con IA. Si el servicio no está disponible, genera un análisis preliminar basado en reglas."
                     >
                       <Activity className={`w-4 h-4 ${analyzingId === project.id ? 'animate-spin' : ''}`} />
-                      {analyzingId === project.id ? 'Analizando...' : 'Análisis preliminar'}
+                      {analyzingId === project.id ? 'Analizando...' : 'Analizar proyecto'}
                     </button>
                   )}
                 </div>
@@ -514,7 +525,7 @@ export function ValidadorProyectos() {
           <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
             <Award className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-600 font-medium mb-2">Aún no hay reportes</p>
-            <p className="text-sm text-gray-400 mb-4">Genera un análisis preliminar desde un proyecto para ver su reporte aquí.</p>
+            <p className="text-sm text-gray-400 mb-4">Analiza un proyecto para ver su reporte aquí.</p>
             <button onClick={() => setActiveTab('proyectos')} className="text-emerald-600 hover:text-emerald-700 font-medium">
               Ir a proyectos
             </button>
@@ -526,7 +537,9 @@ export function ValidadorProyectos() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-medium px-2 py-1 rounded bg-emerald-100 text-emerald-700">Análisis preliminar</span>
+                      <span className={`text-xs font-medium px-2 py-1 rounded ${analysisLabel(project).cls}`}>
+                        {analysisLabel(project).text}
+                      </span>
                       {project.analyzedAt && (
                         <span className="text-xs text-gray-400">
                           {new Date(project.analyzedAt).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -984,7 +997,7 @@ function NewProjectModal({ onClose, onCreated }: { onClose: () => void; onCreate
               <Lightbulb className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-blue-800">
                 <p className="font-medium mb-1">Análisis del proyecto</p>
-                <p>Una vez creado, podrás generar un <strong>análisis preliminar</strong> desde la lista de proyectos. El análisis avanzado con IA estará disponible próximamente.</p>
+                <p>Una vez creado, podrás <strong>analizarlo con IA</strong> desde la lista de proyectos. Si el servicio de IA no estuviera disponible, se genera un análisis preliminar basado en reglas y el reporte lo indica.</p>
               </div>
             </div>
           </form>
