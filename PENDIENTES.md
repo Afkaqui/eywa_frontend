@@ -130,18 +130,46 @@ preparación" — honesto, pero vacío. Falta cargar secciones, materiales y ex�
 
 ## 3. Autenticación
 
-### 🔴 Recuperación de contraseña — *cascarón activo*
-En `LoginPage.tsx` hay un botón **"¿Olvidaste tu contraseña?"** sin `onClick`.
-No hace nada al pulsarlo. **Un usuario que pierda su contraseña no tiene forma de
-recuperarla.**
+### ✅ Recuperación de contraseña — CONSTRUIDA Y DESPLEGADA (2026-07-25)
+El botón "¿Olvidaste tu contraseña?" dejó de ser cascarón: ahora lleva a `/recuperar`.
+Backend `0e7d573`, frontend `682ff7e`.
 
-Falta: tabla de tokens de reseteo, endpoints de solicitud/confirmación, envío de
-correo (Resend + dominio verificado) y las dos pantallas. Depende de tener el dominio
-de correo configurado.
+**Correo:** Resend con el dominio **`encsust4in4ble.earth`** (verificado en Resend;
+comprobado por API antes de construir). Remitente `no-reply@encsust4in4ble.earth`.
+Módulo `lib/mailer.ts` habla por `fetch` directo con la API REST — **sin SDK**, una
+dependencia menos que mantener. Variables: `RESEND_API_KEY`, `MAIL_FROM`,
+`PUBLIC_APP_URL` (declaradas en `docker-compose.yml`, si no NO llegan al contenedor).
 
-> Nota: es el mismo patrón que los comentarios de Simbiocreación. Se mantiene visible
-> por ahora porque el flujo de recuperación **sí está en el roadmap de Fase 1**; si se
-> pospone, conviene retirar el botón.
+**Flujo:** `/recuperar` (pedir enlace) → correo con enlace →
+`/restablecer?token=…` (elegir contraseña). Endpoints `POST /api/auth/forgot-password`
+y `POST /api/auth/reset-password`; proxies públicos; rutas agregadas a `publicPaths`.
+
+**Decisiones de seguridad (deliberadas):**
+- **No se revela si un correo existe**: la respuesta es idéntica exista o no la cuenta,
+  para que nadie pueda enumerar quién está registrado. La UI dice "si el correo
+  corresponde a una cuenta", no "te enviamos un correo".
+- **El token no se guarda en claro**: en la BD va su SHA-256. Leer la base de datos NO
+  permite tomar cuentas; el valor real solo existe en el correo.
+- Un solo uso, expira en 60 min, invalida los anteriores al emitir uno nuevo, y al
+  resetear invalida todos los del usuario (en una transacción).
+- Anti-spam de 60 s por usuario, sin filtrar nada en la respuesta.
+- Si el envío falla, el token se invalida: el usuario no queda esperando un correo que
+  nunca llegó ni bloqueado por el cooldown.
+- **Búsqueda de correo insensible a mayúsculas** — el registro guarda el correo tal cual
+  se escribió; quien se registrara como `Juan@Gmail.com` no habría aparecido en una
+  búsqueda en minúsculas, y por la respuesta genérica ese fallo habría sido INVISIBLE
+  (vería "te enviamos el enlace" y nunca llegaría nada). Hoy todos los correos en prod
+  están en minúsculas, pero eso era suerte, no garantía.
+
+⚠️ **Gotcha del deploy (ya nos pasó):** el workflow recrea el contenedor al hacer push.
+Si escribes variables nuevas en el `.env` del VPS DESPUÉS de ese push, llegan vacías —
+hay que relanzar el deploy. Verificar siempre con
+`docker exec eywa_api printenv MAIL_FROM`.
+
+⚠️ **Pendiente menor:** el registro (`/api/auth/register`) y el login siguen guardando y
+buscando el correo tal cual se escribe. Si alguien se registra con mayúsculas, tendrá que
+escribirlo idéntico para entrar. Normalizar a minúsculas al registrar sería lo correcto,
+pero toca el login de usuarios existentes → hacerlo con cuidado.
 
 ---
 
