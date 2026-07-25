@@ -194,13 +194,44 @@ que "acepte documentos"). Módulo: `services/document-text.ts`; enganchado en
 `analyzeProjectPlan`. Presupuesto de caracteres (8k/doc, 20k total) para no exceder la
 ventana de contexto; nunca rompe el flujo (ante error devuelve ''); imágenes se omiten
 (requerirían OCR/`tesseract`, fuera de alcance).
-**Apagada por defecto** con `VALIDATOR_READ_DOCS` (vacío en el VPS). Se enciende poniendo
-`VALIDATOR_READ_DOCS=true` en el `.env` del VPS — una sola variable. Commits `6d68e2d`
+**Apagada por defecto** con `VALIDATOR_READ_DOCS` (vacío en el VPS). Commits `6d68e2d`
 (feature) + `3041eac` (fix del pin de pdf-parse: npm había resuelto 2.x y rompía).
-**Verificado en prod** con el flag encendido solo en el proceso de prueba: extrajo 8108
-chars de un PDF real y las palabras del PDF llegaron al prompt de Groq.
+
+#### 🔌 Cómo ENCENDERLA (procedimiento exacto)
+Es **una sola variable**, pero hay que **recrear el contenedor**: `docker-compose` lee el
+`.env` al crear el contenedor, así que agregar la línea no basta por sí solo.
+
+```bash
+# 1. Agregar el flag al .env del VPS (idempotente: no duplica si ya está)
+ssh kaqui@161.132.54.226 'cd ~/eywa-backend && grep -q "^VALIDATOR_READ_DOCS=" .env || echo "VALIDATOR_READ_DOCS=true" >> .env'
+```
+
+```bash
+# 2. Recrear el contenedor para que tome la variable.
+#    La vía limpia es relanzar el deploy: GitHub -> repo eywa_backend -> Actions ->
+#    "Deploy backend al VPS" -> Run workflow (workflow_dispatch). Ya hace el
+#    workaround de AppArmor (update --restart=no, kill -9, rm, compose up -d).
+```
+
+```bash
+# 3. Verificar que el flag llegó al contenedor (debe imprimir: flag=[true])
+ssh kaqui@161.132.54.226 'echo "flag=[$(docker exec eywa_api printenv VALIDATOR_READ_DOCS)]"'
+```
+
+**Para APAGARLA:** quitar la línea del `.env` (o ponerla en `false` — solo el literal
+`true` activa) y repetir el paso 2. El código sigue ahí, inerte.
+
+**Verificado en prod (2026-07-25)** con el flag encendido solo en el proceso de prueba
+(`docker exec -e VALIDATOR_READ_DOCS=true ...`, sin tocar el contenedor): extrajo 8108
+chars de un PDF real y las palabras del PDF (`Pilpus`, `logística`, `Transcripción`,
+`financiamiento`) aparecieron en el cuerpo enviado a Groq; el prompt pasó de 2 287 a
+10 627 chars.
 ⚠️ **Privacidad al encender:** el texto COMPLETO de los documentos subidos (con cualquier
 PII que contengan) se envía a la API de Groq. Tenerlo en cuenta antes de activarla.
+⚠️ **PDF escaneado / imagen:** no se leen (se omiten en silencio). Un usuario que suba un
+PDF escaneado creerá que se analizó su contenido. Si pasa a ser común → OCR (`tesseract`).
+⚠️ **`xlsx` (SheetJS de npm) arrastra advisories sin fix publicado.** Riesgo acotado (solo
+procesa archivos que el propio dueño subió, con tipo y tamaño ya validados), pero anotado.
 
 ### ✅ Subida real de documentos — FASES 1 Y 2 HECHAS (2026-07-16, DESPLEGADO)
 Tabla `plan_documents` (cascade con project_plans) + storage en el volumen VPS
