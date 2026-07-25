@@ -216,12 +216,12 @@ export function LoginPage({ onBack }: LoginPageProps) {
                   />
                   <span className="text-sm text-gray-600">Recordarme</span>
                 </label>
-                <button
-                  type="button"
+                <a
+                  href="/recuperar"
                   className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
                 >
                   ¿Olvidaste tu contraseña?
-                </button>
+                </a>
               </div>
             )}
 

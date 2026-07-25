@@ -13,6 +13,10 @@ export default auth((req) => {
     '/', '/login', '/register', '/api/auth',
     '/simbio', '/api/proxy/simbiocreacion/public',
     '/empresa', '/api/proxy/dataroom/public', // mini-landing pública de empresa
+    // Recuperación de contraseña: por definición el usuario NO puede iniciar
+    // sesión, así que estas rutas y sus proxies tienen que ser públicas.
+    '/recuperar', '/restablecer',
+    '/api/proxy/auth/forgot-password', '/api/proxy/auth/reset-password',
   ];
   const isPublic = publicPaths.some((p) => nextUrl.pathname.startsWith(p));
 
