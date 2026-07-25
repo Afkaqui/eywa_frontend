@@ -4,7 +4,7 @@
 > **Regla:** todo lo que se proyecte se anota aquí. Cuando algo se implementa, se
 > mueve a *Hecho* con su commit. Cuando se descarta, se anota por qué.
 >
-> Última actualización: 2026-07-10
+> Última actualización: 2026-07-25
 
 ---
 
@@ -183,9 +183,24 @@ texto fijo — "Análisis con IA" (verde) o "Análisis preliminar" (ámbar) si c
 heurístico. Nunca vuelve a desincronizarse.
 
 ⚠️ **Pendiente asociado:** ARS sigue siendo el proveedor previsto a futuro; cambiar
-son las mismas 3 variables. Y la **Fase 3** (extracción de texto de los documentos
-adjuntos para alimentar el prompt) sigue sin hacer: hoy la IA analiza solo los campos
-del formulario, no el contenido de los PDFs subidos.
+son las mismas 3 variables.
+
+### ✅ Fase 3 — lectura de documentos adjuntos: CONSTRUIDA PERO DORMIDA (2026-07-25)
+El backend ya extrae el texto de los archivos subidos a un plan (PDF/Word/Excel/TXT/
+CSV) y lo agrega al prompt de la IA como contexto. **La extracción la hace el backend**
+con librerías locales (`pdf-parse` fijado en 1.1.1, `mammoth`, `xlsx`); el modelo solo
+recibe TEXTO, así que **Groq lo soporta sin API especial** (no hacía falta un proveedor
+que "acepte documentos"). Módulo: `services/document-text.ts`; enganchado en
+`analyzeProjectPlan`. Presupuesto de caracteres (8k/doc, 20k total) para no exceder la
+ventana de contexto; nunca rompe el flujo (ante error devuelve ''); imágenes se omiten
+(requerirían OCR/`tesseract`, fuera de alcance).
+**Apagada por defecto** con `VALIDATOR_READ_DOCS` (vacío en el VPS). Se enciende poniendo
+`VALIDATOR_READ_DOCS=true` en el `.env` del VPS — una sola variable. Commits `6d68e2d`
+(feature) + `3041eac` (fix del pin de pdf-parse: npm había resuelto 2.x y rompía).
+**Verificado en prod** con el flag encendido solo en el proceso de prueba: extrajo 8108
+chars de un PDF real y las palabras del PDF llegaron al prompt de Groq.
+⚠️ **Privacidad al encender:** el texto COMPLETO de los documentos subidos (con cualquier
+PII que contengan) se envía a la API de Groq. Tenerlo en cuenta antes de activarla.
 
 ### ✅ Subida real de documentos — FASES 1 Y 2 HECHAS (2026-07-16, DESPLEGADO)
 Tabla `plan_documents` (cascade con project_plans) + storage en el volumen VPS
@@ -195,7 +210,8 @@ dueño), DELETE por documento; borrar el plan limpia su carpeta del disco. UI: e
 formulario sube archivos REALES al crear (reintento sin duplicar el plan); cada card
 tiene sección Documentos con adjuntar/descargar/eliminar. El Json legado
 `project_plans.documents` queda ignorado. Backend `a5cfe0d`, frontend `e6ac5cd`.
-**Falta la Fase 3** (extracción de texto para la IA) → va junto con la integración de ARS.
+**Fase 3 (extracción de texto para la IA): CONSTRUIDA PERO DORMIDA** (ver arriba en §4,
+sección IA del Validador) — se enciende con `VALIDATOR_READ_DOCS=true`.
 
 ### 🟠 Plan de trabajo original (B(b), referencia)
 **Estado hoy:** el campo `documents` (Json) guarda solo **metadata** (nombre/tipo);
