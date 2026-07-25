@@ -7,6 +7,7 @@ import {
   GENES_MAX_POINTS,
   GENES_CATEGORIES,
   getGenesBand,
+  getGenesBandClasses,
 } from '@/lib/constants/scoring';
 
 // Pantalla de entrada al nav "Diagnóstico" cuando el usuario YA lo completó:
@@ -65,12 +66,7 @@ export function DiagnosticCompleted({ result, onRetake, onNavigate }: Props) {
                 <span className="text-xl text-gray-400 mb-1.5">/ 5.00</span>
               </div>
               <div className="mt-2 flex items-center gap-2">
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                  result.score >= 61 ? 'bg-emerald-100 text-emerald-700' :
-                  result.score >= 46 ? 'bg-lime-100 text-lime-700' :
-                  result.score >= 31 ? 'bg-amber-100 text-amber-700' :
-                  'bg-rose-100 text-rose-700'
-                }`}>
+                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getGenesBandClasses(result.score)}`}>
                   {band}
                 </span>
                 <span className="text-xs text-gray-400">{pct}% de cumplimiento</span>

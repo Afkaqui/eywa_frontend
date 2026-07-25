@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ArrowLeft, Check, CheckCircle2, Loader2, RefreshCw, TrendingUp, Award, FileText } from 'lucide-react';
 import { DiagnosticRepository } from '@/lib/repositories/diagnostic-repository';
-import { GENES_SCALE, GENES_MAX_POINTS, GENES_CATEGORIES } from '@/lib/constants/scoring';
+import { GENES_SCALE, GENES_MAX_POINTS, GENES_CATEGORIES, getGenesBand, getGenesBandClasses } from '@/lib/constants/scoring';
 import { generateDiagnosticReportPdf } from '@/lib/diagnostic-pdf';
 import { useAuth } from '@/contexts/AuthContext';
 import type { DiagnosticQuestion } from '@/lib/types/database';
@@ -148,13 +148,18 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
     return max > 0 ? Math.round((sum / max) * GENES_SCALE) : 0;
   };
 
-  // Bandas oficiales GENES sobre la escala 0-75.
-  // OJO: clases Tailwind COMPLETAS (las dinámicas tipo bg-${color}-100 se purgan en el build).
+  // Categorías GENES sobre la escala 0-75. La etiqueta y el color salen de la
+  // fuente única (lib/constants/scoring); aquí solo se añade la descripción.
   const getDiagnosticScoreLevel = (score: number) => {
-    if (score >= 61) return { level: 'Cumple plenamente', badge: 'bg-emerald-100 text-emerald-700', description: 'Su empresa cumple plenamente los criterios de sostenibilidad evaluados' };
-    if (score >= 46) return { level: 'Cumple parcialmente', badge: 'bg-lime-100 text-lime-700', description: 'Cumplimiento parcial; hay áreas claras de mejora identificadas' };
-    if (score >= 31) return { level: 'Cumple mínimamente', badge: 'bg-amber-100 text-amber-700', description: 'Cumplimiento mínimo; se requiere mayor inversión en sostenibilidad' };
-    return { level: 'No cumple', badge: 'bg-rose-100 text-rose-700', description: 'Oportunidad significativa para desarrollar prácticas sostenibles' };
+    const level = getGenesBand(score);
+    const badge = getGenesBandClasses(score);
+    const description =
+      score >= 61 ? 'Nivel Fénix: su empresa lidera en los criterios de sostenibilidad evaluados'
+      : score >= 46 ? 'Nivel Oro: cumplimiento alto, con margen de mejora en criterios puntuales'
+      : score >= 31 ? 'Nivel Plata: cumplimiento intermedio; hay áreas claras de mejora identificadas'
+      : score >= 16 ? 'Nivel Verde: primeros avances; se requiere mayor inversión en sostenibilidad'
+      : 'Nivel Marrón: punto de partida, con oportunidad significativa de desarrollo';
+    return { level, badge, description };
   };
 
   const handleNext = () => {

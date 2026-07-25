@@ -1,7 +1,7 @@
 // Genera el PDF del informe de Diagnóstico ESG (cliente, jsPDF — A4 vertical).
 // Metodología GENES: nota 0-5, banda, desglose por categoría y por criterio.
 import { jsPDF } from 'jspdf';
-import { GENES_SCALE, GENES_MAX_POINTS, getGenesBand } from '@/lib/constants/scoring';
+import { GENES_SCALE, GENES_MAX_POINTS, getGenesBand, GENES_BANDS_LEGEND } from '@/lib/constants/scoring';
 
 export interface DiagnosticReportData {
   companyName?: string | null;
@@ -105,7 +105,7 @@ export async function generateDiagnosticReportPdf(data: DiagnosticReportData): P
   doc.setFontSize(9);
   doc.setTextColor(...GREY);
   doc.text(`Puntaje GENES: ${data.score} de ${GENES_SCALE}  ·  ${pct}% de cumplimiento`, W - M - 8, y + 14, { align: 'right' });
-  doc.text('Bandas: 0-30 No cumple · 31-45 Mínimamente · 46-60 Parcialmente · 61-75 Plenamente', W - M - 8, y + 23, { align: 'right' });
+  doc.text(`Categorías: ${GENES_BANDS_LEGEND}`, W - M - 8, y + 23, { align: 'right' });
   y += 40;
 
   // ── Desglose por categoría (barras) ──

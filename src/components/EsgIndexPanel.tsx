@@ -11,6 +11,7 @@ import {
   GENES_MAX_POINTS,
   GENES_CATEGORIES,
   getGenesBand,
+  getGenesBandClasses,
 } from '@/lib/constants/scoring';
 
 // Índice ESG dirigido por el diagnóstico GENES.
@@ -32,13 +33,8 @@ const CATEGORY_COLORS: Record<string, string> = {
   economico: 'bg-sky-500',
 };
 
-// Banda GENES → color/estilo del badge.
-function bandStyle(score: number): string {
-  if (score >= 61) return 'bg-emerald-100 text-emerald-700';
-  if (score >= 46) return 'bg-lime-100 text-lime-700';
-  if (score >= 31) return 'bg-amber-100 text-amber-700';
-  return 'bg-rose-100 text-rose-700';
-}
+// Categoría GENES → color/estilo del badge (fuente única en constants/scoring).
+const bandStyle = getGenesBandClasses;
 
 interface CategoryScore {
   key: string;

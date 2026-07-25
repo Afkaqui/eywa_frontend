@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { getGenesBandClasses } from '@/lib/constants/scoring';
 import {
   ValidatorRepository,
   type ProjectPlanRow,
@@ -56,13 +57,9 @@ const GENES_CATS = [
   { key: 'economico', label: 'Económico', bar: 'bg-sky-500',     text: 'text-sky-700' },
 ] as const;
 
-// Color del badge de banda GENES (mismos umbrales que el Diagnóstico: 61/46/31)
-function bandCls(genesScore = 0): string {
-  if (genesScore >= 61) return 'bg-emerald-100 text-emerald-700';
-  if (genesScore >= 46) return 'bg-lime-100 text-lime-700';
-  if (genesScore >= 31) return 'bg-amber-100 text-amber-700';
-  return 'bg-rose-100 text-rose-700';
-}
+// Color del badge de categoría GENES — misma fuente que el Diagnóstico, para que
+// Validador y Diagnóstico no puedan desincronizarse (antes estaba copiado a mano).
+const bandCls = getGenesBandClasses;
 
 // Tipos de archivo permitidos para los documentos del proyecto (espejo del backend)
 const VALIDATOR_DOC_MIME = [
