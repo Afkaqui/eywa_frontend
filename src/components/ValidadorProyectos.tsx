@@ -48,6 +48,22 @@ function analysisLabel(project: ProjectPlan): { text: string; cls: string; isAi:
     : { text: 'Análisis preliminar', cls: 'bg-amber-100 text-amber-700',   isAi };
 }
 
+// Las 4 categorías GENES (mismo orden y colores que el Diagnóstico ESG).
+const GENES_CATS = [
+  { key: 'perfil',    label: 'Perfil',    bar: 'bg-indigo-500',  text: 'text-indigo-700' },
+  { key: 'ambiental', label: 'Ambiental', bar: 'bg-emerald-500', text: 'text-emerald-700' },
+  { key: 'social',    label: 'Social',    bar: 'bg-amber-500',   text: 'text-amber-700' },
+  { key: 'economico', label: 'Económico', bar: 'bg-sky-500',     text: 'text-sky-700' },
+] as const;
+
+// Color del badge de banda GENES (mismos umbrales que el Diagnóstico: 61/46/31)
+function bandCls(genesScore = 0): string {
+  if (genesScore >= 61) return 'bg-emerald-100 text-emerald-700';
+  if (genesScore >= 46) return 'bg-lime-100 text-lime-700';
+  if (genesScore >= 31) return 'bg-amber-100 text-amber-700';
+  return 'bg-rose-100 text-rose-700';
+}
+
 // Tipos de archivo permitidos para los documentos del proyecto (espejo del backend)
 const VALIDATOR_DOC_MIME = [
   'application/pdf',
@@ -405,26 +421,29 @@ export function ValidadorProyectos() {
               {project.report && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-6">
-                      <div className="flex items-center gap-2">
-                        <div className="text-xs text-gray-500">Ambiental:</div>
-                        <div className="text-sm font-semibold text-emerald-700">
-                          {project.report.esgScores.environmental}
-                        </div>
+                    {project.report.categoryScores ? (
+                      <div className="flex items-center gap-4 flex-wrap">
+                        {project.report.band && (
+                          <span className={`px-2 py-0.5 rounded text-xs font-semibold ${bandCls(project.report.genesScore)}`}>
+                            {project.report.band}
+                          </span>
+                        )}
+                        {GENES_CATS.map(c => (
+                          <div key={c.key} className="flex items-center gap-1.5">
+                            <span className="text-xs text-gray-500">{c.label}:</span>
+                            <span className={`text-sm font-semibold ${c.text}`}>
+                              {project.report!.categoryScores![c.key].toFixed(1)}<span className="text-xs text-gray-400">/5</span>
+                            </span>
+                          </div>
+                        ))}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-xs text-gray-500">Social:</div>
-                        <div className="text-sm font-semibold text-blue-700">
-                          {project.report.esgScores.social}
-                        </div>
+                    ) : (
+                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                        <span>Ambiental: <strong className="text-emerald-700">{project.report.esgScores?.environmental}</strong></span>
+                        <span>Social: <strong className="text-blue-700">{project.report.esgScores?.social}</strong></span>
+                        <span>Gobernanza: <strong className="text-purple-700">{project.report.esgScores?.governance}</strong></span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-xs text-gray-500">Gobernanza:</div>
-                        <div className="text-sm font-semibold text-purple-700">
-                          {project.report.esgScores.governance}
-                        </div>
-                      </div>
-                    </div>
+                    )}
                     <div className={`flex items-center gap-2 px-3 py-1 rounded-lg ${
                       project.report.riskLevel === 'low' ? 'bg-emerald-100 text-emerald-700' :
                       project.report.riskLevel === 'medium' ? 'bg-yellow-100 text-yellow-700' :
@@ -550,9 +569,20 @@ export function ValidadorProyectos() {
                     <h3 className="text-lg font-semibold text-gray-900 truncate">{project.name}</h3>
                     <div className="flex flex-wrap items-center gap-4 mt-3 text-sm">
                       <span className="flex items-center gap-1.5"><Award className="w-4 h-4 text-yellow-600" /><strong className="text-gray-900">{project.report!.overallScore}/100</strong></span>
-                      <span className="text-gray-500">A: <strong className="text-emerald-700">{project.report!.esgScores.environmental}</strong></span>
-                      <span className="text-gray-500">S: <strong className="text-blue-700">{project.report!.esgScores.social}</strong></span>
-                      <span className="text-gray-500">G: <strong className="text-purple-700">{project.report!.esgScores.governance}</strong></span>
+                      {project.report!.band && (
+                        <span className={`px-2 py-0.5 rounded text-xs font-semibold ${bandCls(project.report!.genesScore)}`}>{project.report!.band}</span>
+                      )}
+                      {project.report!.categoryScores ? (
+                        GENES_CATS.map(c => (
+                          <span key={c.key} className="text-gray-500">{c.label.slice(0, 4)}: <strong className={c.text}>{project.report!.categoryScores![c.key].toFixed(1)}</strong></span>
+                        ))
+                      ) : (
+                        <>
+                          <span className="text-gray-500">A: <strong className="text-emerald-700">{project.report!.esgScores?.environmental}</strong></span>
+                          <span className="text-gray-500">S: <strong className="text-blue-700">{project.report!.esgScores?.social}</strong></span>
+                          <span className="text-gray-500">G: <strong className="text-purple-700">{project.report!.esgScores?.governance}</strong></span>
+                        </>
+                      )}
                       <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                         project.report!.riskLevel === 'low' ? 'bg-emerald-100 text-emerald-700' :
                         project.report!.riskLevel === 'medium' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
@@ -1209,16 +1239,27 @@ function ReportModal({
           <div className="bg-gradient-to-r from-emerald-100 to-blue-100 border-2 border-emerald-300 rounded-2xl p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm text-gray-600 mb-2">Puntuación General ESG</div>
-                <div className="text-5xl font-bold text-gray-900">{report.overallScore}<span className="text-2xl text-gray-500">/100</span></div>
-                <div className={`text-sm font-semibold mt-2 ${
-                  report.overallScore >= 80 ? 'text-emerald-700' :
-                  report.overallScore >= 60 ? 'text-blue-700' :
-                  'text-yellow-700'
-                }`}>
-                  {report.overallScore >= 80 ? '🏆 Excelente' :
-                   report.overallScore >= 60 ? '✓ Bueno' : '⚠ Mejorable'}
+                <div className="text-sm text-gray-600 mb-2">
+                  Evaluación GENES{report.categoryScores ? '' : ' (ESG)'}
                 </div>
+                {report.categoryScores ? (
+                  <>
+                    <div className="text-5xl font-bold text-gray-900">
+                      {((report.genesScore ?? 0) / 15).toFixed(2)}<span className="text-2xl text-gray-500"> / 5.00</span>
+                    </div>
+                    <div className="mt-2 flex items-center gap-2 flex-wrap">
+                      {report.band && (
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${bandCls(report.genesScore)}`}>{report.band}</span>
+                      )}
+                      <span className="text-xs text-gray-500">{report.overallScore}% de cumplimiento</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-5xl font-bold text-gray-900">{report.overallScore}<span className="text-2xl text-gray-500">/100</span></div>
+                    <div className="text-sm font-semibold mt-2 text-gray-500">Reporte previo al anclaje GENES</div>
+                  </>
+                )}
               </div>
               <div className="flex flex-col gap-3">
                 <div className="bg-white rounded-lg px-4 py-3 min-w-[180px]">
@@ -1243,60 +1284,45 @@ function ReportModal({
             </div>
           </div>
 
-          {/* ESG Scores */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                  <Leaf className="w-5 h-5 text-emerald-600" />
-                </div>
-                <div>
-                  <div className="text-xs text-gray-600">Ambiental</div>
-                  <div className="text-2xl font-bold text-emerald-900">{report.esgScores.environmental}</div>
-                </div>
-              </div>
-              <div className="w-full bg-emerald-200 rounded-full h-2">
-                <div 
-                  className="bg-emerald-600 h-2 rounded-full"
-                  style={{ width: `${report.esgScores.environmental}%` }}
-                />
-              </div>
-            </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Target className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <div className="text-xs text-gray-600">Social</div>
-                  <div className="text-2xl font-bold text-blue-900">{report.esgScores.social}</div>
-                </div>
-              </div>
-              <div className="w-full bg-blue-200 rounded-full h-2">
-                <div 
-                  className="bg-blue-600 h-2 rounded-full"
-                  style={{ width: `${report.esgScores.social}%` }}
-                />
+          {/* Desglose por categoría GENES (0-5) — misma escala que el Diagnóstico */}
+          {report.categoryScores ? (
+            <div>
+              <div className="text-sm font-semibold text-gray-700 mb-3">Desglose por categoría GENES</div>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {GENES_CATS.map(c => {
+                  const v = report.categoryScores![c.key];
+                  return (
+                    <div key={c.key} className="bg-white border border-gray-200 rounded-xl p-5">
+                      <div className="text-xs text-gray-600 mb-1">{c.label === 'Perfil' ? 'Perfil de Emprendimiento' : c.label}</div>
+                      <div className="flex items-baseline gap-1 mb-3">
+                        <span className={`text-2xl font-bold ${c.text}`}>{v.toFixed(1)}</span>
+                        <span className="text-sm text-gray-400">/ 5</span>
+                      </div>
+                      <div className="w-full bg-gray-100 rounded-full h-2">
+                        <div className={`h-2 rounded-full ${c.bar}`} style={{ width: `${(v / 5) * 100}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-            <div className="bg-purple-50 border border-purple-200 rounded-xl p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-purple-600" />
+          ) : report.esgScores && (
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { label: 'Ambiental', v: report.esgScores.environmental, wrap: 'bg-emerald-50 border-emerald-200', text: 'text-emerald-900', bar: 'bg-emerald-600' },
+                { label: 'Social', v: report.esgScores.social, wrap: 'bg-blue-50 border-blue-200', text: 'text-blue-900', bar: 'bg-blue-600' },
+                { label: 'Gobernanza', v: report.esgScores.governance, wrap: 'bg-purple-50 border-purple-200', text: 'text-purple-900', bar: 'bg-purple-600' },
+              ].map(d => (
+                <div key={d.label} className={`border rounded-xl p-5 ${d.wrap}`}>
+                  <div className="text-xs text-gray-600 mb-1">{d.label}</div>
+                  <div className={`text-2xl font-bold mb-3 ${d.text}`}>{d.v}</div>
+                  <div className="w-full bg-white/60 rounded-full h-2">
+                    <div className={`h-2 rounded-full ${d.bar}`} style={{ width: `${d.v}%` }} />
+                  </div>
                 </div>
-                <div>
-                  <div className="text-xs text-gray-600">Gobernanza</div>
-                  <div className="text-2xl font-bold text-purple-900">{report.esgScores.governance}</div>
-                </div>
-              </div>
-              <div className="w-full bg-purple-200 rounded-full h-2">
-                <div 
-                  className="bg-purple-600 h-2 rounded-full"
-                  style={{ width: `${report.esgScores.governance}%` }}
-                />
-              </div>
+              ))}
             </div>
-          </div>
+          )}
 
           {/* Strengths */}
           <div className="bg-white border border-gray-200 rounded-xl p-6">

@@ -1,11 +1,22 @@
 // Repository del Validador de Proyectos IA — habla con /api/proxy/validator/*
 
 export interface ValidationReport {
-  overallScore: number;
+  overallScore: number;            // 0-100 (derivado del ponderado GENES)
+  // ── Anclado en GENES (2026-07-24) ──
+  genesScore?: number;             // 0-75 · escala de las bandas GENES
+  band?: string;                   // banda GENES ("Cumple plenamente"…)
+  categoryScores?: {
+    perfil: number;                // 0-5 · Perfil de Emprendimiento
+    ambiental: number;             // 0-5 · Ambiental
+    social: number;                // 0-5 · Social
+    economico: number;             // 0-5 · Económico
+  };
   strengths: string[];
   weaknesses: string[];
   recommendations: string[];
-  esgScores: {
+  // Reportes ANTIGUOS (antes del anclaje GENES) traían esta forma. Opcional para
+  // que el modal siga mostrándolos sin romperse.
+  esgScores?: {
     environmental: number;
     social: number;
     governance: number;
