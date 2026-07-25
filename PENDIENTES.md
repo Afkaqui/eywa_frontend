@@ -712,7 +712,29 @@ categorías, escala 0-5, bandas) + modo **autoevaluación** (la empresa elige).
 - **Económico (0.25):** Economía circular (0.07) · Ha recibido apoyo financiero (0.03) · Viabilidad económica (0.15).
 
 **Escala:** 5 supera · 4 cumple plenamente · 3 parcial · 2 mínimo · 0 no cumple. Valor = puntos × peso.
-**Bandas de clasificación:** 0-30 No cumple · 31-45 Mínimamente · 46-60 Parcialmente · 61-75 Plenamente.
+
+**⚠️ CATEGORÍAS ACTUALIZADAS (Eduardo, 2026-07-25) — sustituyen a las 4 bandas viejas:**
+| Categoría | Rango (0-75) |
+|-----------|--------------|
+| **Marrón** | 0-15 |
+| **Verde**  | 16-30 |
+| **Plata**  | 31-45 |
+| **Oro**    | 46-60 |
+| **Fénix**  | 61-75 |
+
+Cinco tramos iguales de 15 puntos. Los cortes 31/46/61 se conservan del esquema
+anterior y el antiguo 0-30 ("No cumple") se parte en Marrón y Verde. El score NO
+cambia, solo la etiqueta. Backend `7de005b`, frontend `3799d5c`; migración
+`20260725160000_genes_categories` reclasificó lo ya guardado (1 fila: 53 → Oro).
+
+**Fuente única:** `eywa_api/src/lib/scoring.ts` y `eywa_claude/src/lib/constants/scoring.ts`
+(`getGenesBand` + `getGenesBandClasses`). Antes los umbrales y colores estaban copiados
+a mano en 4 componentes — si hay que cambiar cortes o paleta, se toca SOLO ahí.
+Colores medidos en navegador: las 5 pasan WCAG AA (la más ajustada 4.72:1). Fénix es el
+único badge relleno (`bg-orange-700 text-white`) porque naranja-500/600 con texto blanco
+no llegaban a AA (2.89:1 y 3.58:1) y además el nivel más alto salía más pálido que Oro.
+
+~~**Bandas anteriores:** 0-30 No cumple · 31-45 Mínimamente · 46-60 Parcialmente · 61-75 Plenamente.~~
 Trae también tabla de referencia de los 17 ODS.
 
 **⚠️ PRIVACIDAD:** las hojas `data` y `RESPUESTAS` tienen PII de empresas reales (contactos,
