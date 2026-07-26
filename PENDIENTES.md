@@ -627,10 +627,15 @@ porque con 2 y 1 restarían credibilidad. Cuando haya tracción, se cambian por 
 (los datos ya están en el endpoint).
 
 ### ✅ Visitas a la web — CONSTRUIDO (2026-07-25, backend `9e4f436`, frontend `8864586`)
-Tabla `site_visits` + `POST /api/stats/visit` (público) + `GET /api/stats/visits`
-(gestor+, 401 sin token). Panel en el dashboard del gestor con rangos 7/30/90 días,
-barras por día, páginas más vistas y de dónde llegan. `VisitTracker` en el layout
-dispara en cada cambio de ruta (verificado: 2 POSTs al navegar entre 2 rutas).
+Tabla `site_visits` + `POST /api/stats/visit` (público) + `GET /api/stats/visits`.
+**Exclusivo de SUPERADMIN** (decisión del usuario): panel en Super Administración
+(`VisitsPanel.tsx`), con rangos 7/30/90 días, barras por día, páginas más vistas y de
+dónde llegan. `VisitTracker` en el layout dispara en cada cambio de ruta (verificado:
+2 POSTs al navegar entre 2 rutas).
+Restricción verificada en producción con tokens reales de cada rol:
+`user 403 · gestor 403 · admin 403 · superadmin 200`. La regla vive en el **backend**
+(`assertRole(user, ['superadmin'])`), no solo en la UI: ocultar el panel no impediría
+que otro rol llamara al endpoint a mano.
 
 **Privacidad por diseño (sin cookies, sin banner de consentimiento):**
 - **No se guarda la IP ni el user-agent en claro.** Se guarda un hash de
