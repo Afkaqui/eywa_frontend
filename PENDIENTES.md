@@ -626,6 +626,39 @@ Nota de criterio: NO se muestran "empresas registradas" ni "diagnósticos realiz
 porque con 2 y 1 restarían credibilidad. Cuando haya tracción, se cambian por esos
 (los datos ya están en el endpoint).
 
+### ✅ Visitas a la web — CONSTRUIDO (2026-07-25, backend `9e4f436`, frontend `8864586`)
+Tabla `site_visits` + `POST /api/stats/visit` (público) + `GET /api/stats/visits`
+(gestor+, 401 sin token). Panel en el dashboard del gestor con rangos 7/30/90 días,
+barras por día, páginas más vistas y de dónde llegan. `VisitTracker` en el layout
+dispara en cada cambio de ruta (verificado: 2 POSTs al navegar entre 2 rutas).
+
+**Privacidad por diseño (sin cookies, sin banner de consentimiento):**
+- **No se guarda la IP ni el user-agent en claro.** Se guarda un hash de
+  (IP + UA + día + `AUTH_SECRET`). Verificado en BD: 0 filas contienen la IP enviada.
+- Como la **fecha entra en la mezcla, el hash rota cada día** → los "únicos" son
+  únicos POR DÍA y nadie puede ser seguido en el tiempo.
+- **La ruta se guarda sin query string.** Probado con
+  `/restablecer?token=SECRETO`: se guardó `/restablecer`, 0 filas con el token.
+- Del **referrer solo el dominio** (`www.google.com`), nunca la URL completa.
+- Los **bots se cuentan aparte** (`is_bot`), no dentro de "visitas": si un crawler
+  pasa 300 veces, el número dejaría de significar personas.
+
+⚠️ **El proxy DEBE reenviar `x-forwarded-for`.** Sin eso el backend ve la IP del
+servidor de Vercel y **todas** las visitas comparten hash → "1 visitante único" para
+siempre. Está en `app/api/proxy/stats/visit/route.ts`.
+⚠️ El conteo **empieza desde el despliegue**; no hay datos históricos porque antes
+no se medía. El panel lo dice explícitamente en vez de mostrar 0 sin contexto.
+
+### ✅ Trust Score del dashboard: hablaba una escala que no era GENES (2026-07-25)
+`HeroDashboard` mostraba "53 de 75 puntos" (GENES) pero lo etiquetaba **"Nivel: Bueno"**
+y **"Certificación Silver Seal"**, que salían de `getScoreLevel`/`getSealLabel`
+(umbrales 80/60/40, ajenos a GENES). El mismo puntaje era **Oro** en el Diagnóstico y
+**Silver** aquí — dos metales para el mismo dato. Ahora usa la categoría GENES con el
+badge compartido. Se retiró "Certificación" (prometía un sello que nadie emite) y se
+sustituyó por **"autoevaluación"**, que es lo que realmente es.
+⚠️ `getScoreLevel`/`getSealLabel`/`SEAL_LABELS` quedan en `constants/scoring.ts` **sin
+usar**: son la escala vieja. Borrarlos cuando se confirme que nada más los necesita.
+
 **Sigue pendiente (necesita captura nueva, no cálculo):**
 - `InvestorPortfolio`: Valor Total y Carbono → requieren valorizaciones y emisiones.
 - **Módulo de huella de carbono**: el único que desbloquearía "carbono capturado" de
