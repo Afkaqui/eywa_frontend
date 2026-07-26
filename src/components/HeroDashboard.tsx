@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { TrendingUp, TrendingDown, Activity, Landmark, Award, ArrowRight, User, Mail, Briefcase, Crown, Sparkles, Stethoscope, FolderLock, AlertCircle } from 'lucide-react';
 import { ProfessionalTrustGauge } from './ProfessionalTrustGauge';
 import { useAuth } from '@/contexts/AuthContext';
-import { calculatePercentage, getScoreLevel, getSealLabel } from '@/lib/constants/scoring';
+import { calculatePercentage, getGenesBand, getGenesBandClasses } from '@/lib/constants/scoring';
 import { StatsRepository, type UserStats } from '@/lib/repositories/stats-repository';
 import type { DiagnosticResult } from '@/lib/types/database';
 
@@ -29,8 +29,12 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic }: HeroDashb
 
   const hasScore = diagnosticResult !== null && diagnosticResult !== undefined;
   const score = hasScore ? calculatePercentage(diagnosticResult.score, diagnosticResult.maxScore) : 0;
-  const scoreLevel = getScoreLevel(score);
-  const sealLabel = getSealLabel(score);
+  // La categoría sale del puntaje GENES (0-75), NO del porcentaje: es la misma
+  // escala del Diagnóstico y del Validador. Antes este panel usaba getScoreLevel/
+  // getSealLabel — una tercera escala que se contradecía con GENES (53 puntos era
+  // "Oro" en el diagnóstico y "Silver Seal" aquí, dos metales para el mismo dato).
+  const genesLevel = hasScore ? getGenesBand(diagnosticResult.score) : '';
+  const genesBadge = hasScore ? getGenesBandClasses(diagnosticResult.score) : '';
   
   return (
     <div className="min-h-screen bg-white">
@@ -124,11 +128,14 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic }: HeroDashb
                       <span className="text-xl md:text-2xl text-gray-400 font-light">/100</span>
                     </div>
                     <div className="mt-2 text-sm text-gray-500">
-                      {diagnosticResult.score} de {diagnosticResult.maxScore} puntos · Nivel: <span className="font-semibold text-gray-900">{scoreLevel}</span>
+                      {diagnosticResult.score} de {diagnosticResult.maxScore} puntos GENES
                     </div>
-                    <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-200/50 rounded-md">
-                      <Award className="w-4 h-4 text-amber-600" />
-                      <span className="text-xs md:text-sm font-medium text-amber-700">Certificación {sealLabel}</span>
+                    <div className="mt-3 flex items-center gap-2 flex-wrap">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs md:text-sm font-semibold ${genesBadge}`}>
+                        <Award className="w-4 h-4" />
+                        Categoría {genesLevel}
+                      </span>
+                      <span className="text-xs text-gray-400">autoevaluación</span>
                     </div>
                   </div>
 

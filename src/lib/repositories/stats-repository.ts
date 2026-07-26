@@ -23,6 +23,19 @@ export interface UserStats {
   has_organization: boolean;
 }
 
+// Visitas a la web. Los bots van APARTE de las cifras de personas a propósito:
+// si un crawler pasa 300 veces, "visitas" dejaría de significar gente.
+export interface SiteVisits {
+  days: number;
+  total: number;            // histórico completo (sin bots)
+  period: number;           // visitas dentro del rango
+  unique_visitors: number;  // únicos del rango (seudónimo diario)
+  bots: number;
+  by_day: { day: string; visits: number; unique: number }[];
+  top_paths: { path: string; visits: number }[];
+  top_referrers: { host: string | null; visits: number }[];
+}
+
 export interface ActivationStep {
   key: string;
   label: string;
@@ -52,6 +65,14 @@ export class StatsRepository {
   async activation(): Promise<{ steps: ActivationStep[]; registered: number } | null> {
     try {
       return await apiFetch<{ steps: ActivationStep[]; registered: number }>('/api/proxy/stats/activation');
+    } catch {
+      return null;
+    }
+  }
+
+  async visits(days = 30): Promise<SiteVisits | null> {
+    try {
+      return await apiFetch<SiteVisits>(`/api/proxy/stats/visits?days=${days}`);
     } catch {
       return null;
     }

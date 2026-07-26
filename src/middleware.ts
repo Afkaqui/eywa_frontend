@@ -17,6 +17,8 @@ export default auth((req) => {
     // sesión, así que estas rutas y sus proxies tienen que ser públicas.
     '/recuperar', '/restablecer',
     '/api/proxy/auth/forgot-password', '/api/proxy/auth/reset-password',
+    // Conteo de visitas: se dispara en TODA página, incluida la landing sin sesión.
+    '/api/proxy/stats/visit',
   ];
   const isPublic = publicPaths.some((p) => nextUrl.pathname.startsWith(p));
 

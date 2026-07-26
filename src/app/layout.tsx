@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { SessionProvider } from "next-auth/react";
 import { AuthProvider } from "@/contexts/AuthContext";
+import VisitTracker from "@/components/VisitTracker";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -124,6 +126,10 @@ export default function RootLayout({
         />
       </head>
       <body>
+        {/* Conteo propio de visitas (sin cookies ni datos personales). */}
+        <Suspense fallback={null}>
+          <VisitTracker />
+        </Suspense>
         <SessionProvider>
           <AuthProvider>{children}</AuthProvider>
         </SessionProvider>
