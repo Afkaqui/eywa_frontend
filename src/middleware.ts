@@ -19,6 +19,9 @@ export default auth((req) => {
     '/api/proxy/auth/forgot-password', '/api/proxy/auth/reset-password',
     // Conteo de visitas: se dispara en TODA página, incluida la landing sin sesión.
     '/api/proxy/stats/visit',
+    // Invitados al dataroom: llegan con el token del correo y NO tienen cuenta
+    // (un inversor no se registra para revisar documentos en una due diligence).
+    '/dataroom/invitacion', '/api/proxy/dataroom/invited',
   ];
   const isPublic = publicPaths.some((p) => nextUrl.pathname.startsWith(p));
 

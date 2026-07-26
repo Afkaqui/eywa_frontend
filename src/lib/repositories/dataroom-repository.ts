@@ -152,6 +152,62 @@ export class DataroomRepository {
     const data = await apiFetch<{ logs: AccessLogEntry[] }>(`/api/proxy/dataroom/access-log${qs}`);
     return data.logs ?? [];
   }
+
+  // ── Invitaciones (solo el dueño) ────────────────────────────────────────────
+  async getInvitations(): Promise<Invitation[]> {
+    const data = await apiFetch<{ invitations: Invitation[] }>('/api/proxy/dataroom/invitations');
+    return data.invitations ?? [];
+  }
+
+  async invite(email: string, name?: string): Promise<Invitation> {
+    const data = await apiFetch<{ invitation: Invitation }>('/api/proxy/dataroom/invitations', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email, name: name || null }),
+    });
+    return data.invitation;
+  }
+
+  async revokeInvitation(id: string): Promise<void> {
+    await apiFetch<void>(`/api/proxy/dataroom/invitations/${id}`, { method: 'DELETE' });
+  }
+}
+
+// Estado ya resuelto por el backend, para que la UI no reimplemente el vencimiento.
+export type InvitationStatus = 'enviada' | 'activa' | 'vencida' | 'revocada';
+
+export interface Invitation {
+  id: string;
+  email: string;
+  name: string | null;
+  created_at?: string;
+  expires_at: string;
+  last_access_at?: string | null;
+  revoked?: boolean;
+  status: InvitationStatus;
+}
+
+// ── Vista del invitado (sin sesión, con token del correo) ─────────────────────
+export interface InvitedDataroom {
+  organization: { id: string; name: string; sector: string | null };
+  invited_as:   { email: string; name: string | null };
+  expires_at:   string;
+  read_only:    true;
+  folders:      DataroomFolder[];
+  completeness: { completed_items: number; total_items: number; percentage: number };
+}
+
+export async function getInvitedDataroom(token: string): Promise<InvitedDataroom> {
+  const res = await fetch(`/api/proxy/dataroom/invited/${encodeURIComponent(token)}`, {
+    cache: 'no-store',
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.error ?? 'Invitación no válida o expirada');
+  return data as InvitedDataroom;
+}
+
+export function invitedDownloadUrl(token: string, docId: string): string {
+  return `/api/proxy/dataroom/invited/${encodeURIComponent(token)}/documents/${docId}/download`;
 }
 
 export interface LandingState {

@@ -5,6 +5,7 @@ import {
   DataroomRepository,
   type DataroomData, type DataroomFolder, type DataroomItem, type DataroomDoc,
 } from '@/lib/repositories/dataroom-repository';
+import { DataroomInvitations } from '@/components/DataroomInvitations';
 import {
   FolderClosed, FolderOpen, CheckCircle2, Circle, Upload, Download, Trash2,
   Loader2, ShieldCheck, AlertTriangle, FileText, Globe, Lock, Copy, Check, ExternalLink,
@@ -138,6 +139,10 @@ export function Dataroom({ orgId }: { orgId?: string } = {}) {
 
       {/* Perfil público (solo el dueño lo gestiona) */}
       {!readOnly && <LandingPanel publicDocs={publicDocsCount} />}
+
+      {/* Invitaciones a terceros. Solo el DUEÑO: un gestor con acceso delegado
+          tiene permiso de lectura, no de repartir accesos a documentos ajenos. */}
+      {!readOnly && <DataroomInvitations />}
 
       {/* Carpetas */}
       <div className="space-y-3">
