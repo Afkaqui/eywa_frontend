@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Shield, Search, Users, Crown, Loader2, FolderLock } from 'lucide-react';
 import { ROLE_LABELS, ROLE_COLORS, PLAN_COLORS, API_ROUTES } from '@/lib/constants/roles';
 import { DataroomRepository } from '@/lib/repositories/dataroom-repository';
+import { VisitsPanel } from '@/components/VisitsPanel';
 import type { Profile, UserRole, UserPlan } from '@/lib/types/database';
 
 export function SuperAdminDashboard() {
@@ -93,6 +94,9 @@ export function SuperAdminDashboard() {
             </div>
           ))}
         </div>
+
+        {/* Visitas a la web — exclusivo de superadmin */}
+        <VisitsPanel />
 
         {/* Search */}
         <div className="bg-white border border-gray-200 rounded-xl p-6">
