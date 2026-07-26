@@ -454,8 +454,28 @@ Definir el producto antes de construir.
 **FALTA (en orden de valor):**
 1. ✅ **Mini-landing pública** `/empresa/[slug]` — HECHA (2026-07-15/16): cabecera con
    logo de la empresa + marca EYWA, sello de completitud, documentos públicos descargables.
-2. ⬜ **Invitaciones** (inversores/auditores) → **bloqueado por el correo** (Resend + dominio),
-   misma dependencia que recuperar contraseña (§3).
+2. ✅ **Invitaciones** (inversores/auditores) — HECHO (2026-07-26, backend `bac6a1f`,
+   frontend `79b0428`). Destrabado al quedar Resend operativo.
+   **Decisión de diseño: el invitado NO crea cuenta.** En una due diligence nadie se
+   registra para revisar documentos; se abre el enlace y se revisa. A cambio el acceso
+   es acotado y auditable:
+   - Token solo en el correo; en la BD va su **SHA-256**. Vence a los **30 días**.
+   - Revocable en cualquier momento por el dueño.
+   - Token inexistente / revocado / vencido → **el mismo 404** (no se filtra cuál fue).
+   - La descarga valida que el documento sea **de la organización que invitó**: si no,
+     un invitado podría pedir documentos de otra empresa con su token válido.
+   - Cada descarga queda en la bitácora **atribuida a la invitación** (columna nueva
+     `invitation_id`); sin eso el caso más sensible se registraría como "Visitante".
+   - **Solo el DUEÑO invita**: un gestor con acceso delegado tiene permiso de lectura,
+     no de repartir accesos a documentos ajenos.
+   - Si el correo no sale, la invitación **se revoca** en vez de figurar como "enviada"
+     con un token que nadie recibió.
+   ⚠️ El invitado ve el dataroom **COMPLETO**, no la mini-landing (que solo muestra lo
+   marcado como público). La UI lo advierte antes de invitar. Al revocar también se
+   aclara que **los documentos ya descargados no se recuperan**.
+   Verificado en producción: ver 10 carpetas/16 docs, descarga 200 (112 KB PDF),
+   documento de otra empresa → 404, revocada → 404, vencida → 404, y la bitácora
+   registró "Inversor de Prueba" en vez de "Visitante". Datos de prueba borrados.
 3. ✅ **Permiso delegado a gestores** — HECHO (2026-07-16): `DataroomAccessGrant`; el
    superadmin da/revoca acceso desde Administración; el gestor ve sus datarooms
    delegados en Gestión de Datos → Datarooms, en **solo lectura** (ver + descargar;
