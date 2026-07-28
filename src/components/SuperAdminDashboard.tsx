@@ -5,6 +5,7 @@ import { Shield, Search, Users, Crown, Loader2, FolderLock } from 'lucide-react'
 import { ROLE_LABELS, ROLE_COLORS, PLAN_COLORS, API_ROUTES } from '@/lib/constants/roles';
 import { DataroomRepository } from '@/lib/repositories/dataroom-repository';
 import { VisitsPanel } from '@/components/VisitsPanel';
+import { AuditPanel } from '@/components/AuditPanel';
 import type { Profile, UserRole, UserPlan } from '@/lib/types/database';
 
 export function SuperAdminDashboard() {
@@ -94,6 +95,9 @@ export function SuperAdminDashboard() {
             </div>
           ))}
         </div>
+
+        {/* Control y auditoría — exclusivo de superadmin */}
+        <AuditPanel />
 
         {/* Visitas a la web — exclusivo de superadmin */}
         <VisitsPanel />
