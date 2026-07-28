@@ -375,10 +375,27 @@ y NAB Colombia (89 orgs, 5 campos). Son el catálogo de **instituciones** del ec
      filtros ámbito/instrumento/vigencia, filas expandibles con Gate 0 y link.
      Backend `ee72850`, frontend `179db65`.
      ✅ CRUD para gestor+ (2026-07-16): agregar/editar/eliminar fondos inline en la
-     pestaña Fondos (backend `e8fbe33`, frontend `89ee7b4`). OJO: un re-import del seed
-     (`seed-funds.sql`) hace `DELETE FROM funds` y BORRARÍA los fondos agregados a mano —
-     si Neo manda matriz nueva, fusionar en vez de reemplazar. Pendiente menor: re-import
-     periódico cuando Neo actualice la matriz.
+     pestaña Fondos (backend `e8fbe33`, frontend `89ee7b4`).
+     ✅ **El seed ya NO es destructivo (2026-07-28, `151912b`).** `seed-funds.sql`
+     empezaba con `DELETE FROM funds` y se anunciaba "idempotente" — lo era solo si
+     nadie más tocaba la tabla. Re-correrlo borraba **todo fondo cargado a mano desde
+     la UI** y habría borrado los 4 de Eduardo; además revertía la corrección de la
+     fecha del 100+ Accelerator. Arreglado de raíz:
+     - `UNIQUE` en `funds.name` → el seed hace **UPSERT** en vez de vaciar la tabla.
+     - Para crear ese índice hubo que consolidar **"GEF Small Grants (UNDP)"**, que la
+       matriz Neo traía DOS VECES (misma convocatoria, redacción distinta, mismo URL).
+     - La fecha del 100+ se corrigió **en el propio seed**, para no re-parchear la BD
+       después de cada import.
+     - **`seed-funds-extra.sql`**: los 4 fondos de Eduardo, versionados. Antes vivían
+       solo en la base de datos.
+     Los dos seeds se corren en cualquier orden y las veces que haga falta:
+     ```
+     docker exec -i postgres_db psql -U admin -d eywa_db < prisma/seed-funds.sql
+     docker exec -i postgres_db psql -U admin -d eywa_db < prisma/seed-funds-extra.sql
+     ```
+     Verificado en prod: re-correr el seed dejó los 4 intactos y no revirtió el 100+;
+     el extra corrido dos veces no duplicó nada (149 fondos antes y después).
+     ⚠️ **`seed-actors.sql` sigue haciendo `DELETE FROM`** — mismo riesgo, sin arreglar.
 5. ✅ **Simbiocreación Fase 5 — HECHA (2026-07-16)**: nodo tipo **"Institución"** en el
    grafo, vinculable a un actor real del Directorio (búsqueda sobre los 320; el nodo
    guarda `actorId`; badge "Directorio"; desvincular). Zod del backend acepta
