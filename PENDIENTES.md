@@ -4,7 +4,46 @@
 > **Regla:** todo lo que se proyecte se anota aquí. Cuando algo se implementa, se
 > mueve a *Hecho* con su commit. Cuando se descarta, se anota por qué.
 >
-> Última actualización: 2026-07-25
+> Última actualización: 2026-07-28
+
+---
+
+## 📌 RESUMEN — todo lo que queda (al 2026-07-28)
+
+Vista de un vistazo. El detalle de cada punto está en su sección.
+
+### 🔴 Roto en producción ahora mismo
+| Qué | Detalle |
+|-----|---------|
+| **Curso publicado con contenido de relleno** | `PROGRAMA DESARROLLADORES…` está VISIBLE con: semana 2 apuntando a `eywa.com/ejercicio-semana-2` (dominio ajeno), los 2 PDFs de Drive dando **401**, y 2 preguntas de examen **escritas por Claude como ejemplo** que ya emiten certificado. Ver §2. |
+
+### 🟠 Trabajo definido, sin empezar
+| Qué | Por qué importa |
+|-----|-----------------|
+| **Migración VPS → Google Cloud** | Sección §10 (nueva). Bloqueante técnico: los archivos viven en disco local. |
+| **Estadística de uso** | §10.2. Existe la materia prima; falta el informe. |
+| **Prueba de estrés** | §10.3. No existe nada. |
+| **Contenido de 6 cursos** | Dicen "Contenido en preparación". Depende de negocio, no de código. |
+| **Módulo de huella de carbono** | Único que desbloquea "carbono capturado" y el Valor/Carbono del Portfolio. |
+
+### 🟡 Deuda técnica
+| Qué | Riesgo real |
+|-----|-------------|
+| **`middleware.ts` no protege nada** | `publicPaths` incluye `'/'` con `startsWith` → todo path es público. Las APIs sí validan el JWT (verificado: 403 por rol), así que no hay agujero, pero la lista de rutas públicas es decorativa. |
+| **`seed-actors.sql` hace `DELETE FROM`** | Borraría los actores agregados a mano. Mismo bug que ya se corrigió en fondos; el arreglo es más fácil porque `(name, country)` ya es único. |
+| **Backend en HTTP plano** (puerto 4001) | El navegador no lo toca directo (proxy server-side), pero se resuelve solo al migrar a Cloud Run. |
+| **Logo definitivo** | Sigue diciendo "DATAOPS STARTUP" (ver IDENTIDAD.md). |
+| **`getScoreLevel`/`getSealLabel`/`SEAL_LABELS`** | Código muerto desde el fix del Trust Score. |
+| **Registro/login no normalizan el correo** | Quien se registre con mayúsculas deberá escribirlo idéntico para entrar. El reseteo sí es insensible. |
+| **`contacto@eywa.com` en el footer** | Dominio que no se controla. |
+
+### ⚪ Ideas sin compromiso
+Badge **"ESG verificado por EYWA"** embebible (§9) · **API pública** (§9) · Comentarios en Simbiocreación (§1) · Forma del "actor-persona" para Portafolio v2.
+
+### 📊 El cuello de botella no es técnico
+**7 usuarios · 3 organizaciones · 1 diagnóstico · 7 nunca ingresaron** (panel de auditoría, 2026-07-28).
+Eso descalificó a EYWA de las 5 convocatorias que compartió Eduardo: todas piden tracción
+demostrable. Ninguna feature nueva mueve ese número.
 
 ---
 
@@ -922,3 +961,134 @@ con el diagnóstico.** Si el Excel confirma estructura mapeada → agregar `dime
 | Chevrons `<` `>` del panel de grupos | Texto decorativo, no enlaces. Con `flex-wrap` se descolgaban en líneas sueltas. |
 | Botón "Añadir participante" (icono de personas) | `<button>` sin `onClick`. |
 | Open Graph / preview por cada `/simbio/[id]` | Decisión del usuario (2026-07-10): no se hará. El enlace funciona; solo no tendrá tarjeta enriquecida al pegarlo en WhatsApp/LinkedIn. |
+
+---
+
+## 10. Migración a Google Cloud + medición (proyectado 2026-07-28)
+
+Se planea mover del VPS de elastika a **Google Cloud**. Piden además **estadística de
+uso** y **prueba de estrés**. Las tres cosas están relacionadas: sin medir primero, la
+migración se dimensiona a ojo y se paga de más.
+
+### 10.0 Punto de partida REAL (medido el 2026-07-28, no estimado)
+
+| Métrica | Valor |
+|---------|-------|
+| Base de datos | **10 MB** · 31 tablas |
+| Tabla más grande | `actors` — 320 filas, 320 kB |
+| Archivos subidos | **2,5 MB** · 24 archivos |
+| RAM del contenedor `eywa_api` | **17,6 MiB** |
+| CPU del contenedor | **0,00 %** |
+| VPS anfitrión | 8 núcleos · 30 GB RAM · 630 GB disco (20 % usado) |
+| Contenedores en ese VPS | **35** (EYWA es uno de ellos) |
+
+> ⚠️ **Consecuencia para el presupuesto:** EYWA entero cabe hoy en la instancia más
+> pequeña de cualquier nube. Dimensionar "por si acaso" con máquinas grandes quemaría
+> dinero del fondo sin ningún usuario que lo justifique. La regla debería ser: empezar
+> en el escalón más chico, medir, y crecer cuando la medición lo pida.
+
+### 10.1 Migración — qué hay que resolver
+
+**🔴 El bloqueante técnico: los archivos viven en disco local.**
+`UPLOAD_DIR` apunta a un volumen del VPS (`/home/kaqui/eywa-uploads`) y de ahí salen los
+documentos del Dataroom, los adjuntos del Validador, los logos y los avatares.
+**Cloud Run es efímero**: cada revisión arranca con disco vacío, así que tal cual está,
+migrar borraría todos los archivos subidos. Hay que sustituir las lecturas/escrituras de
+`fs/promises` por **Google Cloud Storage**. Es el único cambio de código de fondo; el
+resto es configuración.
+
+Puntos concretos a tocar — **22 operaciones de disco** (`readFile`/`writeFile`/`unlink`/
+`mkdir`/`rm`) repartidas en 3 archivos:
+`routes/media.ts` (9) · `routes/dataroom.ts` (7) · `routes/validator.ts` (6).
+Conviene extraer un `lib/storage.ts` con la interfaz (`put`/`get`/`delete`) y dos
+implementaciones (disco y GCS) en vez de tocar los 22 sitios a mano: así se puede
+verificar el cambio en el VPS actual antes de migrar.
+
+**Mapa de servicios propuesto:**
+
+| Hoy | Google Cloud | Nota |
+|-----|--------------|------|
+| Contenedor Docker en VPS | **Cloud Run** | Ya está dockerizado; encaja directo. Da HTTPS y escala a cero. |
+| Postgres 16 en Docker | **Cloud SQL (PostgreSQL)** | La instancia más chica sobra para 10 MB. |
+| Volumen `/home/kaqui/eywa-uploads` | **Cloud Storage (GCS)** | Requiere el cambio de código de arriba. |
+| `.env` en el VPS | **Secret Manager** | Hoy las claves están en un `.env` con `chmod 600`. |
+| GitHub Actions + `kill -9` | **Cloud Build** o el mismo Actions | Desaparece el workaround de AppArmor. |
+| Backend en HTTP plano :4001 | HTTPS de Cloud Run | Cierra ese pendiente sin trabajo extra. |
+
+**Beneficios colaterales:** se van tres deudas de una vez — HTTP plano, el workaround de
+AppArmor (`docker update --restart=no` + `kill -9` en cada deploy) y el hecho de compartir
+VPS con otros 34 contenedores ajenos.
+
+**Riesgos a vigilar:**
+- **Costo**: el VPS es plano; la nube cobra por uso. Sin límites, un bucle o un bot puede
+  generar factura. Configurar **presupuesto con alertas** desde el día uno.
+- **Cold starts** de Cloud Run al escalar a cero: la primera petición tarda. Con el
+  tráfico actual da igual; anotarlo por si se nota.
+- **Migración de datos**: `pg_dump` → Cloud SQL, y copiar los 24 archivos a GCS. Con este
+  volumen es cuestión de minutos, pero hay que verificar byte a byte lo copiado.
+- **Groq y Resend** son externos: no cambian.
+
+**Orden sugerido:** (1) GCS en el código y verificarlo en el VPS actual → (2) Cloud SQL y
+migrar la BD → (3) Cloud Run → (4) apuntar el dominio → (5) apagar el VPS **solo después**
+de confirmar que todo responde. Los backups del VPS se conservan hasta entonces.
+
+### 10.2 Estadística de uso
+
+**Ya existe la materia prima** (construida esta semana, no hay que rehacerla):
+- `site_visits` — visitas, únicos por día, páginas y referrers (panel de superadmin).
+- `GET /api/users/audit` — usuarios, última sesión, último cambio de clave, descargas
+  del dataroom de todas las empresas, accesos externos vigentes.
+- `GET /api/stats/activation` — embudo registrados → organización → diagnóstico →
+  dataroom → landing pública.
+- `GET /api/stats/public` — conteos agregados para la landing.
+
+**Falta para que sea un informe presentable:**
+- **Uso por módulo**: cuántos entran a Diagnóstico / Validador / Academia / Portfolio /
+  Simbiocreación. Hoy `site_visits` guarda la ruta, así que el dato está — falta agruparlo
+  por módulo y mostrarlo.
+- **Retención**: cuántos vuelven a los 7 / 30 días. `last_login_at` acaba de empezar a
+  registrarse (2026-07-26), así que **este dato no existirá hasta dentro de un mes**.
+- **Exportar a CSV/PDF** para adjuntar a informes del fondo.
+- **Serie histórica**: hoy todo se calcula al momento. Para mostrar evolución mensual hace
+  falta una foto periódica (tabla de snapshots o un job).
+
+> ⚠️ **Advertencia honesta antes de presentar cualquier estadística:** con 7 usuarios y 1
+> diagnóstico, los porcentajes son engañosos ("100 % de retención" = 1 persona). Conviene
+> reportar **números absolutos**, no porcentajes, hasta tener volumen. Es la misma regla
+> que ya se aplicó en la landing al retirar "empresas registradas".
+
+### 10.3 Prueba de estrés
+
+**No existe nada.** Hay que construirlo desde cero.
+
+**Qué medir (endpoints que de verdad cargan):**
+| Endpoint | Por qué |
+|----------|---------|
+| `POST /api/validator/plans/:id/analyze` | Llama a Groq: es el más lento (~2 s) y el único con costo por uso. |
+| `GET /api/funds` | 149 filas + filtrado por etiquetas. |
+| `GET /api/actors` | 320 filas + facetas. |
+| `GET /api/dataroom` | Arma 10 carpetas × ítems × documentos. |
+| `GET /api/dataroom/…/download` | I/O de archivos — el que cambiará al pasar a GCS. |
+| `POST /api/auth/validate` | bcrypt es caro a propósito (cost 12). |
+| `POST /api/stats/visit` | Se dispara en CADA carga de página: el de mayor volumen. |
+
+**Herramienta sugerida:** **k6** (script en JS, corre en Docker, exporta métricas) o
+`autocannon` si se quiere algo mínimo.
+
+**Qué definir ANTES de correrla:**
+- Objetivo de usuarios concurrentes (¿50? ¿500?). Sin un número acordado, el resultado no
+  dice si se aprueba o no.
+- Umbrales: p95 de latencia y % de error aceptables.
+
+**⚠️ Dos advertencias importantes:**
+1. **NO correr la prueba contra producción en el VPS actual**: comparte máquina con 34
+   contenedores de terceros. Saturarlo afectaría servicios ajenos. Levantar un entorno
+   aparte, o hacerlo ya en Google Cloud.
+2. **El endpoint de análisis llama a Groq de verdad.** Una prueba de carga sobre él
+   consumiría cuota y podría llegar a rate limit. Para la prueba conviene apagar
+   `VALIDATOR_AI_*` y medir el heurístico, o excluirlo y medirlo aparte con pocas
+   peticiones.
+
+**Lo que la prueba NO va a responder:** con 7 usuarios reales, esto mide **capacidad**, no
+carga real. Sirve para dimensionar la nube y para el informe del fondo, no para decir
+"aguantamos nuestro tráfico" — porque hoy no hay tráfico que aguantar.
