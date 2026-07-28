@@ -646,6 +646,35 @@ Nota de criterio: NO se muestran "empresas registradas" ni "diagnósticos realiz
 porque con 2 y 1 restarían credibilidad. Cuando haya tracción, se cambian por esos
 (los datos ya están en el endpoint).
 
+### ✅ Control y auditoría (superadmin) — CONSTRUIDO (2026-07-26, backend `de40a87`, frontend `e7899af`)
+`GET /api/users/audit` (**solo superadmin**, verificado: user/gestor/admin → 403).
+Panel `AuditPanel.tsx` en Super Administración con tres pestañas:
+1. **Usuarios** — rol, plan, organización, última sesión y último cambio de clave.
+2. **Descargas** — bitácora **GLOBAL** del dataroom (el dueño ve la suya; el
+   superadmin ve la de todas las empresas).
+3. **Accesos externos** — invitados sin cuenta que **ahora mismo** pueden abrir el
+   dataroom completo de alguna empresa. El dato más sensible del panel.
+Más resumen: usuarios, equipo interno, nunca ingresaron, recuperaciones vivas.
+
+⚠️ **La plataforma NO guardaba estos dos datos.** Se agregaron `last_login_at` y
+`password_changed_at` a `profiles` y se conectaron en los 4 puntos donde ocurren:
+`/auth/validate` (el login real de la app), `/auth/login`, `/auth/reset-password` y
+el cambio desde Configuración. **Van aparte de `updated_at`** a propósito: ese
+cambia con cualquier edición del perfil (avatar, plan, rol) y no puede responder
+"¿cuándo entró?" ni "¿cuándo cambió su clave?".
+
+**Se dejan NULL para las cuentas anteriores** al 2026-07-26. Rellenarlas con
+`created_at` sería inventar un dato justo en el panel donde más importa que sea
+cierto; la respuesta trae `tracking_since` y la UI muestra "Sin registro" con el
+aviso de desde cuándo se mide.
+
+El registro de la última sesión **nunca bloquea el login**: si el UPDATE falla se
+loguea el error y el usuario entra igual.
+
+Verificado con una cuenta desechable (creada, usada y borrada): antes de entrar
+ambos campos NULL → tras `/auth/validate` se escribió `last_login_at` → tras
+cambiar la clave se escribió `password_changed_at`.
+
 ### ✅ Visitas a la web — CONSTRUIDO (2026-07-25, backend `9e4f436`, frontend `8864586`)
 Tabla `site_visits` + `POST /api/stats/visit` (público) + `GET /api/stats/visits`.
 **Exclusivo de SUPERADMIN** (decisión del usuario): panel en Super Administración
