@@ -21,6 +21,7 @@ Vista de un vistazo. El detalle de cada punto está en su sección.
 | Qué | Por qué importa |
 |-----|-----------------|
 | **Migración VPS → Google Cloud** | Sección §10 (nueva). Bloqueante técnico: los archivos viven en disco local. |
+| **Dockerizar el frontend** | §11. **Planificado, NO ejecutar**: sigue en Vercel por decisión del usuario. Solo el backend está dockerizado. |
 | **Estadística de uso** | §10.2. Existe la materia prima; falta el informe. |
 | **Prueba de estrés** | §10.3. No existe nada. |
 | **Contenido de 6 cursos** | Dicen "Contenido en preparación". Depende de negocio, no de código. |
@@ -1092,3 +1093,112 @@ de confirmar que todo responde. Los backups del VPS se conservan hasta entonces.
 **Lo que la prueba NO va a responder:** con 7 usuarios reales, esto mide **capacidad**, no
 carga real. Sirve para dimensionar la nube y para el informe del fondo, no para decir
 "aguantamos nuestro tráfico" — porque hoy no hay tráfico que aguantar.
+
+---
+
+## 11. Dockerizar el frontend (PLANIFICADO — no ejecutar todavía)
+
+**Decisión del usuario (2026-07-28): el frontend SIGUE EN VERCEL por ahora.** Esto es el
+plan para cuando se decida moverlo, no una tarea abierta.
+
+### 11.1 Estado actual
+
+| | Dockerizado | Despliegue |
+|---|---|---|
+| **Backend** (`eywa_api`) | ✅ Sí — `Dockerfile` + `docker-compose.yml` | GitHub Actions → VPS |
+| **Frontend** (`eywa_claude`) | ❌ **No** | Vercel, directo desde el push a `main` |
+
+El repo del frontend no tiene `Dockerfile`, `.dockerignore` ni workflow propio: Vercel
+detecta el push a `main`, compila el Next.js y lo sirve. Por eso tampoco aparece en las
+mediciones de `CONSUMO.md` — vive fuera del VPS.
+
+### 11.2 ¿Por qué NO hacerlo ahora?
+
+Vale la pena dejarlo escrito para no re-discutirlo:
+
+- **Vercel es donde mejor corre Next.js.** Optimizaciones de imagen, ISR, streaming de
+  RSC y CDN vienen resueltos; en un contenedor propio hay que reconstruir o renunciar.
+- **No resuelve ningún problema actual.** El frontend no tiene incidencias de costo,
+  rendimiento ni disponibilidad.
+- **Agrega superficie que mantener**: Dockerfile, pipeline, CDN, certificados.
+
+**Razones legítimas para hacerlo más adelante:** exigencia del fondo o de gobernanza de
+consolidar todo en un proveedor; necesidad de correr el frontend dentro de una red
+privada junto al backend; o costos de Vercel al crecer.
+
+### 11.3 ⚠️ El gotcha que rompería la imagen
+
+`next.config.js` tiene hoy:
+
+```js
+env: {
+  BACKEND_URL: process.env.BACKEND_URL,
+},
+```
+
+Ese bloque **inserta el valor en el bundle en tiempo de COMPILACIÓN**. En Vercel da igual
+(compila por entorno), pero en Docker significa que **la imagen queda con la URL del
+backend quemada**: la misma imagen no sirve para staging y producción, y cambiar de
+backend obliga a reconstruir.
+
+**Solución:** *quitar* ese bloque `env`. `process.env.BACKEND_URL` ya funciona en tiempo
+de ejecución dentro de route handlers y componentes de servidor — que es donde el
+proyecto lo usa (los proxies de `app/api/proxy/**`). El bloque no solo sobra: estorba.
+
+⚠️ Distinto es `NEXT_PUBLIC_SITE_URL`: las variables `NEXT_PUBLIC_*` **siempre** se
+insertan en compilación, por diseño. Si su valor cambia entre entornos, hay que compilar
+una imagen por entorno o reemplazarla al arrancar.
+
+### 11.4 Plan de ejecución
+
+**Paso 1 — Preparar el proyecto**
+- `next.config.js`: agregar `output: 'standalone'` (genera un bundle mínimo que se copia
+  a la imagen sin `node_modules` completo) y **quitar el bloque `env`** (§11.3).
+- Crear `.dockerignore`: `node_modules`, `.next`, `.git`, `.env*`.
+
+**Paso 2 — Dockerfile multi-etapa** (mismo patrón que el backend, que ya funciona)
+1. `deps`: instalar dependencias con `npm ci`.
+2. `builder`: `npm run build` con `output: standalone`.
+3. `runner`: `node:20-alpine`, copiar `.next/standalone`, `.next/static` y `public`;
+   usuario no-root; `CMD ["node", "server.js"]`.
+
+**Paso 3 — Variables de entorno** (todas las que usa hoy el frontend)
+
+| Variable | Momento | Nota |
+|----------|---------|------|
+| `BACKEND_URL` | Ejecución | Tras quitar el bloque `env` |
+| `AUTH_SECRET` | Ejecución | **Debe coincidir con el del backend** o los JWT no validan |
+| `GOOGLE_CLIENT_ID` / `_SECRET` | Ejecución | OAuth |
+| `NEXT_PUBLIC_SITE_URL` | **Compilación** | Se quema en el bundle |
+| `NODE_ENV` | Ejecución | `production` |
+
+**Paso 4 — Verificar ANTES de cambiar el DNS**
+- Que la imagen levante y responda en local.
+- **Login con Google**: hay que registrar la nueva URL de callback en la consola de
+  Google Cloud, o el OAuth falla en silencio para el usuario.
+- Las rutas públicas sin sesión: `/`, `/verificar`, `/empresa/[slug]`, `/simbio/[id]`,
+  `/recuperar`, `/restablecer`, `/dataroom/invitacion/[token]`.
+- La cadena de proxies contra el backend real (`/api/proxy/**`).
+- Que el sitemap y `robots.txt` sigan apuntando al dominio correcto.
+
+**Paso 5 — Migrar**
+Desplegar en paralelo, verificar, y recién entonces mover el DNS. **Mantener Vercel
+encendido hasta confirmar** que todo responde.
+
+### 11.5 Qué se pierde al salir de Vercel
+
+Para decidirlo con los ojos abiertos:
+
+| Vercel da | En Docker hay que |
+|-----------|-------------------|
+| CDN global | Configurar Cloud CDN o equivalente |
+| Optimización de imágenes (`next/image`) | Habilitarla aparte, o desactivarla |
+| Previews automáticos por PR | Montarlo en el pipeline |
+| HTTPS y certificados | Configurarlos |
+| Escalado automático | Depende del destino (Cloud Run sí lo da) |
+
+### 11.6 Esfuerzo estimado
+
+**Medio.** El Dockerfile es estándar y el backend ya sirve de referencia. Lo que consume
+tiempo no es contenerizar: es **verificar el OAuth de Google, el dominio y las rutas
+públicas** sin romperle la sesión a nadie.
