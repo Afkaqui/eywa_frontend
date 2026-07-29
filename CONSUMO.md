@@ -332,3 +332,127 @@ lo que se cae no es el dashboard: es la puerta.
 | 5 | Paginar `/api/actors` | Bajo | Solo si el directorio crece |
 
 Los dos primeros son los que mueven la aguja. Los tres restantes son prevención.
+
+---
+
+# Parte 3 — Cuánto costaría en Google Cloud
+
+> **Precios consultados el 28-jul-2026** en fuentes oficiales y de referencia (abajo).
+> Los precios de nube **cambian**: antes de comprometer presupuesto, confirmar en la
+> [calculadora oficial](https://cloud.google.com/products/calculator).
+> Región asumida: **Tier 1 (`us-central1`)**. En São Paulo o Santiago sale más caro.
+
+## 12. Precios usados en el cálculo
+
+| Servicio | Precio | Nivel gratuito mensual |
+|----------|--------|------------------------|
+| **Cloud Run** — CPU | $0,000024 / vCPU-s | **180 000 vCPU-s** |
+| **Cloud Run** — memoria | $0,0000025 / GiB-s | **360 000 GiB-s** |
+| **Cloud Run** — peticiones | $0,40 / millón | **2 000 000** |
+| **Cloud SQL** (`db-f1-micro`) | ~$8 / mes | — (siempre encendido) |
+| **Cloud Storage** Standard | $0,020 / GB-mes | — |
+| **Egress** (Premium, 1er TB) | $0,12 / GB | 1 GiB |
+
+**Supuestos del modelo** (de la medición real de la Parte 2):
+petición normal **30 ms**, login **447 ms**, instancia de **1 vCPU / 512 MiB**,
+Cloud Run **escalando a cero**, y ~20 MB de archivos por empresa que usa el dataroom.
+
+---
+
+## 13. Resultado: costo estimado por escenario
+
+| Escenario | Cloud Run | Cloud SQL | Storage | Egress | **TOTAL/mes** |
+|-----------|----------:|----------:|--------:|-------:|--------------:|
+| **Hoy** (7 usuarios) | $0,00 | $8,00 | $0,00 | $0,00 | **≈ $8** |
+| **100 activos** | $0,00 | $8,00 | $0,04 | $2,28 | **≈ $10** |
+| **1 000 usuarios** | $0,00 | $8,00 | $0,40 | $23,88 | **≈ $32** |
+| **10 000 usuarios** | $2,67 | $8,00 | $4,00 | $239,88 | **≈ $255** |
+
+### Los tres hallazgos que importan
+
+**1. Cloud Run sale gratis hasta ~10 000 usuarios.**
+Con 1 000 usuarios el consumo es de **22 470 vCPU-s** contra **180 000 gratuitos**: se usa
+el **12 %** del nivel gratuito. El cómputo, que parece lo caro, no cuesta nada a esta
+escala.
+
+**2. El piso real es Cloud SQL: ~$8/mes, haya o no usuarios.**
+Es lo único que se paga desde el día uno, porque una base gestionada está siempre
+encendida. Con 7 usuarios, **el 100 % de la factura es la base de datos**.
+
+**3. ⚠️ El egress domina todo lo demás — y es el que puede sorprender.**
+Descargar documentos del dataroom cuesta **$0,12/GB**. Con 1 000 usuarios ya es el
+**74 %** de la factura; con 10 000, el **94 %**. Es el único rubro que crece rápido, y
+el más fácil de subestimar porque no aparece hasta que la gente usa la plataforma.
+
+> **Mitigación del egress:** el *Standard Tier* de red cuesta $0,085/GB (~30 % menos) e
+> incluye 200 GiB gratis al mes. Vale la pena evaluarlo antes de migrar.
+
+---
+
+## 14. Dos decisiones que cambian la factura más que el tamaño de la máquina
+
+### 14.1 `min-instances` — la trampa de los $65/mes
+
+Para evitar los *cold starts* de Cloud Run es tentador dejar **una instancia siempre
+encendida**. Cuesta:
+
+| | |
+|---|---|
+| CPU ociosa (730 h × 3 600 s × $0,000024) | **$63,07/mes** |
+| Memoria | $2,39/mes |
+| **Sobrecosto vs. escalar a cero** | **≈ $65/mes** |
+
+Con 7 usuarios eso es **8 veces la factura entera**, para ahorrarle un segundo de espera
+a nadie. **Recomendación: `min-instances=0`** hasta que haya usuarios que se quejen.
+
+### 14.2 `bcryptjs` también se paga en la factura
+
+En Cloud Run se cobra por vCPU-segundo, así que los **447 ms** del login del §9 no son
+solo lentitud: son dinero.
+
+| Implementación | vCPU-s/mes (10 000 usuarios) | Costo CPU |
+|----------------|-----------------------------:|----------:|
+| `bcryptjs` (actual) | 224 700 | $1,07 |
+| `bcrypt` nativo (~4× más rápido) | 191 200 | $0,27 |
+
+En dólares es poco. Lo relevante es otro: **con `bcryptjs` se cruza el umbral gratuito
+de 180 000 vCPU-s; con el nativo, no.** El login es el 20 % del cómputo total pese a ser
+una fracción mínima de las peticiones.
+
+---
+
+## 15. Comparación honesta con el VPS actual
+
+| | VPS actual | Google Cloud (hoy) |
+|---|---|---|
+| Costo | Compartido con otros 34 contenedores | ≈ **$8/mes** |
+| Modelo | Tarifa plana | **Por uso** |
+| HTTPS backend | ❌ HTTP plano | ✅ Incluido |
+| Deploy | Workaround AppArmor + `kill -9` | ✅ Estándar |
+| Backups BD | Script propio | ✅ Gestionados |
+| Aislamiento | Comparte con 34 servicios ajenos | ✅ Propio |
+| Riesgo de factura | Ninguno | ⚠️ **Existe** |
+
+**Lo que no se puede afirmar:** cuánto cuesta EYWA hoy en el VPS. Ese servidor lo paga
+elastika y aloja 35 contenedores; no hay una cifra atribuible a EYWA sin una regla de
+reparto que nadie definió. Comparar "$8 vs $X" sería inventar el $X.
+
+---
+
+## 16. Advertencias antes de comprometer presupuesto
+
+1. **Configurar alertas de presupuesto el día uno.** El VPS no puede generar una factura
+   sorpresa; la nube sí. Un bot indexando el dataroom o una prueba de estrés mal acotada
+   generan egress real.
+2. **Estos números asumen escalar a cero.** Con `min-instances=1` hay que sumar ~$65/mes.
+3. **`db-f1-micro` no tiene SLA** ni descuentos por uso comprometido. Sirve para esta
+   etapa; si EYWA pasa a producción seria, hay que subir de escalón (y de precio).
+4. **No incluye:** el frontend (Vercel, plan aparte), Groq ni Resend (cuota propia), ni
+   el costo de ingeniería de migrar.
+5. **El egress es el rubro a vigilar.** Es el que crece con el uso y el que nadie
+   presupuesta.
+
+### Fuentes
+- [Cloud Run pricing](https://cloud.google.com/run/pricing) · [Cloud SQL pricing](https://cloud.google.com/sql/pricing) · [Cloud Storage pricing](https://cloud.google.com/storage/pricing)
+- [Google Cloud SQL Pricing 2026 (Usage.ai)](https://www.usage.ai/blogs/gcp/cloud-sql/pricing/) — `db-f1-micro` ≈ $7,67/mes (may-2026)
+- [GCP egress pricing](https://egresscost.com/gcp/) — $0,12/GB Premium, $0,085/GB Standard
