@@ -456,3 +456,175 @@ reparto que nadie definió. Comparar "$8 vs $X" sería inventar el $X.
 - [Cloud Run pricing](https://cloud.google.com/run/pricing) · [Cloud SQL pricing](https://cloud.google.com/sql/pricing) · [Cloud Storage pricing](https://cloud.google.com/storage/pricing)
 - [Google Cloud SQL Pricing 2026 (Usage.ai)](https://www.usage.ai/blogs/gcp/cloud-sql/pricing/) — `db-f1-micro` ≈ $7,67/mes (may-2026)
 - [GCP egress pricing](https://egresscost.com/gcp/) — $0,12/GB Premium, $0,085/GB Standard
+
+---
+
+# Parte 4 — Capacidad: comportamiento ante X usuarios
+
+> Medido el 28-jul-2026 contra el backend desplegado. La prueba de concurrencia fue
+> **acotada a propósito** (~100 peticiones en segundos, menos carga que una persona
+> navegando rápido): este VPS aloja 34 contenedores de terceros y no debe saturarse.
+
+## 17. Consumo por operación
+
+| Operación | Tiempo | Respuesta | Qué consume |
+|-----------|-------:|----------:|-------------|
+| `GET /api/courses` | 8 ms | 4,4 KB | BD |
+| `GET /api/notifications` | 10 ms | 0,5 KB | BD (calcula al momento) |
+| `GET /api/stats/me` | 13 ms | 0,3 KB | BD (5 consultas en paralelo) |
+| `GET /api/dataroom` | 14 ms | **11,0 KB** | BD + arma 10 carpetas × 50 ítems |
+| `GET /api/users/audit` | 14 ms | 2,0 KB | BD (5 consultas en paralelo) |
+| `GET /api/portfolio` | 16 ms | 2,3 KB | BD + une organizaciones y manuales |
+| `GET /api/actors` | 34 ms | **100,8 KB** | BD + serializa 320 filas |
+| **`POST /api/auth/validate`** | **447 ms** | 0,2 KB | **CPU pura (bcrypt)** |
+| `POST /plans/:id/analyze` | ~2 000 ms | 2 KB | Espera a Groq (externo) |
+
+**La respuesta más pesada es `/api/actors` con 100,8 KB** — 9× la siguiente. Es el
+directorio completo sin paginar.
+
+---
+
+## 18. 🔴 El hallazgo grave: el login congela el servidor
+
+Dos mediciones que hay que leer juntas.
+
+### 18.1 Los logins NO se paralelizan
+
+| Logins en paralelo | Tiempo total | Por login | Throughput |
+|-------------------:|-------------:|----------:|-----------:|
+| 1 | 426 ms | 426 ms | 2,3/s |
+| 2 | 826 ms | 413 ms | 2,4/s |
+| 5 | 2 325 ms | 465 ms | 2,2/s |
+| 10 | **4 549 ms** | 455 ms | **2,2/s** |
+
+El throughput es **constante en ~2,2 logins/segundo** sin importar la concurrencia.
+Diez personas entrando a la vez tardan 4,5 segundos; cien tardarían **45 segundos**.
+
+### 18.2 Y mientras tanto, bloquean todo lo demás
+
+Prueba: contar los ticks de un temporizador de 10 ms durante una tanda de bcrypt.
+
+```
+durante 2 143 ms de bcrypt:
+ticks del temporizador: 5   (sin bloqueo serían ~214)
+=> el bucle de eventos quedó disponible al 2 % del tiempo
+```
+
+**Durante un login, el backend está efectivamente congelado.** No es que los logins sean
+lentos: es que **detienen todas las demás peticiones**. Un dashboard que responde en
+13 ms pasa a esperar segundos si alguien está entrando al mismo tiempo.
+
+> **Causa:** `bcryptjs` es JavaScript puro y corre en el hilo principal. La versión nativa
+> (`bcrypt`) delega al *thread pool* de libuv y **no bloquea**. El `cost 12` está bien y
+> no debe bajarse — el problema es la implementación, no el costo.
+
+---
+
+## 19. Latencia según concurrencia (lecturas)
+
+Medido sobre `GET /api/dataroom`:
+
+| En paralelo | p50 | p95 | Throughput |
+|------------:|----:|----:|-----------:|
+| 1 | 15 ms | 15 ms | 67 req/s |
+| 5 | 39 ms | 42 ms | 106 req/s |
+| 10 | 60 ms | 80 ms | 112 req/s |
+| 20 | 99 ms | 147 ms | 126 req/s |
+| 40 | 186 ms | 278 ms | **136 req/s** |
+
+**El throughput se estanca en ~130 req/s.** A partir de ahí la latencia crece lineal con
+la concurrencia — comportamiento clásico de cola sobre un bucle de eventos saturado.
+
+Regla que se desprende: **latencia ≈ concurrencia ÷ 130 segundos**.
+
+| Concurrencia | Latencia estimada |
+|-------------:|------------------:|
+| 100 | ~0,8 s |
+| 200 | ~1,5 s |
+| 500 | ~3,8 s |
+
+*(Las tres son extrapolación de la recta medida, no medición directa.)*
+
+Memoria: el proceso pasó de **49 MiB a 65 MiB** tras la prueba. Crece poco con la
+concurrencia — la RAM no es el límite en lecturas.
+
+---
+
+## 20. Cómo se comportaría ante X usuarios
+
+**Supuesto de comportamiento:** un usuario navegando genera ~0,1 peticiones/segundo
+(unas 6 por minuto de uso activo). Los picos de login se concentran al inicio de jornada.
+
+| Usuarios simultáneos | Lecturas | Login (todos a la vez) | Veredicto |
+|---------------------:|----------|------------------------|-----------|
+| **10** | 1 req/s — imperceptible | 4,5 s | ✅ Bien |
+| **50** | 5 req/s — imperceptible | **22 s** | ⚠️ Login lento |
+| **100** | 10 req/s — imperceptible | **45 s** | 🔴 Timeouts |
+| **500** | 50 req/s — ~0,4 s | **3,8 min** | 🔴 Inservible |
+| **1 300** | 130 req/s — **saturado** | — | 🔴 Techo de lecturas |
+
+### Lectura en una frase
+
+**Las lecturas aguantan más de 1 000 usuarios simultáneos. El login se cae a partir de
+~50.** El cuello no está donde uno lo buscaría: no es la base de datos ni el tamaño de
+las respuestas, es la puerta de entrada.
+
+Y como el login **bloquea el bucle de eventos al 98 %**, no falla solo: arrastra a todos
+los que ya estaban dentro navegando.
+
+---
+
+## 21. Rutas con mayor demanda
+
+Dos formas de mirarlo:
+
+### 21.1 Por frecuencia (cuántas veces se llama)
+| Ruta | Cuándo se dispara | Frecuencia |
+|------|-------------------|-----------:|
+| `POST /api/stats/visit` | **Cada carga de página**, incluidos anónimos | 🔥 Máxima |
+| `GET /api/auth/session` | Cada navegación (next-auth) | 🔥 Máxima |
+| `GET /api/notifications` | Al entrar y al cambiar de vista | Alta |
+| `GET /api/stats/me` | Dashboard | Alta |
+
+### 21.2 Por costo (cuánto cuesta cada llamada)
+| Ruta | Costo | Riesgo |
+|------|-------|--------|
+| `POST /api/auth/validate` | **447 ms de CPU bloqueante** | 🔴 Crítico |
+| `POST /plans/:id/analyze` | ~2 s de espera + cuota Groq | 🟠 Externo |
+| `GET /…/documents/:id/download` | Hasta 40 MB de RAM (archivo + copia) | 🟠 Memoria |
+| `GET /api/actors` | 100,8 KB por respuesta | 🟡 Ancho de banda |
+
+> ⚠️ **`stats/visit` es la ruta más llamada y escribe en BD cada vez.** Hoy no molesta,
+> pero es la que más crece con el tráfico — y no tiene política de retención (§8).
+
+---
+
+## 22. Qué hacer, por impacto medido
+
+| # | Acción | Efecto esperado |
+|---|--------|-----------------|
+| 1 | **`bcryptjs` → `bcrypt` nativo** | Deja de bloquear el bucle; el login pasa de ~2,2/s a decenas/s. **Es el único cambio que mueve el techo del sistema.** |
+| 2 | Descargas por *stream* | La RAM deja de escalar con el tamaño del archivo |
+| 3 | Paginar `/api/actors` | Corta la respuesta de 100,8 KB |
+| 4 | Retención en `site_visits` | Impide que la tabla más escrita domine la BD |
+| 5 | Índice en `dataroom_access_logs.user_id` | Prevención |
+
+**El punto 1 es de otra categoría que los demás.** Los otros cuatro son mejoras; ese
+cambia el techo de usuarios simultáneos que soporta la plataforma.
+
+---
+
+## 23. Cómo reproducir estas mediciones
+
+Dentro del contenedor (`docker exec -it eywa_api sh`), con un script en `/app`:
+
+- **Serialización del login:** lanzar N `bcrypt.compare` con `Promise.all` y medir el
+  tiempo total. Si el throughput no sube con N, se están serializando.
+- **Bloqueo del bucle:** arrancar un `setInterval` de 10 ms, correr bcrypt, y contar los
+  ticks. Muchos menos ticks de los esperados = bloqueo.
+- **Latencia vs concurrencia:** `Promise.all` de N `fetch` al mismo endpoint, midiendo
+  p50/p95 y el tiempo de pared.
+
+> ⚠️ **No ejecutar pruebas de carga sostenidas contra este VPS**: comparte máquina con
+> 34 contenedores de terceros. Para una prueba de estrés real, levantar un entorno
+> aparte (ver `PENDIENTES.md` §10.3).
