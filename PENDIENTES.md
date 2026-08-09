@@ -30,9 +30,15 @@ Vista de un vistazo. El detalle de cada punto está en su sección.
 ### 🟡 Deuda técnica
 | Qué | Riesgo real |
 |-----|-------------|
-| **`middleware.ts` no protege nada** | `publicPaths` incluye `'/'` con `startsWith` → todo path es público. Las APIs sí validan el JWT (verificado: 403 por rol), así que no hay agujero, pero la lista de rutas públicas es decorativa. |
-| **`seed-actors.sql` hace `DELETE FROM`** | Borraría los actores agregados a mano. Mismo bug que ya se corrigió en fondos; el arreglo es más fácil porque `(name, country)` ya es único. |
-| **Backend en HTTP plano** (puerto 4001) | El navegador no lo toca directo (proxy server-side), pero se resuelve solo al migrar a Cloud Run. |
+| ~~`middleware.ts` no protege nada~~ | ✅ **ARREGLADO (2026-07-28).** Se separaron coincidencias exactas de prefijos (`'/'` solo puede ser exacta). Al enumerar las rutas públicas reales aparecieron **6 que faltaban** y se habrían roto: `/verificar`, `/docs`, `/fase1`, `/infraestructura`, `/api/proxy/auth/register` y `/api/proxy/stats/public`. Las APIs devuelven **401 JSON** en vez de redirigir (un 307 a HTML rompía el `res.json()` del cliente). |
+| ~~`seed-actors.sql` hace `DELETE FROM`~~ | ❌ **ERROR MÍO — era falso.** Verificado: usa `ON CONFLICT (name, country) DO NOTHING`, nunca tuvo `DELETE FROM`. Ya era seguro. |
+| **Backend en HTTP plano** (puerto 4001) | El navegador no lo toca directo (proxy server-side). Se cierra con `kaqui-sites add` sobre el DNS `apieywa` que ya existe, o al migrar a Cloud Run. |
+| ~~`bcryptjs` bloquea el bucle~~ | ✅ **ARREGLADO.** → `@node-rs/bcrypt`: disponibilidad del bucle del 3 % al 59 %, y 4,6 → 16,1 logins/s. Hashes existentes verificados, nadie restablece su clave. |
+| ~~Descargas cargan el archivo en RAM~~ | ✅ **ARREGLADO.** Streaming en los 6 sitios; MD5 idéntico verificado. |
+| ~~`site_visits` sin retención~~ | ✅ **ARREGLADO.** Borra el detalle a los 90 días, máximo 1 vez al día, sin bloquear la petición. |
+| ~~Falta índice en `dataroom_access_logs.user_id`~~ | ✅ **ARREGLADO.** |
+| ~~`getScoreLevel`/`getSealLabel` muertos~~ | ✅ **ELIMINADOS** de backend y frontend. |
+| 🔴 **`seed-diagnostic-genes.sql` borraba los diagnósticos de TODOS** | ✅ **ARREGLADO** — ver §5. Era el seed realmente peligroso, no el de actores. |
 | **Logo definitivo** | Sigue diciendo "DATAOPS STARTUP" (ver IDENTIDAD.md). |
 | **`getScoreLevel`/`getSealLabel`/`SEAL_LABELS`** | Código muerto desde el fix del Trust Score. |
 | **Registro/login no normalizan el correo** | Quien se registre con mayúsculas deberá escribirlo idéntico para entrar. El reseteo sí es insensible. |
@@ -391,8 +397,9 @@ y NAB Colombia (89 orgs, 5 campos). Son el catálogo de **instituciones** del ec
    revalida el rol). Modal con todos los campos; sectores/instrumentos por coma (datalist
    con los existentes); PII en bloque ámbar aparte con aviso; eliminar advierte que afecta
    a TODOS los usuarios; nombre+país duplicado da mensaje claro (hay `@@unique`).
-   OJO: como en Fondos, re-correr `seed-actors.sql` es destructivo — si llega una fuente
-   actualizada, fusionar en vez de reemplazar para no perder lo agregado a mano.
+   ✅ VERIFICADO (2026-07-28): `seed-actors.sql` **NO es destructivo** — usa
+   `ON CONFLICT (name, country) DO NOTHING`. Re-correrlo es seguro: no toca lo agregado
+   a mano. (Una nota anterior de este documento decía lo contrario; era un error.)
 4. ✅ **HECHO (reformulada)** — Favoritos personales.
    **Decisiones del usuario (2026-07-14):** el directorio/portafolio es **GLOBAL y solo
    admin/gestor lo modifica**; los usuarios pueden marcar **favoritos** (lista personal).
@@ -435,7 +442,16 @@ y NAB Colombia (89 orgs, 5 campos). Son el catálogo de **instituciones** del ec
      ```
      Verificado en prod: re-correr el seed dejó los 4 intactos y no revirtió el 100+;
      el extra corrido dos veces no duplicó nada (149 fondos antes y después).
-     ⚠️ **`seed-actors.sql` sigue haciendo `DELETE FROM`** — mismo riesgo, sin arreglar.
+     ✅ `seed-actors.sql` ya era seguro (`ON CONFLICT … DO NOTHING`); la nota anterior
+     que lo daba por destructivo era un error, corregido el 2026-07-28.
+     🔴 **El seed que SÍ era peligroso resultó ser otro: `seed-diagnostic-genes.sql`**
+     empezaba con `DELETE FROM diagnostic_results`, es decir borraba los diagnósticos
+     de TODOS los usuarios (no datos de prueba: el de Eduardo es del 2026-08-02). Es el
+     dato más valioso de la plataforma — de ahí salen el score GENES, el índice ESG, el
+     riesgo del Portfolio y el sello del Dataroom. Y era innecesario: **no existe foreign
+     key** de `diagnostic_results` a `diagnostic_questions` (el breakdown es JSON
+     autocontenido), así que reemplazar el cuestionario nunca invalidó ningún resultado.
+     Línea eliminada el 2026-07-28.
 5. ✅ **Simbiocreación Fase 5 — HECHA (2026-07-16)**: nodo tipo **"Institución"** en el
    grafo, vinculable a un actor real del Directorio (búsqueda sobre los 320; el nodo
    guarda `actorId`; badge "Directorio"; desvincular). Zod del backend acepta
