@@ -1,31 +1,79 @@
 import { auth } from '@/auth';
 import { NextResponse } from 'next/server';
 
+// ── Gateo de rutas ──────────────────────────────────────────────────────────────
+//
+// Hasta el 2026-07-28 esto NO protegía nada: `publicPaths` incluía `'/'` y se
+// comparaba con `startsWith`, así que TODA ruta empieza por `/` y `isPublic`
+// siempre daba true. El redirect nunca se disparaba.
+//
+// No era un agujero de seguridad —las APIs del backend validan el JWT en cada
+// petición y el `page.tsx` muestra el login si no hay sesión— pero daba una
+// falsa sensación de protección y hacía decorativa esta lista.
+//
+// Ahora se separan las coincidencias EXACTAS de las de PREFIJO. Ese era el
+// detalle que rompía todo: `/` solo puede ser exacta.
+//
+// ⚠️ Esta lista se enumeró revisando las páginas y los proxies reales. Si se
+// agrega una página o un proxy público, hay que añadirlo AQUÍ o los visitantes
+// sin sesión serán redirigidos al inicio.
+
+/** Rutas públicas que deben coincidir EXACTAMENTE (sin sub-rutas). */
+const PUBLIC_EXACT = new Set([
+  '/',                 // landing
+  '/login',
+  '/register',
+  '/recuperar',        // pedir enlace de recuperación
+  '/restablecer',      // elegir contraseña nueva (el token va en el query)
+  '/docs',
+  '/fase1',
+  '/infraestructura',  // sustentación pública (EINCUS-1-P-233-26)
+]);
+
+/** Rutas públicas con sub-rutas dinámicas: coinciden por PREFIJO. */
+const PUBLIC_PREFIX = [
+  '/api/auth',                    // next-auth (sesión, callbacks de OAuth)
+
+  // Páginas públicas con parámetro
+  '/simbio',                      // visor de simbiocreación compartida
+  '/empresa',                     // mini-landing de empresa
+  '/verificar',                   // verificación pública de certificados
+  '/dataroom/invitacion',         // invitado al dataroom (llega con token, sin cuenta)
+
+  // Proxies que NO llevan sesión (el backend valida lo que corresponde)
+  '/api/proxy/auth/register',
+  '/api/proxy/auth/forgot-password',
+  '/api/proxy/auth/reset-password',
+  '/api/proxy/certificates/verify',
+  '/api/proxy/simbiocreacion/public',
+  '/api/proxy/dataroom/public',
+  '/api/proxy/dataroom/invited',
+  '/api/proxy/stats/public',
+  '/api/proxy/stats/visit',       // se dispara en CADA carga de página
+];
+
+/**
+ * Logo y avatar SERVIDOS por id. Los consume un `<img>`, que nunca manda la
+ * cabecera Authorization, así que tienen que ser públicos.
+ *
+ * Va como expresión regular y no como prefijo a propósito: un prefijo
+ * `/api/proxy/media/organization/` también dejaría pasar `…/organization/logo`,
+ * que es la ruta de SUBIDA y sí exige sesión. Aquí solo entran las variantes
+ * con :id en medio.
+ */
+const PUBLIC_MEDIA = /^\/api\/proxy\/media\/(organization|profile)\/[^/]+\/(logo|avatar)$/;
+
+function esPublica(pathname: string): boolean {
+  if (PUBLIC_EXACT.has(pathname)) return true;
+  if (PUBLIC_MEDIA.test(pathname)) return true;
+  return PUBLIC_PREFIX.some((p) => pathname === p || pathname.startsWith(p));
+}
+
 export default auth((req) => {
   const { nextUrl, auth: session } = req;
   const isLoggedIn = !!session?.user;
 
-  // Rutas públicas que no requieren autenticación.
-  // /simbio/* = visor de enlaces compartidos; su proxy también debe ser público.
-  // (Nota: '/' con startsWith hoy vuelve pública toda ruta — ver PENDIENTES;
-  //  estas entradas dejan la intención explícita y sobreviven si se corrige.)
-  const publicPaths = [
-    '/', '/login', '/register', '/api/auth',
-    '/simbio', '/api/proxy/simbiocreacion/public',
-    '/empresa', '/api/proxy/dataroom/public', // mini-landing pública de empresa
-    // Recuperación de contraseña: por definición el usuario NO puede iniciar
-    // sesión, así que estas rutas y sus proxies tienen que ser públicas.
-    '/recuperar', '/restablecer',
-    '/api/proxy/auth/forgot-password', '/api/proxy/auth/reset-password',
-    // Conteo de visitas: se dispara en TODA página, incluida la landing sin sesión.
-    '/api/proxy/stats/visit',
-    // Invitados al dataroom: llegan con el token del correo y NO tienen cuenta
-    // (un inversor no se registra para revisar documentos en una due diligence).
-    '/dataroom/invitacion', '/api/proxy/dataroom/invited',
-  ];
-  const isPublic = publicPaths.some((p) => nextUrl.pathname.startsWith(p));
-
-  if (!isLoggedIn && !isPublic) {
+  if (!isLoggedIn && !esPublica(nextUrl.pathname)) {
     return NextResponse.redirect(new URL('/', nextUrl));
   }
 
