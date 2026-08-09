@@ -8,6 +8,17 @@
 
 ---
 
+## 🛑 PRIORIDAD VIGENTE (instrucción del usuario, 2026-08-09)
+
+> **La migración a Google Cloud (§10) queda EN PAUSA hasta instrucción explícita.**
+> **Primero: dejar la plataforma funcional al 100 %.**
+
+Funcional al 100 % = ninguna parte de la UI promete algo que la plataforma no hace.
+Regla ya establecida del proyecto: **si una UI no tiene backend, se retira** (no se
+deja el cascarón). Auditoría de cascarones vigentes en §12.
+
+---
+
 ## 📌 RESUMEN — todo lo que queda (al 2026-07-28)
 
 Vista de un vistazo. El detalle de cada punto está en su sección.
@@ -1218,3 +1229,57 @@ Para decidirlo con los ojos abiertos:
 **Medio.** El Dockerfile es estándar y el backend ya sirve de referencia. Lo que consume
 tiempo no es contenerizar: es **verificar el OAuth de Google, el dominio y las rutas
 públicas** sin romperle la sesión a nadie.
+
+---
+
+## 12. Auditoría de cascarones — camino a "funcional al 100 %" (2026-08-09)
+
+Barrido automático de botones sin `onClick` y enlaces `href="#"` en todo el frontend.
+**10 cascarones vigentes.** Regla del proyecto: *si una UI no tiene backend, se retira*.
+
+### 12.1 🔴 Dashboard principal (`HeroDashboard`) — 5 botones muertos
+
+Es la primera pantalla tras iniciar sesión, así que es donde más se nota.
+
+| Botón | ¿Tiene backend? | Acción |
+|-------|-----------------|--------|
+| **Acceder a Cursos** | ✅ La Academia existe | **Conectar** → navegar a la vista de cursos |
+| **Iniciar Nueva Evaluación** | ✅ El Diagnóstico existe | **Conectar** → navegar al diagnóstico |
+| **Generar Reporte** | ✅ `lib/diagnostic-pdf.ts` ya genera el PDF | **Conectar** → descargar el informe |
+| **Ver Análisis** | ❌ No existe tal vista | **Retirar** |
+| **Exportar Datos** | ❌ No hay exportación | **Retirar** |
+
+### 12.2 🟠 Otros cascarones
+
+| Dónde | Qué | ¿Backend? | Acción |
+|-------|-----|-----------|--------|
+| `HomePage` | **Ver Demo** | ❌ No hay demo | Retirar |
+| `InvestorPortfolio` | **Exportar** | ❌ | Retirar |
+| `InvestorPortfolio` | **Filtros** | ❌ | Retirar |
+| `LoginPage` | Botón **Google** | ✅ **SÍ** — `next-auth` con proveedor Google y `/api/auth/oauth-sync` ya construidos | **Conectar** |
+| `LoginPage` | Botón **Apple** | ❌ Sin proveedor configurado | Retirar |
+
+### 12.3 ⚠️ El más delicado: términos y privacidad
+
+`LoginPage` tiene un checkbox **obligatorio** en el registro —"Acepto los términos y
+condiciones" y "política de privacidad"— y ambos enlaces son `href="#"`: **no llevan a
+ninguna parte**.
+
+Es decir: **se está exigiendo aceptar documentos que no existen.** No es un botón
+decorativo, es una condición de registro. Y con la integración de ARS (§13) la
+plataforma va a enviar datos personales a un tercero, lo que hace la política de
+privacidad todavía más necesaria.
+
+**No se puede resolver con código**: hace falta el CONTENIDO legal. Opciones:
+1. Redactar ambos documentos y publicarlos en `/terminos` y `/privacidad`.
+2. Mientras tanto, **quitar el checkbox** en vez de exigir algo inexistente.
+
+Es una decisión del usuario, no técnica.
+
+### 12.4 Lo que NO es cascarón (verificado)
+
+Para no volver a revisarlo:
+- `OrganizationProfile` y `MobileApp` aparecieron en el barrido por falsos positivos del
+  detector (el `onClick` estaba en otra línea o dentro de un `map`).
+- El botón "¿Olvidaste tu contraseña?" **ya funciona** (§3).
+- Los comentarios de Simbiocreación **ya se retiraron** de la UI (§1).
