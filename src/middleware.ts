@@ -74,6 +74,14 @@ export default auth((req) => {
   const isLoggedIn = !!session?.user;
 
   if (!isLoggedIn && !esPublica(nextUrl.pathname)) {
+    // Las llamadas de API NO se redirigen: un 307 hacia `/` les devolvería HTML
+    // donde el cliente espera JSON, y `res.json()` reventaría con un error de
+    // parseo en vez del mensaje real. Se responde 401, que es lo que el
+    // repositorio del frontend ya sabe manejar (y lo mismo que devuelve el
+    // backend, así que el comportamiento es consistente).
+    if (nextUrl.pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
     return NextResponse.redirect(new URL('/', nextUrl));
   }
 
