@@ -1379,7 +1379,7 @@ dejarlos vacíos.
 
 | Fase | Qué | Riesgo |
 |------|-----|--------|
-| **1** | Modelo: quitar `@unique`, agregar `ruc` y `trade_name`, agregar `organization_id` a `diagnostic_results` + migrar los 2 existentes | Bajo — aditivo |
+| **1** | ✅ **HECHA (2026-08-11, `de89463`).** `@unique` fuera, `ruc` (único global) y `trade_name` agregados, `organization_id` en `diagnostic_results` con los 2 existentes migrados. El compilador señaló los 24 sitios que asumían 1:1 y se pasaron a `findFirst` con orden estable (la organización más antigua hace de predeterminada). **Verificado en producción: un usuario con una sola organización ve exactamente lo mismo que antes** (misma empresa, índice ESG 3,53 · Oro, mismos avisos). Se corrigió de paso el bug que motivó el cambio: el Dataroom buscaba el diagnóstico del DUEÑO y ahora lo busca por ORGANIZACIÓN. Respaldo: `~/backup_pre_multiorg_20260811_1024.sql` | Bajo — aditivo |
 | **2** | Backend: endpoints para listar/crear/cambiar organización; hacer cumplir el límite de 3 y el RUC único; adaptar los 24 sitios para recibir `orgId` | **Alto** — es el grueso |
 | **3** | Frontend: selector de organización activa; "Mi Organización" pasa a "Mis Organizaciones" | Medio |
 | **4** | Decidir Validador y Simbiocreación (§13.5) | Pendiente |
