@@ -82,13 +82,15 @@ export class DiagnosticRepository {
   }
 
   // userId kept for API compatibility but the backend resolves from JWT
-  async getLatestResult(_userId?: string): Promise<DiagnosticResultRow | null> {
+  // El diagnóstico es POR EMPRESA (§13): con orgId se pide el de esa empresa;
+  // sin él, el de la predeterminada.
+  async getLatestResult(orgId?: string | null): Promise<DiagnosticResultRow | null> {
     try {
       // El backend (GET /results/me) responde { result: row | null } y los
       // campos vienen en camelCase (Prisma). Normalizamos a snake_case y
       // toleramos también un array por compatibilidad.
       const data = await apiFetch<{ result: Record<string, unknown> | null } | Record<string, unknown>[]>(
-        '/api/proxy/diagnostic/results'
+        `/api/proxy/diagnostic/results${orgId ? `?orgId=${encodeURIComponent(orgId)}` : ''}`
       );
       const r = (Array.isArray(data) ? data[0] : data?.result) as Record<string, unknown> | undefined | null;
       if (!r) return null;
@@ -123,11 +125,14 @@ export class DiagnosticRepository {
     }
   }
 
-  async saveResult(result: Omit<DiagnosticResultRow, 'id' | 'created_at'>): Promise<void> {
+  async saveResult(
+    result: Omit<DiagnosticResultRow, 'id' | 'created_at'>,
+    orgId?: string | null,
+  ): Promise<void> {
     await apiFetch<void>('/api/proxy/diagnostic/results', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(result),
+      body: JSON.stringify({ ...result, organization_id: orgId ?? null }),
     });
   }
 }

@@ -8,6 +8,7 @@ import { hasMinimumRole } from '@/lib/constants/roles';
 import { HomePage } from '@/components/HomePage';
 import { LoginPage } from '@/components/LoginPage';
 import { HeroDashboard } from '@/components/HeroDashboard';
+import { getOrgActivaId } from '@/lib/repositories/organization-repository';
 import { DiagnosticInterface } from '@/components/DiagnosticInterface';
 import { InvestorPortfolio } from '@/components/InvestorPortfolio';
 import { MobileApp } from '@/components/MobileApp';
@@ -57,7 +58,7 @@ export default function Page() {
     if (!user) return;
     let cancelled = false;
 
-    diagnosticService.getLatestResult(user.id)
+    diagnosticService.getLatestResult(user.id, getOrgActivaId())
       .then(result => { if (!cancelled) setDiagnosticResult(result); })
       .catch(() => { /* table may not exist */ });
 
@@ -68,7 +69,8 @@ export default function Page() {
   const handleDiagnosticComplete = useCallback(async (result: DiagnosticResult) => {
     setDiagnosticResult(result);
     if (user) {
-      await diagnosticService.saveResult(user.id, result).catch(() => {});
+      // Se guarda contra la organización ACTIVA: el diagnóstico es de la empresa.
+      await diagnosticService.saveResult(user.id, result, getOrgActivaId()).catch(() => {});
     }
   }, [user, diagnosticService]);
 

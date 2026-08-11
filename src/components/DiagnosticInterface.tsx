@@ -1,11 +1,15 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { ArrowLeft, Check, CheckCircle2, Loader2, RefreshCw, TrendingUp, Award, FileText } from 'lucide-react';
+import { ArrowLeft, Check, CheckCircle2, Loader2, RefreshCw, TrendingUp, Award, FileText, Building2, AlertTriangle } from 'lucide-react';
 import { DiagnosticRepository } from '@/lib/repositories/diagnostic-repository';
 import { GENES_SCALE, GENES_MAX_POINTS, GENES_CATEGORIES, getGenesBand, getGenesBandClasses } from '@/lib/constants/scoring';
 import { generateDiagnosticReportPdf } from '@/lib/diagnostic-pdf';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  OrganizationRepository, setOrgActivaId, resolverOrgActiva,
+  type OrgListado,
+} from '@/lib/repositories/organization-repository';
 import type { DiagnosticQuestion } from '@/lib/types/database';
 
 const logo = "/logo.png";
@@ -484,6 +488,11 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
       <div className="flex min-h-screen">
         {/* Left Side: Form */}
         <div className="flex-1 p-16 flex flex-col">
+          {/* A QUÉ EMPRESA se está evaluando. GENES evalúa criterios de empresa
+              (RUC, CEO mujer, insumos sostenibles), así que sin decir cuál el
+              resultado no significa nada — y con varias empresas era ambiguo. */}
+          <DiagnosticoOrgBar />
+
           {/* Header */}
           <div className="mb-12">
             <div className="text-sm text-gray-500 mb-2 uppercase tracking-wider">
@@ -591,6 +600,65 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ═══════════════════ EMPRESA EVALUADA ═══════════════════ */
+// El diagnóstico GENES es POR EMPRESA (§13). Esta barra dice cuál se está
+// evaluando y permite cambiarla ANTES de empezar; cambiarla a mitad reiniciaría
+// las respuestas, así que solo se ofrece el cambio desde aquí y recarga la vista.
+
+function DiagnosticoOrgBar() {
+  const repo = useMemo(() => new OrganizationRepository(), []);
+  const [lista, setLista] = useState<OrgListado | null>(null);
+  const [activa, setActiva] = useState<string | null>(null);
+
+  useEffect(() => {
+    repo.getAll()
+      .then(l => { setLista(l); setActiva(resolverOrgActiva(l)); })
+      .catch(() => setLista(null));
+  }, [repo]);
+
+  if (!lista) return null;
+
+  // Sin organización no se puede diagnosticar: GENES evalúa a una empresa.
+  if (lista.organizations.length === 0) {
+    return (
+      <div className="mb-8 flex gap-3 bg-amber-50 border border-amber-200 rounded-xl px-5 py-4">
+        <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+        <div className="text-sm text-amber-900 leading-relaxed">
+          <strong>Primero registra tu organización.</strong> El diagnóstico GENES evalúa
+          a una empresa —su formalización, su equipo, sus insumos—, así que necesita
+          saber a cuál se refiere. Ve a <em>Mi Organización</em> y vuelve.
+        </div>
+      </div>
+    );
+  }
+
+  const actual = lista.organizations.find(o => o.id === activa) ?? lista.organizations[0];
+  const nombre = actual.trade_name?.trim() || actual.name;
+
+  return (
+    <div className="mb-8 flex items-center gap-3 flex-wrap bg-gray-50 border border-gray-200 rounded-xl px-5 py-3.5">
+      <Building2 className="w-4 h-4 text-gray-400 shrink-0" />
+      <div className="text-sm text-gray-600">
+        Evaluando a <strong className="text-gray-900">{nombre}</strong>
+        {actual.ruc && <span className="text-gray-400"> · {actual.ruc}</span>}
+      </div>
+
+      {lista.organizations.length > 1 && (
+        <select
+          value={actual.id}
+          onChange={(e) => { setOrgActivaId(e.target.value); window.location.reload(); }}
+          className="ml-auto text-sm border border-gray-300 rounded-lg px-2.5 py-1.5 bg-white
+                     focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+        >
+          {lista.organizations.map(o => (
+            <option key={o.id} value={o.id}>{o.trade_name?.trim() || o.name}</option>
+          ))}
+        </select>
+      )}
     </div>
   );
 }

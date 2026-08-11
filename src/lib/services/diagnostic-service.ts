@@ -9,8 +9,9 @@ export class DiagnosticService {
     return this.repository.getQuestions();
   }
 
-  async getLatestResult(userId: string): Promise<DiagnosticResult | null> {
-    const row = await this.repository.getLatestResult(userId);
+  // El diagnóstico es POR EMPRESA (§13). `orgId` decide de cuál se lee.
+  async getLatestResult(userId: string, orgId?: string | null): Promise<DiagnosticResult | null> {
+    const row = await this.repository.getLatestResult(orgId);
     if (!row) return null;
 
     return {
@@ -21,7 +22,7 @@ export class DiagnosticService {
     };
   }
 
-  async saveResult(userId: string, result: DiagnosticResult): Promise<void> {
+  async saveResult(userId: string, result: DiagnosticResult, orgId?: string | null): Promise<void> {
     // result.score viene en escala GENES (0-75); la banda se calcula sobre ese score.
     const percentage = calculatePercentage(result.score, result.maxScore);
     const level = getGenesBand(result.score);
@@ -33,7 +34,7 @@ export class DiagnosticService {
       percentage,
       level,
       breakdown: result.breakdown,
-    });
+    }, orgId);
   }
 
   /**
