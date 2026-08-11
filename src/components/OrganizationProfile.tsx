@@ -9,6 +9,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { OrganizationRepository } from '@/lib/repositories/organization-repository';
 import { Dataroom } from '@/components/Dataroom';
+import { OrgSwitcher } from '@/components/OrgSwitcher';
 import { EsgIndexPanel } from '@/components/EsgIndexPanel';
 import { ImageUploader } from '@/components/ImageUploader';
 
@@ -130,6 +131,8 @@ export function OrganizationProfile({ onNavigate }: { onNavigate?: (view: string
 
   const [form, setForm] = useState({
     name:            '',
+    tradeName:       '',   // nombre comercial (razón social ≠ nombre comercial)
+    ruc:             '',
     institutionType: '',
     description:     '',
     phone:           '',
@@ -153,6 +156,8 @@ export function OrganizationProfile({ onNavigate }: { onNavigate?: (view: string
           setSectorQuery(org.sector ?? '');
           setForm({
             name:            org.name ?? '',
+            tradeName:       (org as { tradeName?: string | null }).tradeName ?? '',
+            ruc:             (org as { ruc?: string | null }).ruc ?? '',
             institutionType: org.institutionType ?? '',
             description:     org.description ?? '',
             phone:           org.phone ?? '',
@@ -222,6 +227,8 @@ export function OrganizationProfile({ onNavigate }: { onNavigate?: (view: string
         type:            orgType,
         institutionType: form.institutionType || null,
         name:            form.name.trim(),
+        tradeName:       form.tradeName.trim() || null,
+        ruc:             form.ruc.trim() || null,
         description:     form.description || null,
         phone:           form.phone || null,
         website:         form.website || null,
@@ -232,8 +239,11 @@ export function OrganizationProfile({ onNavigate }: { onNavigate?: (view: string
       if (saved?.id) setOrgId(saved.id); // habilita la subida de logo al crear
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
-    } catch {
-      setError('No se pudo guardar. Intenta nuevamente.');
+    } catch (e) {
+      // Se muestra el mensaje REAL del backend. Un genérico "no se pudo guardar"
+      // ocultaría justo lo que el usuario necesita saber: que el RUC no es
+      // válido, que ya está registrado, o que llegó al límite de organizaciones.
+      setError(e instanceof Error ? e.message : 'No se pudo guardar. Intenta nuevamente.');
     } finally {
       setSaving(false);
     }
@@ -257,14 +267,20 @@ export function OrganizationProfile({ onNavigate }: { onNavigate?: (view: string
       <div className="max-w-3xl mx-auto">
 
         {/* Header */}
-        <div className="mb-6 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-            <Building2 className="w-5 h-5 text-emerald-600" />
+        <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+              <Building2 className="w-5 h-5 text-emerald-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-light text-gray-900">Mi Organización</h1>
+              <p className="text-sm text-gray-500">Gestiona el perfil y sostenibilidad de tu organización</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-light text-gray-900">Mi Organización</h1>
-            <p className="text-sm text-gray-500">Gestiona el perfil y sostenibilidad de tu organización</p>
-          </div>
+
+          {/* Selector de organización activa. Solo aparece si hay más de una o si
+              puede agregar otra: con una sola empresa la vista queda igual que antes. */}
+          <OrgSwitcher onChange={() => window.location.reload()} />
         </div>
 
         {/* Tab switcher */}
@@ -427,6 +443,37 @@ export function OrganizationProfile({ onNavigate }: { onNavigate?: (view: string
                   placeholder={namePlaceholder}
                   className={inputCls}
                 />
+              </div>
+
+              {/* Nombre comercial — razón social ≠ nombre comercial.
+                  "QORY LABORATORIOS S.A.C." opera como "Qory Lab". */}
+              <div>
+                <label className={labelCls}>Nombre comercial</label>
+                <input
+                  type="text"
+                  value={form.tradeName}
+                  onChange={e => set('tradeName', e.target.value)}
+                  placeholder="Con el que te conocen (opcional)"
+                  className={inputCls}
+                />
+              </div>
+
+              {/* RUC — el tipo (natural o jurídica) lo deduce el backend del
+                  prefijo, y valida el dígito verificador. */}
+              <div>
+                <label className={labelCls}>RUC</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={form.ruc}
+                  onChange={e => set('ruc', e.target.value)}
+                  placeholder="11 dígitos · 10… persona natural · 20… empresa"
+                  className={inputCls}
+                  maxLength={13}
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Puedes dejarlo en blanco y completarlo después.
+                </p>
               </div>
 
               {/* Institution type — only for academia */}

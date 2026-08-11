@@ -9,3 +9,9 @@ export async function PUT(req: NextRequest) {
   const body = await req.json();
   return proxyToBackend(req, '/api/organization', { method: 'PUT', body });
 }
+
+// Crear una organización NUEVA (el backend hace cumplir el límite y el RUC único).
+export async function POST(req: NextRequest) {
+  const body = await req.json();
+  return proxyToBackend(req, '/api/organization', { method: 'POST', body });
+}
