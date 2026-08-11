@@ -1380,7 +1380,7 @@ dejarlos vacíos.
 | Fase | Qué | Riesgo |
 |------|-----|--------|
 | **1** | ✅ **HECHA (2026-08-11, `de89463`).** `@unique` fuera, `ruc` (único global) y `trade_name` agregados, `organization_id` en `diagnostic_results` con los 2 existentes migrados. El compilador señaló los 24 sitios que asumían 1:1 y se pasaron a `findFirst` con orden estable (la organización más antigua hace de predeterminada). **Verificado en producción: un usuario con una sola organización ve exactamente lo mismo que antes** (misma empresa, índice ESG 3,53 · Oro, mismos avisos). Se corrigió de paso el bug que motivó el cambio: el Dataroom buscaba el diagnóstico del DUEÑO y ahora lo busca por ORGANIZACIÓN. Respaldo: `~/backup_pre_multiorg_20260811_1024.sql` | Bajo — aditivo |
-| **2** | Backend: endpoints para listar/crear/cambiar organización; hacer cumplir el límite de 3 y el RUC único; adaptar los 24 sitios para recibir `orgId` | **Alto** — es el grueso |
+| **2** | ✅ **HECHA (2026-08-11, `c5f34bb`).** `GET /all`, `POST`, `PATCH /:id`, `GET /:id/impacto`, `DELETE /:id`. `GET /` y `PUT /` se conservan operando sobre la predeterminada. **Todas las reglas verificadas en producción con cuentas desechables:** límite de 3 (la 4ª da 409), RUC único global (mensaje distinto si es tuyo o de otra cuenta), una sola persona natural, RUC inválido rechazado por dígito verificador, y editar/consultar organización ajena da 404. `lib/ruc.ts` valida contra RUC reales (SUNAT y BCP dan válidos). Falta adaptar los 24 sitios para recibir `orgId` — va con la Fase 3, que es donde se elige la organización | **Alto** |
 | **3** | Frontend: selector de organización activa; "Mi Organización" pasa a "Mis Organizaciones" | Medio |
 | **4** | Decidir Validador y Simbiocreación (§13.5) | Pendiente |
 
