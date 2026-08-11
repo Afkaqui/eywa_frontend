@@ -1283,3 +1283,107 @@ Para no volver a revisarlo:
   detector (el `onClick` estaba en otra línea o dentro de un `map`).
 - El botón "¿Olvidaste tu contraseña?" **ya funciona** (§3).
 - Los comentarios de Simbiocreación **ya se retiraron** de la UI (§1).
+
+---
+
+## 13. Un usuario, varias personas jurídicas (decidido 2026-08-09)
+
+### 13.1 El caso real
+
+En Perú una persona puede tener **un solo RUC 10** (persona natural con negocio, se
+deriva de su DNI) y estar detrás de **varios RUC 20** (personas jurídicas). Hoy EYWA
+modela lo contrario: `Organization.userId` es `@unique`, o sea **1 usuario = 1 empresa**.
+
+Además **el RUC no existe en el modelo** — ni el 10 ni el 20. Hay que agregarlo de todas
+formas: la integración con ARS (§14) también lo pide.
+
+### 13.2 Decisiones del usuario
+
+| Pregunta | Decisión |
+|----------|----------|
+| ¿A quién pertenece el diagnóstico GENES? | **A cada empresa (RUC 20).** Cada persona jurídica tiene su propio score, índice ESG y sello de Dataroom |
+| ¿El plan Premium se cobra por persona o por empresa? | **Por usuario**, con **límite de 3 empresas por cuenta** (el límite se revisa después) |
+| ¿Cómo se representa la persona natural (RUC 10)? | **Como una organización más**, con `type = 'persona_natural'` |
+| Nombre comercial | **El RUC 10 también lo lleva.** Razón social ≠ nombre comercial, y aplica a ambos tipos |
+
+**Por qué el diagnóstico va a la empresa:** GENES evalúa criterios de empresa —RUC
+legalizado, CEO mujer, insumos sostenibles, economía circular—. Con tres RUC 20, "el
+diagnóstico del usuario" no significa nada. Hoy el Dataroom marca su carpeta ASG como
+completa buscando el diagnóstico **del dueño**: con tres empresas del mismo dueño, las
+tres mostrarían el mismo resultado.
+
+### 13.3 Alcance del cambio
+
+- **24 sitios en 11 archivos** derivan la organización del `userId` y asumen que hay una
+  sola: `dataroom.ts`, `funds.ts`, `media.ts`, `notifications.ts`, `organization.ts`,
+  `portfolio.ts`, `stats.ts`, `users.ts`, `index.ts` y los repos de dataroom y organización.
+- **Concepto nuevo: "organización activa".** Con varias empresas, la UI necesita saber
+  sobre cuál se está trabajando. Es el cambio de mayor impacto en el frontend.
+
+### 13.4 Modelo propuesto
+
+```prisma
+model Organization {
+  userId     String   // ← deja de ser @unique
+  ruc        String?  @unique       // 11 dígitos; 10… = natural, 20… = jurídica
+  name       String                 // razón social
+  tradeName  String?  @map("trade_name")  // nombre comercial (ambos tipos)
+  type       String   @default("empresa") // empresa | persona_natural | inversor…
+  …
+}
+
+model DiagnosticResult {
+  organizationId String  // ← NUEVO: el diagnóstico es de la EMPRESA
+  userId         String  // se conserva: quién lo respondió (trazabilidad)
+}
+```
+
+**Reglas a hacer cumplir en el backend:**
+1. Máximo **3 organizaciones** por usuario (constante configurable).
+2. Máximo **una** de tipo `persona_natural` por usuario — el RUC 10 es único por persona.
+3. El RUC define el tipo: `10…` → persona natural, `20…` → jurídica. Validar longitud
+   (11 dígitos) y dígito verificador.
+4. El RUC es **único global**: dos cuentas no pueden reclamar la misma empresa.
+
+### 13.5 Qué pertenece a la persona y qué a la empresa
+
+Reparto que se desprende de las decisiones:
+
+| Pertenece a la PERSONA | Pertenece a la EMPRESA |
+|------------------------|------------------------|
+| Perfil, correo, contraseña | Diagnóstico GENES y su historial |
+| **Plan** (free/premium) | Índice ESG y banda |
+| Cursos, progreso y **certificados** | Dataroom y su % de completitud |
+| Favoritos del directorio | Mini-landing pública (`/empresa/[slug]`) |
+| | Logo |
+| Proyectos del Validador *(a decidir)* | |
+| Simbiocreaciones *(a decidir)* | |
+
+⚠️ **Quedan dos por decidir**: si un proyecto del Validador y una simbiocreación
+pertenecen a una empresa concreta o a la persona. Hoy son de la persona. No bloquea el
+resto: se pueden migrar después sin rehacer nada.
+
+### 13.6 Migración de datos (verificada 2026-08-09)
+
+Estado actual: **8 usuarios, 5 con organización, 2 diagnósticos**.
+
+✅ **Los 2 diagnósticos son de usuarios con UNA sola organización**
+(`afkaqui@gmail.com` → GENES, `eduardo.noriega@…` → ENC SUST4IN4BLE), así que se asignan
+**sin ambigüedad**. Si algún usuario hubiera tenido dos, no habría forma automática de
+saber a cuál corresponde.
+
+Los RUC quedan **nulos** hasta que cada quien los complete: inventarlos sería peor que
+dejarlos vacíos.
+
+### 13.7 Plan por fases
+
+| Fase | Qué | Riesgo |
+|------|-----|--------|
+| **1** | Modelo: quitar `@unique`, agregar `ruc` y `trade_name`, agregar `organization_id` a `diagnostic_results` + migrar los 2 existentes | Bajo — aditivo |
+| **2** | Backend: endpoints para listar/crear/cambiar organización; hacer cumplir el límite de 3 y el RUC único; adaptar los 24 sitios para recibir `orgId` | **Alto** — es el grueso |
+| **3** | Frontend: selector de organización activa; "Mi Organización" pasa a "Mis Organizaciones" | Medio |
+| **4** | Decidir Validador y Simbiocreación (§13.5) | Pendiente |
+
+**No romper mientras tanto:** con una sola organización el comportamiento debe ser
+idéntico al de hoy. Los 5 usuarios que ya tienen empresa no deben notar el cambio hasta
+que agreguen una segunda.
