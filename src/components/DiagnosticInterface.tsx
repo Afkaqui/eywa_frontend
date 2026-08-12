@@ -75,6 +75,8 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
   const [showResults, setShowResults] = useState(false);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
   const [diagnosticQuestions, setDiagnosticQuestions] = useState<typeof fallbackQuestions>([]);
+  // Sin organización no hay a quién atribuir el diagnóstico (ver barra abajo).
+  const [sinOrganizacion, setSinOrganizacion] = useState(false);
 
   const fetchQuestions = useCallback(async () => {
     try {
@@ -491,8 +493,22 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
           {/* A QUÉ EMPRESA se está evaluando. GENES evalúa criterios de empresa
               (RUC, CEO mujer, insumos sostenibles), así que sin decir cuál el
               resultado no significa nada — y con varias empresas era ambiguo. */}
-          <DiagnosticoOrgBar />
+          <DiagnosticoOrgBar
+            onSinOrganizacion={setSinOrganizacion}
+            onChange={() => {
+              // Las respuestas son de la empresa anterior: se descartan. Antes esto
+              // recargaba la pagina, lo que ademas devolvia al Panel Principal y
+              // obligaba a volver a entrar a Diagnostico.
+              setAnswers({});
+              setCurrentQuestion(0);
+              setShowResults(false);
+            }}
+          />
 
+          {/* Sin empresa el cuestionario ni se ofrece: dejarlo visible permitia
+              completarlo entero y guardar un diagnostico sin dueno. */}
+          {sinOrganizacion ? null : (
+          <>
           {/* Header */}
           <div className="mb-12">
             <div className="text-sm text-gray-500 mb-2 uppercase tracking-wider">
@@ -569,6 +585,8 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
               {currentQuestion === totalSteps - 1 ? 'Finalizar Diagnóstico' : 'Continuar a Siguiente Pregunta'}
             </button>
           </div>
+          </>
+          )}
         </div>
 
         {/* Right Side: Context Image */}
@@ -609,16 +627,23 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
 // evaluando y permite cambiarla ANTES de empezar; cambiarla a mitad reiniciaría
 // las respuestas, así que solo se ofrece el cambio desde aquí y recarga la vista.
 
-function DiagnosticoOrgBar() {
+function DiagnosticoOrgBar(
+  { onChange, onSinOrganizacion }:
+  { onChange: (orgId: string) => void; onSinOrganizacion: (sin: boolean) => void },
+) {
   const repo = useMemo(() => new OrganizationRepository(), []);
   const [lista, setLista] = useState<OrgListado | null>(null);
   const [activa, setActiva] = useState<string | null>(null);
 
   useEffect(() => {
     repo.getAll()
-      .then(l => { setLista(l); setActiva(resolverOrgActiva(l)); })
+      .then(l => {
+        setLista(l);
+        setActiva(resolverOrgActiva(l));
+        onSinOrganizacion(l.organizations.length === 0);
+      })
       .catch(() => setLista(null));
-  }, [repo]);
+  }, [repo, onSinOrganizacion]);
 
   if (!lista) return null;
 
@@ -650,7 +675,13 @@ function DiagnosticoOrgBar() {
       {lista.organizations.length > 1 && (
         <select
           value={actual.id}
-          onChange={(e) => { setOrgActivaId(e.target.value); window.location.reload(); }}
+          onChange={(e) => {
+            // setActiva tambien: sin esto la barra seguia mostrando la empresa
+            // anterior mientras el resto ya trabajaba con la nueva.
+            setActiva(e.target.value);
+            setOrgActivaId(e.target.value);
+            onChange(e.target.value);
+          }}
           className="ml-auto text-sm border border-gray-300 rounded-lg px-2.5 py-1.5 bg-white
                      focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
         >
