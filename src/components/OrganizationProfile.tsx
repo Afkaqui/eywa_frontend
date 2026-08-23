@@ -7,7 +7,9 @@ import {
   FolderLock
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { OrganizationRepository } from '@/lib/repositories/organization-repository';
+import {
+  OrganizationRepository, getOrgActivaId, setOrgActivaId,
+} from '@/lib/repositories/organization-repository';
 import { Dataroom } from '@/components/Dataroom';
 import { OrgSwitcher } from '@/components/OrgSwitcher';
 import { EsgIndexPanel } from '@/components/EsgIndexPanel';
@@ -142,9 +144,11 @@ export function OrganizationProfile({ onNavigate }: { onNavigate?: (view: string
     sector:          '',
   });
 
-  // Load existing org on mount
+  // Carga la organización ACTIVA (la del selector), no la predeterminada: con
+  // `get()` la vista mostraba siempre la más antigua y cambiar de empresa en el
+  // selector no tenía ningún efecto aquí.
   useEffect(() => {
-    orgRepo.get()
+    orgRepo.getFull(getOrgActivaId())
       .then(org => {
         if (org) {
           setOrgType((org.type as OrgType) ?? null);
@@ -223,7 +227,10 @@ export function OrganizationProfile({ onNavigate }: { onNavigate?: (view: string
     setSaving(true);
     setError(null);
     try {
-      const saved = await orgRepo.save({
+      // PATCH sobre la que se está editando. Antes usaba save() (PUT), que
+      // siempre escribe sobre la predeterminada: con dos empresas, editar la
+      // segunda pisaba los datos de la primera.
+      const payload = {
         type:            orgType,
         institutionType: form.institutionType || null,
         name:            form.name.trim(),
@@ -235,8 +242,14 @@ export function OrganizationProfile({ onNavigate }: { onNavigate?: (view: string
         externalLinks:   form.externalLinks,
         country:         form.country || null,
         sector:          form.sector || null,
-      });
-      if (saved?.id) setOrgId(saved.id); // habilita la subida de logo al crear
+      };
+      const saved = orgId
+        ? await orgRepo.update(orgId, payload)
+        : await orgRepo.create(payload);
+      if (saved?.id) {
+        setOrgId(saved.id);              // habilita la subida de logo al crear
+        setOrgActivaId(saved.id);        // la recién creada pasa a ser la activa
+      }
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (e) {
@@ -280,7 +293,27 @@ export function OrganizationProfile({ onNavigate }: { onNavigate?: (view: string
 
           {/* Selector de organización activa. Solo aparece si hay más de una o si
               puede agregar otra: con una sola empresa la vista queda igual que antes. */}
-          <OrgSwitcher onChange={() => window.location.reload()} />
+          <OrgSwitcher
+            onChange={() => window.location.reload()}
+            onAdd={() => {
+              // El botón existía pero no hacía nada: OrgSwitcher llama onAdd?.()
+              // y aquí no se le pasaba ninguno. Ahora vacía el formulario para
+              // dar de alta una empresa nueva sin tocar la actual.
+              setOrgId(null);
+              setOrgType(null);
+              setLogoUrl(null);
+              setCountryQuery('');
+              setSectorQuery('');
+              setError(null);
+              setForm({
+                name: '', tradeName: '', ruc: '', institutionType: '',
+                description: '', phone: '', website: '', externalLinks: [],
+                country: '', sector: '',
+              });
+              setStep(1);
+              setActiveTab('perfil');
+            }}
+          />
         </div>
 
         {/* Tab switcher */}
@@ -324,7 +357,8 @@ export function OrganizationProfile({ onNavigate }: { onNavigate?: (view: string
         {activeTab === 'esg' && <EsgIndexPanel onNavigate={onNavigate} />}
 
         {/* Dataroom Tab */}
-        {activeTab === 'dataroom' && <Dataroom />}
+        {/* El dataroom es de la empresa que se esté viendo, no de la predeterminada. */}
+        {activeTab === 'dataroom' && <Dataroom orgId={orgId ?? undefined} />}
 
         {/* Perfil Tab content */}
         {activeTab === 'perfil' && <>

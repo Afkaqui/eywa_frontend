@@ -24,7 +24,7 @@ function fecha(iso?: string | null) {
   return new Date(iso).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-export function DataroomInvitations() {
+export function DataroomInvitations({ orgId }: { orgId?: string } = {}) {
   const repo = useMemo(() => new DataroomRepository(), []);
   const [list, setList]     = useState<Invitation[] | null>(null);
   const [email, setEmail]   = useState('');
@@ -34,8 +34,8 @@ export function DataroomInvitations() {
   const [ok, setOk]         = useState('');
 
   const load = useCallback(() => {
-    repo.getInvitations().then(setList).catch(() => setList([]));
-  }, [repo]);
+    repo.getInvitations(orgId).then(setList).catch(() => setList([]));
+  }, [repo, orgId]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -43,7 +43,7 @@ export function DataroomInvitations() {
     e.preventDefault();
     setSending(true); setError(''); setOk('');
     try {
-      const inv = await repo.invite(email.trim(), name.trim());
+      const inv = await repo.invite(email.trim(), name.trim(), orgId);
       setOk(`Invitación enviada a ${inv.email}`);
       setEmail(''); setName('');
       load();

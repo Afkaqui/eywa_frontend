@@ -54,9 +54,10 @@ async function apiFetch<T>(path: string): Promise<T> {
 }
 
 export class StatsRepository {
-  async me(): Promise<UserStats | null> {
+  async me(orgId?: string | null): Promise<UserStats | null> {
     try {
-      return await apiFetch<UserStats>('/api/proxy/stats/me');
+      const qs = orgId ? `?orgId=${encodeURIComponent(orgId)}` : '';
+      return await apiFetch<UserStats>(`/api/proxy/stats/me${qs}`);
     } catch {
       return null; // el dashboard degrada a "—" en vez de romperse
     }

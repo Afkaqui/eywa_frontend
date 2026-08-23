@@ -20,7 +20,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ ite
 
   try {
     const form = await req.formData();
-    const res = await fetch(`${API_URL}/api/dataroom/items/${itemId}/documents`, {
+    // El orgId decide a QUÉ empresa se sube el archivo. Sin reenviarlo, los
+    // documentos de la segunda empresa acabarían en la primera de la cuenta.
+    const qs = req.nextUrl.search;
+    const res = await fetch(`${API_URL}/api/dataroom/items/${itemId}/documents${qs}`, {
       method:  'POST',
       headers: { Authorization: `Bearer ${token.backendToken}` },
       body:    form,

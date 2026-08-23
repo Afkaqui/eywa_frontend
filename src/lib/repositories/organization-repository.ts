@@ -52,6 +52,23 @@ export class OrganizationRepository {
     return data.organization ?? null;
   }
 
+  /**
+   * Una organización concreta con TODOS sus campos, para el formulario.
+   * Sin id (o si el id guardado ya no existe) cae en la predeterminada, así que
+   * un localStorage viejo no deja la vista en blanco.
+   */
+  async getFull(id: string | null): Promise<Organization | null> {
+    if (id) {
+      try {
+        const data = await apiFetch<{ organization: Organization }>(`/api/proxy/organization/${id}`);
+        return data.organization ?? null;
+      } catch {
+        // Borrada o de otra cuenta: seguir con la predeterminada.
+      }
+    }
+    return this.get();
+  }
+
   /** Todas las del usuario, con el límite y si puede agregar más. */
   async getAll(): Promise<OrgListado> {
     return apiFetch<OrgListado>('/api/proxy/organization/all');

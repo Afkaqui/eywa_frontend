@@ -138,11 +138,11 @@ export function Dataroom({ orgId }: { orgId?: string } = {}) {
       )}
 
       {/* Perfil público (solo el dueño lo gestiona) */}
-      {!readOnly && <LandingPanel publicDocs={publicDocsCount} />}
+      {!readOnly && <LandingPanel publicDocs={publicDocsCount} orgId={orgId} />}
 
       {/* Invitaciones a terceros. Solo el DUEÑO: un gestor con acceso delegado
           tiene permiso de lectura, no de repartir accesos a documentos ajenos. */}
-      {!readOnly && <DataroomInvitations />}
+      {!readOnly && <DataroomInvitations orgId={orgId} />}
 
       {/* Carpetas */}
       <div className="space-y-3">
@@ -154,6 +154,7 @@ export function Dataroom({ orgId }: { orgId?: string } = {}) {
             onToggle={() => setOpenFolder(openFolder === folder.id ? null : folder.id)}
             onChanged={load}
             readOnly={readOnly}
+            orgId={orgId}
           />
         ))}
       </div>
@@ -220,14 +221,14 @@ function AccessLogPanel() {
 }
 
 // Panel para activar la mini-landing pública de la empresa.
-function LandingPanel({ publicDocs }: { publicDocs: number }) {
+function LandingPanel({ publicDocs, orgId }: { publicDocs: number; orgId?: string }) {
   const [state, setState] = useState<LandingState | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    repo.getLanding().then(setState).catch(() => setState({ enabled: false, slug: null }));
-  }, []);
+    repo.getLanding(orgId).then(setState).catch(() => setState({ enabled: false, slug: null }));
+  }, [orgId]);
 
   const url = state?.slug && typeof window !== 'undefined'
     ? `${window.location.origin}/empresa/${state.slug}`
@@ -236,7 +237,7 @@ function LandingPanel({ publicDocs }: { publicDocs: number }) {
   const toggle = async () => {
     if (!state) return;
     setBusy(true);
-    try { setState(await repo.setLanding(!state.enabled)); }
+    try { setState(await repo.setLanding(!state.enabled, orgId)); }
     catch { /* sin cambios */ }
     finally { setBusy(false); }
   };
@@ -300,8 +301,9 @@ function LandingPanel({ publicDocs }: { publicDocs: number }) {
   );
 }
 
-function FolderCard({ folder, open, onToggle, onChanged, readOnly = false }: {
-  folder: DataroomFolder; open: boolean; onToggle: () => void; onChanged: () => Promise<void>; readOnly?: boolean;
+function FolderCard({ folder, open, onToggle, onChanged, readOnly = false, orgId }: {
+  folder: DataroomFolder; open: boolean; onToggle: () => void; onChanged: () => Promise<void>;
+  readOnly?: boolean; orgId?: string;
 }) {
   const done = folder.completed_items === folder.total_items && folder.total_items > 0;
 
@@ -329,15 +331,15 @@ function FolderCard({ folder, open, onToggle, onChanged, readOnly = false }: {
 
       {open && (
         <div className="border-t border-gray-100 divide-y divide-gray-50">
-          {folder.items.map(item => <ItemRow key={item.id} item={item} onChanged={onChanged} readOnly={readOnly} />)}
+          {folder.items.map(item => <ItemRow key={item.id} item={item} onChanged={onChanged} readOnly={readOnly} orgId={orgId} />)}
         </div>
       )}
     </div>
   );
 }
 
-function ItemRow({ item, onChanged, readOnly = false }: {
-  item: DataroomItem; onChanged: () => Promise<void>; readOnly?: boolean;
+function ItemRow({ item, onChanged, readOnly = false, orgId }: {
+  item: DataroomItem; onChanged: () => Promise<void>; readOnly?: boolean; orgId?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -346,7 +348,7 @@ function ItemRow({ item, onChanged, readOnly = false }: {
   const handleFile = async (file: File) => {
     setBusy(true); setErr(null);
     try {
-      await repo.upload(item.id, file);
+      await repo.upload(item.id, file, orgId);
       await onChanged();
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Error al subir');

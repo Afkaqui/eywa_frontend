@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
+import { getOrgActivaId } from '@/lib/repositories/organization-repository';
 import { TrendingUp, TrendingDown, Activity, Landmark, Award, ArrowRight, User, Mail, Briefcase, Crown, Sparkles, Stethoscope, FolderLock, AlertCircle } from 'lucide-react';
 import { ProfessionalTrustGauge } from './ProfessionalTrustGauge';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,7 +26,8 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic }: HeroDashb
   // plataforma sí sabe; si algo no aplica todavía, se dice explícitamente.
   const statsRepo = useMemo(() => new StatsRepository(), []);
   const [stats, setStats] = useState<UserStats | null>(null);
-  useEffect(() => { statsRepo.me().then(setStats); }, [statsRepo]);
+  // El panel muestra los datos de la empresa activa, no de la más antigua.
+  useEffect(() => { statsRepo.me(getOrgActivaId()).then(setStats); }, [statsRepo]);
 
   const hasScore = diagnosticResult !== null && diagnosticResult !== undefined;
   const score = hasScore ? calculatePercentage(diagnosticResult.score, diagnosticResult.maxScore) : 0;

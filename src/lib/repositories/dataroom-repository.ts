@@ -71,10 +71,12 @@ export class DataroomRepository {
     return apiFetch<DataroomData>(`/api/proxy/dataroom${qs}`);
   }
 
-  async upload(itemId: string, file: File): Promise<DataroomDoc> {
+  async upload(itemId: string, file: File, orgId?: string): Promise<DataroomDoc> {
     const form = new FormData();
     form.append('file', file);
-    const res = await fetch(`/api/proxy/dataroom/items/${itemId}/documents`, {
+    // A QUÉ empresa se sube. Sin esto el backend lo cuelga de la predeterminada.
+    const qs = orgId ? `?orgId=${encodeURIComponent(orgId)}` : '';
+    const res = await fetch(`/api/proxy/dataroom/items/${itemId}/documents${qs}`, {
       method: 'POST',
       credentials: 'include',
       body: form, // sin Content-Type: el navegador pone el boundary
@@ -105,12 +107,14 @@ export class DataroomRepository {
   }
 
   // ── Mini-landing pública ────────────────────────────────────────────────────
-  async getLanding(): Promise<LandingState> {
-    return apiFetch<LandingState>('/api/proxy/dataroom/landing');
+  async getLanding(orgId?: string): Promise<LandingState> {
+    const qs = orgId ? `?orgId=${encodeURIComponent(orgId)}` : '';
+    return apiFetch<LandingState>(`/api/proxy/dataroom/landing${qs}`);
   }
 
-  async setLanding(enabled: boolean): Promise<LandingState> {
-    return apiFetch<LandingState>('/api/proxy/dataroom/landing', {
+  async setLanding(enabled: boolean, orgId?: string): Promise<LandingState> {
+    const qs = orgId ? `?orgId=${encodeURIComponent(orgId)}` : '';
+    return apiFetch<LandingState>(`/api/proxy/dataroom/landing${qs}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ enabled }),
@@ -154,13 +158,15 @@ export class DataroomRepository {
   }
 
   // ── Invitaciones (solo el dueño) ────────────────────────────────────────────
-  async getInvitations(): Promise<Invitation[]> {
-    const data = await apiFetch<{ invitations: Invitation[] }>('/api/proxy/dataroom/invitations');
+  async getInvitations(orgId?: string): Promise<Invitation[]> {
+    const qs = orgId ? `?orgId=${encodeURIComponent(orgId)}` : '';
+    const data = await apiFetch<{ invitations: Invitation[] }>(`/api/proxy/dataroom/invitations${qs}`);
     return data.invitations ?? [];
   }
 
-  async invite(email: string, name?: string): Promise<Invitation> {
-    const data = await apiFetch<{ invitation: Invitation }>('/api/proxy/dataroom/invitations', {
+  async invite(email: string, name?: string, orgId?: string): Promise<Invitation> {
+    const qs = orgId ? `?orgId=${encodeURIComponent(orgId)}` : '';
+    const data = await apiFetch<{ invitation: Invitation }>(`/api/proxy/dataroom/invitations${qs}`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ email, name: name || null }),
