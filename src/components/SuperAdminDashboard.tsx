@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Shield, Search, Users, Crown, Loader2, FolderLock } from 'lucide-react';
+import { Shield, Search, Users, Crown, Loader2, FolderLock, KeyRound } from 'lucide-react';
 import { ROLE_LABELS, ROLE_COLORS, PLAN_COLORS, API_ROUTES } from '@/lib/constants/roles';
 import { DataroomRepository } from '@/lib/repositories/dataroom-repository';
 import { VisitsPanel } from '@/components/VisitsPanel';
 import { AuditPanel } from '@/components/AuditPanel';
+import { AdminPasswordDialog } from '@/components/AdminPasswordDialog';
 import type { Profile, UserRole, UserPlan } from '@/lib/types/database';
 
 export function SuperAdminDashboard() {
@@ -13,6 +14,8 @@ export function SuperAdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [updating, setUpdating] = useState<string | null>(null);
+  // Usuario al que se le está fijando la contraseña (null = diálogo cerrado).
+  const [cambiandoClave, setCambiandoClave] = useState<Profile | null>(null);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -131,6 +134,7 @@ export function SuperAdminDashboard() {
                     <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Rol</th>
                     <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Plan</th>
                     <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Registro</th>
+                    <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">Acceso</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -171,6 +175,17 @@ export function SuperAdminDashboard() {
                       <td className="py-3 px-4 text-gray-500 text-xs">
                         {new Date(profile.createdAt).toLocaleDateString('es-ES')}
                       </td>
+                      <td className="py-3 px-4">
+                        <button
+                          onClick={() => setCambiandoClave(profile)}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs
+                                     text-gray-600 border border-gray-200 hover:bg-gray-100 transition-colors"
+                          title={`Fijar una contraseña nueva para ${profile.email}`}
+                        >
+                          <KeyRound className="w-3.5 h-3.5" />
+                          Contraseña
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -185,6 +200,10 @@ export function SuperAdminDashboard() {
         {/* Permisos de dataroom delegados a gestores */}
         <DataroomGrantsPanel />
       </div>
+
+      {cambiandoClave && (
+        <AdminPasswordDialog usuario={cambiandoClave} onCerrar={() => setCambiandoClave(null)} />
+      )}
     </div>
   );
 }

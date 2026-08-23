@@ -18,6 +18,8 @@ interface AuditUser {
   created_at: string;
   last_login_at: string | null;
   password_changed_at: string | null;
+  /** Administrador que la fijó. null = la cambió el propio usuario. */
+  password_set_by?: string | null;
   organization: string | null;
 }
 
@@ -202,6 +204,13 @@ export function AuditPanel() {
                       <>
                         <div className="text-gray-700">{haceCuanto(u.password_changed_at)}</div>
                         <div className="text-xs text-gray-400">{fechaHora(u.password_changed_at)}</div>
+                        {/* Que la clave la fijara un administrador NO es lo mismo que
+                            la cambiara su dueño: es justo lo que hay que poder ver aquí. */}
+                        {u.password_set_by && (
+                          <div className="text-xs text-amber-700 mt-0.5">
+                            fijada por {u.password_set_by}
+                          </div>
+                        )}
                       </>
                     ) : <SinRegistro nota={`No la ha cambiado desde el ${desde}`} />}
                   </td>

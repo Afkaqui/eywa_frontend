@@ -43,4 +43,5 @@ export const API_ROUTES = {
   ADMIN_USERS: '/api/proxy/users',
   ADMIN_USER_ROLE: (id: string) => `/api/proxy/users/${id}/role`,
   ADMIN_USER_PLAN: (id: string) => `/api/proxy/users/${id}/plan`,
+  ADMIN_USER_PASSWORD: (id: string) => `/api/proxy/users/${id}/password`,
 } as const;
