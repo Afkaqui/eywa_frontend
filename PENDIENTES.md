@@ -1409,6 +1409,11 @@ y **`consentimiento_datos` que debe ser exactamente `true`** — no acepta `fals
 
 `finanzas` y `documentos` son opcionales.
 
+**Los opcionales NO aceptan `null`.** Enviar `"telefono": null` o `"ruc": null` da 422
+(`expected string, received null`). Hay que **omitir la clave**. Importa porque en EYWA
+esos campos vienen vacíos a menudo: el cliente tiene que podar los nulos antes de enviar,
+no mapearlos directo.
+
 **Respuesta 201** — devuelve MÁS de lo documentado:
 
 ```json
@@ -1426,6 +1431,12 @@ y **`consentimiento_datos` que debe ser exactamente `true`** — no acepta `fals
 `mavii_lite` no aparecía en la captura de la documentación: MAVI devuelve una
 prevalidación inmediata (score, semáforo, decisión sugerida y qué documentos le
 faltan). Eso es aprovechable en la ficha del proyecto dentro de EYWA.
+
+**El score evalúa de verdad**, no es un valor fijo: se comprobó con dos envíos opuestos.
+Un proyecto completo (etapa prototipo, presupuesto real, plan de negocio disponible) dio
+`0.95 · verde · postular`; uno deliberadamente flojo (etapa idea, US$ 500, sin ningún
+documento) dio `0.21 · rojo · descartar`. `documentos_pendientes` también responde a lo
+que se declara, y añade `legal`, un tipo que no está en el enum de entrada.
 
 ### 14.2 Lo que bloquea el uso real
 
