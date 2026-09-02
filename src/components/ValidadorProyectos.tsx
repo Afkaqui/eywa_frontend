@@ -8,6 +8,7 @@ import {
   type ProjectPlanRow,
   type CreatePlanPayload,
 } from '@/lib/repositories/validator-repository';
+import { MaviPanel } from '@/components/MaviPanel';
 import { 
   Plus,
   Search, 
@@ -456,6 +457,15 @@ export function ValidadorProyectos() {
                 </div>
               )}
 
+              {/* Envío a la cartera de ARS LAB (§14). Va después del análisis
+                  propio: primero EYWA evalúa, luego se decide si se manda fuera. */}
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <MaviPanel
+                  plan={project}
+                  onActualizar={(p) => setProjects(prev => prev.map(x => (x.id === p.id ? p : x)))}
+                />
+              </div>
+
               {/* Documentos reales del proyecto */}
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <div className="flex items-center justify-between mb-2">
@@ -636,7 +646,8 @@ function NewProjectModal({ onClose, onCreated }: { onClose: () => void; onCreate
     duration: '',
     carbonGoal: '',
     objectives: '',
-    stakeholders: ''
+    stakeholders: '',
+    etapa: '' as '' | 'idea' | 'prototipo' | 'operando'
   });
   // Archivos REALES seleccionados (se suben al crear el proyecto)
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
@@ -725,6 +736,7 @@ function NewProjectModal({ onClose, onCreated }: { onClose: () => void; onCreate
           carbonGoal:   Number(formData.carbonGoal) || 0,
           objectives:   formData.objectives || null,
           stakeholders: formData.stakeholders || null,
+          etapa:        formData.etapa || null,
         };
         const plan = await validatorRepo.createPlan(payload);
         planId = plan.id;
@@ -849,6 +861,24 @@ function NewProjectModal({ onClose, onCreated }: { onClose: () => void; onCreate
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
+            </div>
+
+            {/* La etapa pesa mucho en la prevalidación de MAVI (§14): un proyecto
+                en fase de idea puntúa muy por debajo de uno en operación. */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 mb-2">
+                Etapa del Proyecto
+              </label>
+              <select
+                value={formData.etapa}
+                onChange={(e) => setFormData({ ...formData, etapa: e.target.value as typeof formData.etapa })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+              >
+                <option value="">Sin especificar</option>
+                <option value="idea">Idea</option>
+                <option value="prototipo">Prototipo</option>
+                <option value="operando">Operando</option>
+              </select>
             </div>
 
             <div>

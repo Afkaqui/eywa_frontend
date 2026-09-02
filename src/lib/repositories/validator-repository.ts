@@ -52,6 +52,21 @@ export interface ProjectPlanRow {
   report: ValidationReport | null;
   analyzedAt: string | null;
   createdAt: string;
+  etapa?: 'idea' | 'prototipo' | 'operando' | null;
+  mavi?: MaviEstado;
+}
+
+/** Estado del envío a la cartera de ARS LAB (ver PENDIENTES §14). */
+export interface MaviEstado {
+  consentido: boolean;
+  enviado_at: string | null;
+  id_proyecto: string | null;
+  estado: string | null;
+  score: number | null;
+  semaforo: string | null;
+  decision: string | null;
+  pendientes: string[] | null;
+  seguimiento: string | null;
 }
 
 export interface CreatePlanPayload {
@@ -63,6 +78,7 @@ export interface CreatePlanPayload {
   carbonGoal: number;
   objectives?: string | null;
   stakeholders?: string | null;
+  etapa?: 'idea' | 'prototipo' | 'operando' | null;
   documents?: ProjectDocument[];
 }
 
@@ -100,6 +116,23 @@ export class ValidatorRepository {
       method: 'POST',
     });
     return data.plan;
+  }
+
+  /** Registra (o retira) la autorización para enviar los datos a ARS LAB. */
+  async setMaviConsent(id: string, acepta: boolean): Promise<{ consentido: boolean }> {
+    return apiFetch(`/api/proxy/validator/plans/${id}/mavi/consentimiento`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ acepta }),
+    });
+  }
+
+  /** Envía el proyecto a la cartera de MAVI y devuelve el plan con la respuesta. */
+  async sendToMavi(id: string): Promise<ProjectPlanRow> {
+    const d = await apiFetch<{ plan: ProjectPlanRow }>(`/api/proxy/validator/plans/${id}/mavi`, {
+      method: 'POST',
+    });
+    return d.plan;
   }
 
   async deletePlan(id: string): Promise<void> {
