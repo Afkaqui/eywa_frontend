@@ -1388,3 +1388,74 @@ dejarlos vacíos.
 **No romper mientras tanto:** con una sola organización el comportamiento debe ser
 idéntico al de hoy. Los 5 usuarios que ya tienen empresa no deben notar el cambio hasta
 que agreguen una segunda.
+
+---
+
+## 14. Integración MAVI / ARS LAB (probada 2026-09-02)
+
+Envío de proyectos de EYWA a la cartera de ARS LAB para su prevalidación MAVII.
+
+### 14.1 Contrato — verificado contra el servidor real
+
+```
+POST https://ars.pe/api/external/proyectos
+X-Api-Key: <clave EYWA dedicada>        (o Authorization: Bearer <key>)
+Límite: 60 req/hora
+```
+
+**Obligatorios** (lo dijo el propio 422 del servidor, no la documentación):
+`origen` (literal `"EYWA"`), `referencia_externa`, `proyecto`, `solicitante`,
+y **`consentimiento_datos` que debe ser exactamente `true`** — no acepta `false`.
+
+`finanzas` y `documentos` son opcionales.
+
+**Respuesta 201** — devuelve MÁS de lo documentado:
+
+```json
+{
+  "id_proyecto": "06e811f2-…",
+  "estado": "en_cola_mavii",
+  "url_seguimiento": "https://innovation-lab-hub--francoars.replit.app/intranet/proyectos",
+  "mavii_lite": {
+    "score": 0.95, "semaforo": "verde", "decision_sugerida": "postular",
+    "documentos_pendientes": ["estudio_mercado", "legal"], "criterios_sin_evaluar": []
+  }
+}
+```
+
+`mavii_lite` no aparecía en la captura de la documentación: MAVI devuelve una
+prevalidación inmediata (score, semáforo, decisión sugerida y qué documentos le
+faltan). Eso es aprovechable en la ficha del proyecto dentro de EYWA.
+
+### 14.2 Lo que bloquea el uso real
+
+1. **`consentimiento_datos` tiene que ser `true` y EYWA no lo pregunta a nadie.**
+   Ya no es una objeción teórica: el servidor rechaza `false`. El payload manda
+   nombre, correo, teléfono, organización y RUC del solicitante a un tercero.
+   Hasta que exista la casilla en el Validador, no se puede enviar a nadie real.
+2. **`url_seguimiento` apunta a un `*.replit.app`** — sigue siendo el ambiente de
+   desarrollo, como avisaron por WhatsApp. No es infraestructura de producción.
+3. **`proyecto.etapa`** (`idea`/`prototipo`/`operando`) no existe en el modelo de EYWA.
+4. **Moneda**: EYWA trata el presupuesto como USD; el ejemplo de ARS usa PEN. Hay
+   que enviar `moneda` explícito o se envían montos en la divisa equivocada.
+5. **Tipos de documento**: MAVI usa un enum (`plan_negocio`, `modelo_financiero`,
+   `estudio_mercado`, y devolvió también `legal`). Se pueden derivar de los ítems
+   del dataroom — ver el mapeo en 14.3.
+
+### 14.3 Mapeo del dataroom al enum de MAVI
+
+| MAVI | Ítem del dataroom de EYWA |
+|---|---|
+| `plan_negocio` | 5.1 Descripción del modelo de negocio |
+| `modelo_financiero` | 4.1 Estados financieros · 4.3 Presupuestos y proyecciones |
+| `estudio_mercado` | 8.5 Estudios de mercado y competencia |
+
+Con el dataroom de Qory cargado, los tres salen `disponible`.
+
+### 14.4 Estado
+
+- ✅ Clave EYWA dedicada creada y **verificada** (60 req/h)
+- ✅ Endpoint y contrato verificados con un envío real (201)
+- ⬜ Nada construido dentro de EYWA todavía: no hay cliente ni disparador
+- ⬜ Casilla de consentimiento en el Validador — **bloquea todo lo demás**
+- ⬜ La clave vive solo en local; falta meterla al `.env` del VPS cuando se construya
