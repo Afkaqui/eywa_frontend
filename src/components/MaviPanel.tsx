@@ -114,12 +114,30 @@ export function MaviPanel({ plan, onActualizar }: {
           </div>
         )}
 
+        {/* La referencia es lo ÚNICO accionable para quien presenta el proyecto:
+            es lo que cita al escribirle a ARS. */}
+        {mavi?.id_proyecto && (
+          <div>
+            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
+              Referencia en ARS LAB
+            </div>
+            <code className="text-xs font-mono text-gray-700 bg-gray-100 rounded-lg px-2.5 py-1.5 inline-block break-all">
+              {mavi.id_proyecto}
+            </code>
+          </div>
+        )}
+
+        {/* El enlace que devuelve ARS NO lleva al proyecto: redirige a la portada
+            de su intranet y pide una cuenta de ARS LAB, que quien presenta el
+            proyecto no tiene. Se deja, pero diciendo lo que es: llamarlo "ver en
+            la cartera" hacía creer que se podía entrar. */}
         {mavi?.seguimiento && (
           <a
             href={mavi.seguimiento} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm text-emerald-700 hover:underline"
+            className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 hover:underline"
           >
-            Ver en la cartera de ARS LAB <ExternalLink className="w-3.5 h-3.5" />
+            Panel interno de ARS LAB (requiere cuenta suya)
+            <ExternalLink className="w-3 h-3" />
           </a>
         )}
       </div>

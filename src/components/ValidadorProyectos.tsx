@@ -372,7 +372,11 @@ export function ValidadorProyectos() {
                       <div>
                         <div className="text-xs text-gray-500">Meta CO₂</div>
                         <div className="text-sm font-medium text-emerald-700">
-                          {(project.carbonGoal / 1000).toFixed(1)}k t
+                          {/* Dividir siempre entre 1000 mostraba "0.0k t" para cualquier
+                              meta menor a 100 t, que es el caso de una MYPE. */}
+                          {project.carbonGoal >= 1000
+                            ? `${(project.carbonGoal / 1000).toFixed(1)}k t`
+                            : `${project.carbonGoal} t`}
                         </div>
                       </div>
                     </div>
