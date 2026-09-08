@@ -1435,8 +1435,22 @@ faltan). Eso es aprovechable en la ficha del proyecto dentro de EYWA.
 **El score evalúa de verdad**, no es un valor fijo: se comprobó con dos envíos opuestos.
 Un proyecto completo (etapa prototipo, presupuesto real, plan de negocio disponible) dio
 `0.95 · verde · postular`; uno deliberadamente flojo (etapa idea, US$ 500, sin ningún
-documento) dio `0.21 · rojo · descartar`. `documentos_pendientes` también responde a lo
-que se declara, y añade `legal`, un tipo que no está en el enum de entrada.
+documento) dio `0.21 · rojo · descartar`. `documentos_pendientes` también responde a lo que se declara.
+
+**CORRECCIÓN (2026-09-08).** Aquí se afirmó que `legal` era un tipo que MAVI devolvía
+pero no aceptaba de entrada. **Era falso**: se dedujo de la captura de la documentación
+sin comprobarlo. Preguntando al servidor con un tipo inválido, éste devuelve el enum
+completo:
+
+```
+plan_negocio | modelo_financiero | estudio_mercado | legal | otros
+```
+
+Son **cinco**, y el cliente solo enviaba tres. Por eso MAVI devolvía siempre `legal`
+como pendiente en los cuatro envíos de Qory: no faltaban documentos legales —tiene
+partida registral, vigencia de poderes, libro de acciones y 6 NDAs— sino que nunca se
+los declarábamos. Corregido: `legal` se mapea a los seis ítems de la carpeta *Legal y
+Societario*. `otros` se deja fuera por ser un cajón de sastre que MAVI nunca pide.
 
 ### 14.2 Lo que bloquea el uso real
 
@@ -1460,6 +1474,8 @@ que se declara, y añade `legal`, un tipo que no está en el enum de entrada.
 | `plan_negocio` | 5.1 Descripción del modelo de negocio |
 | `modelo_financiero` | 4.1 Estados financieros · 4.3 Presupuestos y proyecciones |
 | `estudio_mercado` | 8.5 Estudios de mercado y competencia |
+| `legal` | Los seis ítems de la carpeta 2, *Legal y Societario* |
+| `otros` | No se envía |
 
 Con el dataroom de Qory cargado, los tres salen `disponible`.
 
