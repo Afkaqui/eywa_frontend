@@ -20,6 +20,9 @@ export interface PortfolioCompany {
   // 'manual' = empresa externa agregada por el gestor.
   source?: 'plataforma' | 'manual';
   incomplete?: boolean; // usuario con empresa declarada pero sin completar Mi Organización
+  // Dada de alta por un tercero vía la API externa (§15): los datos no los declaró
+  // el dueño, así que no se puede llamar "Verificada".
+  viaApi?: boolean;
   score: number | null; // % del diagnóstico (plataforma) o valor manual; null → "Pendiente"
   level?: string | null; // banda GENES (solo plataforma)
   status: string;

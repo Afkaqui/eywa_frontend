@@ -234,9 +234,11 @@ export function InvestorPortfolio() {
                               ? 'bg-gray-100 text-gray-500 border border-gray-200'
                               : company.incomplete
                               ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                              : company.viaApi
+                              ? 'bg-blue-50 text-blue-700 border border-blue-200'
                               : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                           }`}>
-                            {company.source !== 'plataforma' ? 'Externa' : company.incomplete ? 'Registro incompleto' : 'Verificada'}
+                            {company.source !== 'plataforma' ? 'Externa' : company.incomplete ? 'Registro incompleto' : company.viaApi ? 'Vía API' : 'Verificada'}
                           </span>
                         </div>
                       </div>

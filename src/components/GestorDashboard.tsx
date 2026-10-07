@@ -303,9 +303,11 @@ function PortfolioManager() {
                             ? 'bg-gray-100 text-gray-500'
                             : c.incomplete
                             ? 'bg-amber-100 text-amber-700'
+                            : c.viaApi
+                            ? 'bg-blue-100 text-blue-700'
                             : 'bg-emerald-100 text-emerald-700'
                         }`}>
-                          {c.source !== 'plataforma' ? 'Externa' : c.incomplete ? 'Registro incompleto' : 'Verificada'}
+                          {c.source !== 'plataforma' ? 'Externa' : c.incomplete ? 'Registro incompleto' : c.viaApi ? 'Vía API' : 'Verificada'}
                         </span>
                       </div>
                     </td>

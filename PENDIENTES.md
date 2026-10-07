@@ -1486,3 +1486,46 @@ Con el dataroom de Qory cargado, los tres salen `disponible`.
 - ⬜ Nada construido dentro de EYWA todavía: no hay cliente ni disparador
 - ⬜ Casilla de consentimiento en el Validador — **bloquea todo lo demás**
 - ⬜ La clave vive solo en local; falta meterla al `.env` del VPS cuando se construya
+
+## 15. API externa v1 — sistemas de terceros (CONSTRUIDA 2026-10-07)
+
+Primer cliente: **Katerine Magali (Katy)**. Backend `3bd8077`.
+
+**Qué es.** La primera API de EYWA que no usa la sesión de usuario. Se identifica
+con `X-Api-Key` (una clave por cliente; en la BD solo está su sha256, tabla
+`api_clients`). Límite: 120 peticiones/hora por cliente (en memoria: vale mientras
+el backend sea UN contenedor).
+
+**URL pública:** `https://eywa-hazel.vercel.app/api/external/v1/…` — pasa por una
+ruta de Next (`src/app/api/external/v1/[...ruta]`) porque el backend está en HTTP
+plano y la clave no debe viajar sin cifrar. El tramo Vercel→VPS sigue en HTTP,
+igual que el resto de la plataforma (se cierra con el DNS `apieywa`).
+
+| Método | Ruta | Qué hace |
+|---|---|---|
+| GET  | `/criterios` | Los 14 criterios GENES con código, peso y opciones |
+| POST | `/organizaciones` | Alta/actualización idempotente por `referencia_externa`, con diagnóstico opcional |
+| GET  | `/organizaciones` | Las que dio de alta ese cliente, con su último resultado |
+| GET  | `/organizaciones/:ref` | Detalle + desglose por criterio + historial |
+| GET  | `/empresas` | Directorio de empresas con perfil público (filtros q/sector/pais) |
+| GET  | `/empresas/:slug` | Perfil público + completitud del dataroom + documentos públicos |
+
+**Decisiones tomadas (revisables):**
+- **EYWA calcula el puntaje.** El cliente manda la OPCIÓN elegida por criterio, no
+  un número. Se exigen los 14 criterios: uno sin responder contaría 0.
+- **El cálculo GENES ahora existe en DOS sitios**: `DiagnosticInterface.tsx`
+  (frontend) y `calcularGenes` en `eywa_api/src/lib/scoring.ts`. Si cambia uno,
+  tiene que cambiar el otro.
+- **Lo que sale de empresas ajenas = lo que su mini-landing ya muestra.** El puntaje
+  GENES de una empresa solo lo ve el cliente que la dio de alta. Si se quiere
+  exponer más, debe ser con una casilla de consentimiento del dueño.
+- **Dueño de las empresas dadas de alta por API:** un perfil de servicio por cliente
+  (`api.<cliente>@clientes-api.eywa.local`, contraseña aleatoria que nadie conoce).
+  Aparecen en el Portfolio con la insignia azul **"Vía API"**, no "Verificada".
+- Códigos estables por criterio: columna nueva `diagnostic_questions.code`.
+
+**Pendiente:**
+- [ ] El dueño real de una empresa dada de alta por API no la ve en su cuenta. Falta
+      un flujo de "reclamar" (transferir del perfil de servicio al usuario).
+- [ ] Emitir/revocar claves desde Administración (hoy: SQL directo).
+- [ ] Los perfiles de servicio cuentan como usuarios en las estadísticas.

@@ -50,6 +50,10 @@ const PUBLIC_PREFIX = [
   '/api/proxy/dataroom/invited',
   '/api/proxy/stats/public',
   '/api/proxy/stats/visit',       // se dispara en CADA carga de página
+
+  // API para sistemas de terceros: no hay sesión, se identifican con X-Api-Key
+  // y la valida el backend (§15).
+  '/api/external',
 ];
 
 /**
