@@ -7,6 +7,7 @@ import { DataroomRepository } from '@/lib/repositories/dataroom-repository';
 import { VisitsPanel } from '@/components/VisitsPanel';
 import { AuditPanel } from '@/components/AuditPanel';
 import { AdminPasswordDialog } from '@/components/AdminPasswordDialog';
+import { ApiClientsPanel } from '@/components/ApiClientsPanel';
 import type { Profile, UserRole, UserPlan } from '@/lib/types/database';
 
 export function SuperAdminDashboard() {
@@ -199,6 +200,9 @@ export function SuperAdminDashboard() {
 
         {/* Permisos de dataroom delegados a gestores */}
         <DataroomGrantsPanel />
+
+        {/* Clientes de la API externa: emitir, rotar y revocar claves (§15) */}
+        <ApiClientsPanel />
       </div>
 
       {cambiandoClave && (

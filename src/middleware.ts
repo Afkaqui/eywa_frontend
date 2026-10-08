@@ -28,6 +28,7 @@ const PUBLIC_EXACT = new Set([
   '/docs',
   '/fase1',
   '/infraestructura',  // sustentación pública (EINCUS-1-P-233-26)
+  '/eywa-sello.js',    // sello que las empresas pegan en SU web (§9): lo carga cualquier visitante
 ]);
 
 /** Rutas públicas con sub-rutas dinámicas: coinciden por PREFIJO. */
@@ -54,6 +55,8 @@ const PUBLIC_PREFIX = [
   // API para sistemas de terceros: no hay sesión, se identifican con X-Api-Key
   // y la valida el backend (§15).
   '/api/external',
+  // Capa pública de la API (sin clave, solo lectura de lo ya público).
+  '/api/public',
 ];
 
 /**
