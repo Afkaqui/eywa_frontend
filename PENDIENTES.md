@@ -474,7 +474,24 @@ y NAB Colombia (89 orgs, 5 campos). Son el catálogo de **instituciones** del ec
 
 ---
 
-## 9. API pública / de datos y cálculo (proyectado 2026-07-14 — EN EXPLORACIÓN, no construir aún)
+## 9. API pública / de datos y cálculo (proyectado 2026-07-14 — CONSTRUIDA EN PARTE 2026-10-08)
+
+> **Estado 2026-10-08** (backend `a026635`, frontend `be1fa7e`). Contrastado con este plan:
+>
+> | Del plan | Estado |
+> |---|---|
+> | Capa pública sin key: actores sin PII + verificación de certificados | ✅ `/api/public/v1` (300/h por IP, CORS abierto, caché CDN 5 min). Escaneados los 320 actores: cero correos y teléfonos |
+> | Modelo de keys: hash, consumidor, scopes, límite, revocación, último uso, emisor | ✅ `api_clients` (+ `scopes`, `revoked_at`, `created_by`, `request_count`) |
+> | UI de admin para crear/revocar/ajustar | ✅ Super Administración → "Clientes de la API" (emitir, permisos, rotar, revocar) |
+> | Regla 1: etiquetar origen + aviso "preliminar" | ✅ cada resultado GENES lleva `naturaleza`, `aviso`, `version_metodologia` |
+> | Regla 2: metodología versionada | ✅ `/v1` + `GENES_VERSION` en `lib/scoring.ts` (subirla al cambiar criterios/pesos/bandas) |
+> | Regla 3: nunca abierta sin key, medir uso, revocar | ✅ |
+> | Badge embebible + `GET /v1/empresa/:slug` + CORS | ✅ `public/eywa-sello.js`; código y vista previa en Mi Organización → Dataroom. Muestra % documentado, **no** el puntaje y no dice "certificado" |
+> | `POST /v1/diagnostic/score` | ✅ como parte de `POST /api/external/v1/organizaciones` (§15), no como cálculo suelto |
+> | `POST /v1/esg-score` (Validador) | ⏳ sin construir: el motor es heurístico; exponerlo exige decidir cómo se etiqueta |
+> | `POST /v1/match` (el caso estrella) | ⏳ sin construir: el catálogo de fondos tiene 119 de 149 convocatorias cerradas (última carga 2026-07-28). Cruzar contra eso daría resultados vacíos o engañosos. **Primero refrescar el catálogo** |
+> | Índice GENES en el badge (opt-in) | ⏳ falta la casilla de consentimiento del dueño |
+> | ¿Gratis, freemium o de pago? | ⏳ decisión de producto abierta |
 
 **Idea:** exponer los datos y los cálculos de EYWA vía API. Dos naturalezas con riesgos
 distintos → **dos capas** (decisión del usuario 2026-07-14: keys por consumidor, límites
@@ -1524,8 +1541,19 @@ igual que el resto de la plataforma (se cierra con el DNS `apieywa`).
   Aparecen en el Portfolio con la insignia azul **"Vía API"**, no "Verificada".
 - Códigos estables por criterio: columna nueva `diagnostic_questions.code`.
 
+**Dominio oficial:** `https://eywa.encsust4in4ble.earth` (= `PUBLIC_APP_URL`). Sirve la app
+y las dos capas de la API; `eywa-hazel.vercel.app` también funciona. La documentación
+entregada a Katy usa el oficial.
+
 **Pendiente:**
 - [ ] El dueño real de una empresa dada de alta por API no la ve en su cuenta. Falta
       un flujo de "reclamar" (transferir del perfil de servicio al usuario).
-- [ ] Emitir/revocar claves desde Administración (hoy: SQL directo).
-- [ ] Los perfiles de servicio cuentan como usuarios en las estadísticas.
+- [x] ~~Emitir/revocar claves desde Administración~~ — hecho 2026-10-08 (§9).
+- [x] ~~Los perfiles de servicio cuentan como usuarios~~ — corregido 2026-10-08: además
+      aparecían en el Portfolio como empresa con "Registro incompleto". Filtro único
+      `NO_ES_PERFIL_DE_SERVICIO` en `eywa_api/src/lib/api-scopes.ts`.
+- [ ] `request_count` se vuelca a la BD como mucho una vez por minuto por cliente: el
+      panel puede ir hasta un minuto por detrás.
+- [ ] Límite por IP de la capa pública: la IP llega en `X-Forwarded-For` desde Vercel; quien
+      llame al backend directo por el 4001 puede falsearla. Solo gana saltarse el límite
+      sobre datos ya públicos; se cierra con el mismo pendiente del HTTP plano.
