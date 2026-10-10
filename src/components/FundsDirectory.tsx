@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Fund } from '@/lib/types/database';
+import { FundsReviewPanel } from '@/components/FundsReviewPanel';
 
 // Catálogo de Fondos (matriz Neo) — solo Premium o gestor+.
 // Los free ven un teaser honesto con los conteos reales (GET /summary).
@@ -28,6 +29,16 @@ type State =
   | { status: 'ok'; funds: Fund[]; myTags: string[]; mySector: string | null }
   | { status: 'forbidden'; total: number; nacionales: number; internacionales: number }
   | { status: 'error' };
+
+// Qué comprobó el verificador nocturno (§16), dicho para quien lee el catálogo.
+const ESTADO_VERIFICACION: Record<string, string> = {
+  vigente:     'la página anuncia una fecha de cierre',
+  cerrado:     'la página indica que la convocatoria está cerrada',
+  enlace_roto: 'la página del fondo ya no existe; estamos buscando la nueva',
+  bloqueado:   'el sitio no permite verificación automática',
+  sin_datos:   'la página no publica una fecha de cierre por ahora',
+  error:       'no se pudo acceder al sitio',
+};
 
 function fmtDeadline(f: Fund): { label: string; closed: boolean } {
   if (f.deadline) {
@@ -227,6 +238,14 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
         )}
       </div>
 
+      {/* Cola del verificador nocturno de fondos (solo gestores) */}
+      {canManage && (
+        <FundsReviewPanel
+          onEditar={(id) => { const f = state.funds.find(x => x.id === id); if (f) setEditing(f); }}
+          onCambio={load}
+        />
+      )}
+
       {/* Match con mi industria (solo si la organización tiene sector definido) */}
       {state.myTags.length > 0 && (
         <button
@@ -286,6 +305,12 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
                         Cerrado
                       </span>
                     )}
+                    {f.verify_status === 'enlace_roto' && (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase bg-amber-50 text-amber-700 border border-amber-200"
+                            title="La página del fondo ya no existe; estamos buscando la nueva">
+                        Enlace por verificar
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-1.5 flex-wrap mt-1">
                     {(f.sector_tags ?? []).map(t => {
@@ -334,6 +359,14 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
                   {f.checklist && (
                     <p><span className="font-medium text-gray-700">Checklist (Gate 0):</span>{' '}
                       <span className="text-gray-600">{f.checklist}</span></p>
+                  )}
+                  {f.verified_at && (
+                    <p className="text-xs text-gray-400">
+                      Verificado automáticamente el{' '}
+                      {new Date(f.verified_at).toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      {f.verify_status && ESTADO_VERIFICACION[f.verify_status] ? `: ${ESTADO_VERIFICACION[f.verify_status]}` : ''}.
+                      {f.deadline_source === 'bot' && ' La fecha de cierre la detectó el verificador y la confirmó un gestor.'}
+                    </p>
                   )}
                   <div className="flex items-center gap-4 pt-1">
                     {f.url && (

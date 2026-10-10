@@ -102,6 +102,10 @@ export interface Fund {
   deadline_text: string | null; // "Por convocatoria", "Abierto", "Ventanilla…"
   checklist: string | null;
   url: string | null;
+  // Re-verificación nocturna (§16)
+  verify_status?: 'vigente' | 'cerrado' | 'enlace_roto' | 'bloqueado' | 'sin_datos' | 'error' | null;
+  verified_at?: string | null;
+  deadline_source?: 'manual' | 'bot' | null; // null = carga original de la matriz
 }
 
 // ── Simbiocreacion ──
