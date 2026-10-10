@@ -1557,3 +1557,90 @@ entregada a Katy usa el oficial.
 - [ ] Límite por IP de la capa pública: la IP llega en `X-Forwarded-For` desde Vercel; quien
       llame al backend directo por el 4001 puede falsearla. Solo gana saltarse el límite
       sobre datos ya públicos; se cierra con el mismo pendiente del HTTP plano.
+
+## 16. Fondos vivos + adecuación de lo prometido (reunión 2026-10-08)
+
+Origen: `Obs reu 08 10/Observaciones_para_EYWA.md`. Decisión del usuario (2026-10-09): la
+"gema" de Gemini es la que alimentó el catálogo de fondos del Portfolio; **un scraping propio
+la reemplaza** y mantiene el catálogo vigente. Lo demás que se promete en las reuniones
+(Máximo Producto Posible, definición del problema, etc.) **se adecua a la plataforma** para que
+deje de ser solo discurso.
+
+### 16.1 Diagnóstico del catálogo actual (sondeo del 2026-10-09)
+
+149 fondos, cargados el 2026-07-28. 119 con fecha de cierre ya pasada, 5 con fecha futura y 25 sin fecha.
+Se visitó cada URL con una petición por sitio, identificándose como bot:
+
+| Resultado | Fondos | Qué significa |
+|---|---|---|
+| Responde con contenido | 88 | Se puede re-verificar automáticamente |
+| Responde casi vacío (lo carga JavaScript) | 22 | Necesita navegador headless o revisión manual |
+| 404 | 15 | La página ya no existe: el fondo cambió de URL o terminó |
+| 403/429 (anti-bot) | 16 | Bayer, UNEP, PNUD-SGP, IAF, La Caixa… No forzar: revisión manual |
+| Error de red | 8 | Dominio caído o mal escrito |
+| `lnkd.in` (LinkedIn) | 16 | **Ninguno llega al fondo**: se quedan en la página intermedia. Hoy no tienen enlace real |
+
+Lectura: la mayoría son **convocatorias anuales**. "Cerrado" casi nunca significa "terminó":
+significa "esperando la próxima edición". El trabajo no es solo buscar fondos nuevos, es
+**seguir los que ya tenemos**.
+
+### 16.2 Plan de scraping (reemplaza a la gema)
+
+**Principios**
+- Sin tokens de IA en el ciclo diario (lo pidió Eduardo): extracción por reglas. La IA, si
+  algún día entra, solo para los casos que las reglas marquen como dudosos.
+- Respeta `robots.txt`, se identifica (`EYWA-FondosBot`), una petición cada 2 s por dominio,
+  solo páginas públicas. **No se fuerza ningún bloqueo anti-bot.**
+- **Nunca se recopilan perfiles de personas** (evaluadores, jurados): solo los criterios
+  públicos del fondo y los ganadores que el propio fondo publica (Ley 29733).
+- **LinkedIn no se scrapea** (sus términos lo prohíben). Los 16 `lnkd.in` se sustituyen una vez
+  por la URL real del fondo, con revisión humana.
+- Lo automático **propone**; lo dudoso va a una cola de revisión (el "30% humano").
+
+**Fase 1: re-verificación del catálogo (cada noche, 23:00 Lima)**
+1. Visita la URL de cada fondo y clasifica: vigente / cerrado / próxima edición / enlace roto /
+   bloqueado / sin datos.
+2. Busca fechas de cierre (formatos en español e inglés) cerca de palabras de cierre ("fecha
+   límite", "deadline", "cierre", "apply by"…).
+3. Aplica la fecha automáticamente solo si es inequívoca: una sola fecha futura junto a una
+   palabra de cierre, y el fondo no tenía fecha o la tenía vencida. Si no, la propone y la deja
+   en revisión.
+4. Guarda en cada fondo cuándo se verificó, el resultado y la evidencia (el fragmento de texto
+   del que salió la fecha).
+
+**Fase 2: descubrimiento de fondos nuevos**
+- Prociencia: API REST de WordPress (`/wp-json/wp/v2/search`). Verificado: responde con título,
+  fecha y URL de cada convocatoria.
+- ProInnóvate: `gob.pe/institucion/proinnovate` (robots.txt lo permite). Falta resolver cómo
+  leerla: la página carga, pero no con la estructura esperada.
+- UE Funding & Tenders: API pública (`api.tech.ec.europa.eu/search-api`, 16.175 resultados),
+  filtrada por temas EYWA y por elegibilidad de América Latina.
+- grants.gov: API pública, pero casi todo es para EE. UU.; prioridad baja.
+- Los fondos nuevos entran como **candidatos ocultos** hasta que un gestor los aprueba.
+
+**Fase 3: panel y avisos**
+- Gestión de fondos: cola de revisión (aprobar / descartar / corregir), historial de cada
+  corrida (cuántos verificó, cambió, falló).
+- Cada fondo muestra "Verificado el …" y, si la fecha la detectó el bot, lo dice.
+- El aviso "convocatorias que cierran pronto" pasa a usar datos vivos.
+
+**Esto desbloquea** `/match` de la API (§9) y la brecha frente a Finnova (alertas con datos vigentes).
+
+### 16.3 Adecuación de lo que se promete en reuniones
+
+| Concepto prometido | Cómo entra a la plataforma | Depende de |
+|---|---|---|
+| **Definición del problema** (actor, dolor, causa raíz, urgencia, consecuencia, unidad de validación) | Sección estructurada en el Validador; sale en el reporte | Nada para construir. El texto oficial de Eduardo se enlaza cuando llegue |
+| **Máximo Producto Posible (MPP)** | En el Validador: insumo principal → subproductos, con su uso, el sector que lo compra y si ya se hace o es potencial; sale en el reporte | Nada |
+| **Glosario** (MPP, IMI, TRL, CRL, quíntuple hélice, brecha sectorial, océano azul, blended finance, innovación/obras por impuestos, SbN, NDC, OKR, debida diligencia…) | Glosario en la Academia, con definiciones de EYWA marcadas "por validar con Eduardo" | El glosario oficial del MINAM se enlaza cuando Eduardo lo envíe |
+| **Observaciones del consultor** (el 30% humano) | Campo visible solo para gestor/admin en cada proyecto del Validador | Nada |
+| **Índice de Madurez Industrial (IMI)** | Cuestionario en el diagnóstico; alimenta el KPI "Reducción Gap IMI" (hoy "Pendiente") | **Criterios y escala de Eduardo**: no se inventan |
+| **TRL / CRL** | Junto al IMI | Avance de la calculadora del Estado |
+| **Nota conceptual 70/30** | Borrador generado a partir de problema + MPP + diagnóstico; el consultor lo completa | IA del Validador (pendiente) |
+| **Océanos azules** (competencia por fondo) | Campo "postulantes en la última edición" en cada fondo | Dato manual o publicado por el fondo |
+| **Tablero OKR** | Objetivos y resultados clave por organización | Diseño con Eduardo |
+| **Emulador** | Base de fichas de proyectos para detectar errores comunes | Que el equipo recopile las fichas |
+| **Riesgo climático / seguros paramétricos** | Capa de riesgo por región en la formulación | Fuente de datos (SENAMHI, INDECI) |
+
+**Regla:** si algo se presenta en una reunión como hecho y no existe, se anota aquí y se dice
+"en desarrollo" hasta construirlo.
