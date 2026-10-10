@@ -4,7 +4,10 @@
 > **Regla:** todo lo que se proyecte se anota aquí. Cuando algo se implementa, se
 > mueve a *Hecho* con su commit. Cuando se descarta, se anota por qué.
 >
-> Última actualización: 2026-07-28
+> Última actualización: 2026-07-28 (resumen) · 2026-10-09 (§14–§16)
+>
+> **El orden de ejecución vigente está en [`PLAN.md`](PLAN.md) (2026-10-09).** Este archivo
+> sigue siendo el registro detallado; el plan dice qué va primero.
 
 ---
 
@@ -26,7 +29,7 @@ Vista de un vistazo. El detalle de cada punto está en su sección.
 ### 🔴 Roto en producción ahora mismo
 | Qué | Detalle |
 |-----|---------|
-| **Curso publicado con contenido de relleno** | `PROGRAMA DESARROLLADORES…` está VISIBLE con: semana 2 apuntando a `eywa.com/ejercicio-semana-2` (dominio ajeno), los 2 PDFs de Drive dando **401**, y 2 preguntas de examen **escritas por Claude como ejemplo** que ya emiten certificado. Ver §2. |
+| ~~**Curso publicado con contenido de relleno**~~ | ✅ **Superado (2026-09-25):** el curso se reconstruyó con el material real de Classroom (14 secciones, examen de 14 preguntas). Pendiente: 7 vídeos y revisar el examen (PLAN A5, A6). **Nuevo (2026-10-09): 6 cursos publicados con 0 secciones** (PLAN B1). Texto original: `PROGRAMA DESARROLLADORES…` estaba VISIBLE con: semana 2 apuntando a `eywa.com/ejercicio-semana-2` (dominio ajeno), los 2 PDFs de Drive dando **401**, y 2 preguntas de examen **escritas por Claude como ejemplo** que ya emiten certificado. Ver §2. |
 
 ### 🟠 Trabajo definido, sin empezar
 | Qué | Por qué importa |
@@ -1500,9 +1503,11 @@ Con el dataroom de Qory cargado, los tres salen `disponible`.
 
 - ✅ Clave EYWA dedicada creada y **verificada** (60 req/h)
 - ✅ Endpoint y contrato verificados con un envío real (201)
-- ⬜ Nada construido dentro de EYWA todavía: no hay cliente ni disparador
-- ⬜ Casilla de consentimiento en el Validador — **bloquea todo lo demás**
-- ⬜ La clave vive solo en local; falta meterla al `.env` del VPS cuando se construya
+- ✅ **Construido y en uso (2026-09):** cliente `lib/mavi.ts`, envío desde el Validador
+  (`MaviPanel`), documentos derivados del dataroom, respuesta guardada en `project_plans`
+- ✅ Casilla de consentimiento en el Validador (verificada contra la BD, no contra la petición)
+- ✅ Clave en el `.env` del VPS **y declarada en `docker-compose.yml`** (sin eso llegaba vacía)
+- ⬜ ARS debe borrar 8 registros nulos de su cartera (PLAN A3)
 
 ## 15. API externa v1 — sistemas de terceros (CONSTRUIDA 2026-10-07)
 
