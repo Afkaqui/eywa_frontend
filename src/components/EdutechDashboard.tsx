@@ -6,6 +6,7 @@ import { CourseRepository } from '@/lib/repositories/course-repository';
 import { CourseService } from '@/lib/services/course-service';
 import { AcademyRepository, type CertificateRow } from '@/lib/repositories/academy-repository';
 import { CourseViewer } from './CourseViewer';
+import { GlosarioPanel } from './GlosarioPanel';
 import { generateCertificatePdf } from '@/lib/certificate-pdf';
 import {
   BookOpen,
@@ -414,6 +415,10 @@ export function EdutechDashboard() {
             </div>
           )}
         </div>
+
+        {/* Glosario (PLAN C3): misma fuente que EYWA Agro */}
+        <GlosarioPanel />
+
       </div>
     </div>
   );

@@ -9,6 +9,14 @@
 
 ---
 
+## 0. Actualización 2026-10-31
+
+- **EYWA Agro en producción:** `agro.encsust4in4ble.earth`, en el VPS (sin Vercel). Mismo backend, base de datos y cuentas. Lotes, cosechas, acopio digital, pasaporte con QR, metadatos para compartir. Reutiliza fondos, actores y glosario de EYWA por la misma API.
+- **Fase B hecha** (salvo B2 términos/privacidad y B7 correo de contacto: decisiones pendientes).
+- **C1, C2, C3 hechos:** problema y MPP en el Validador; glosario único (Academia y agro). C4 (observaciones del consultor) pasa a la sesión de procesos y pantallas: necesita una vista de proyectos para el personal de EYWA.
+- ⏸️ **Migración del frontend de EYWA al VPS: pendiente de autorización expresa.** Al autorizarse, migración total; con ella, agro podrá reutilizar los módulos React de EYWA (diagnóstico, dataroom, academia) en vez de enlazarlos.
+- Próxima sesión: optimización de procesos y pantallas.
+
 ## 1. Dónde estamos
 
 | Módulo | Estado | Nota |

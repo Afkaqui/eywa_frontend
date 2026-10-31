@@ -9,6 +9,7 @@ import {
   type CreatePlanPayload,
 } from '@/lib/repositories/validator-repository';
 import { MaviPanel } from '@/components/MaviPanel';
+import { EstructuraProyecto } from '@/components/EstructuraProyecto';
 import { 
   Plus,
   Search, 
@@ -460,6 +461,14 @@ export function ValidadorProyectos() {
                   </div>
                 </div>
               )}
+
+              {/* Problema y Máximo Producto Posible (PLAN C1, C2): alimentan el análisis. */}
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <EstructuraProyecto
+                  plan={project}
+                  onActualizar={(p) => setProjects(prev => prev.map(x => (x.id === p.id ? p : x)))}
+                />
+              </div>
 
               {/* Envío a la cartera de ARS LAB (§14). Va después del análisis
                   propio: primero EYWA evalúa, luego se decide si se manda fuera. */}

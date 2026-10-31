@@ -37,6 +37,16 @@ export interface ProjectDocument {
   created_at?: string;
 }
 
+// Definición del problema y Máximo Producto Posible (PLAN C1, C2).
+export interface ProblemaDef {
+  actor?: string | null; dolor?: string | null; causa_raiz?: string | null;
+  urgencia?: string | null; consecuencia?: string | null; unidad_validacion?: string | null;
+}
+export interface MppDef {
+  insumo?: string | null;
+  subproductos: { nombre: string; uso?: string | null; sector?: string | null; estado: 'actual' | 'potencial' }[];
+}
+
 export interface ProjectPlanRow {
   id: string;
   name: string;
@@ -53,6 +63,8 @@ export interface ProjectPlanRow {
   analyzedAt: string | null;
   createdAt: string;
   etapa?: 'idea' | 'prototipo' | 'operando' | null;
+  problema?: ProblemaDef | null;
+  mpp?: MppDef | null;
   mavi?: MaviEstado;
 }
 
@@ -125,6 +137,16 @@ export class ValidatorRepository {
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ acepta }),
     });
+  }
+
+  /** Guarda la definición del problema y/o el Máximo Producto Posible. */
+  async saveEstructura(id: string, data: { problema?: ProblemaDef | null; mpp?: MppDef | null }): Promise<ProjectPlanRow> {
+    const d = await apiFetch<{ plan: ProjectPlanRow }>(`/api/proxy/validator/plans/${id}/estructura`, {
+      method:  'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(data),
+    });
+    return d.plan;
   }
 
   /** Envía el proyecto a la cartera de MAVI y devuelve el plan con la respuesta. */
