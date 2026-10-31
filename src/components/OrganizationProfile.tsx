@@ -105,11 +105,15 @@ const COUNTRIES = [
 const inputCls = 'w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white placeholder-gray-400';
 const labelCls = 'block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5';
 
-export function OrganizationProfile({ onNavigate }: { onNavigate?: (view: string) => void } = {}) {
+export function OrganizationProfile({ onNavigate, initialTab = 'perfil' }: {
+  onNavigate?: (view: string) => void;
+  /** Pestaña inicial (p. ej. 'dataroom' al llegar desde EYWA Agro). */
+  initialTab?: 'perfil' | 'esg' | 'dataroom';
+} = {}) {
   const { profile } = useAuth();
   const orgRepo = useMemo(() => new OrganizationRepository(), []);
 
-  const [activeTab, setActiveTab] = useState<'perfil' | 'esg' | 'dataroom'>('perfil');
+  const [activeTab, setActiveTab] = useState<'perfil' | 'esg' | 'dataroom'>(initialTab);
   const [step, setStep] = useState<1 | 2>(1);
   const [orgType, setOrgType] = useState<OrgType | null>(null);
   const [loading, setLoading] = useState(true);

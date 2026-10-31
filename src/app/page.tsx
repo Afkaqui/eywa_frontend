@@ -37,6 +37,33 @@ export default function Page() {
   const [showLogin, setShowLogin] = useState(false);
   const [currentView, setCurrentView] = useState<ViewType>('hero');
   const [diagnosticResult, setDiagnosticResult] = useState<DiagnosticResult | null>(null);
+  const [orgTab, setOrgTab] = useState<'perfil' | 'esg' | 'dataroom'>('perfil');
+
+  // Enlace profundo: ?vista=dataroom|diagnostico|validador|academia (lo usa EYWA
+  // Agro). Se guarda en sessionStorage para sobrevivir al login: si la persona no
+  // tenía sesión en este dominio, llega a la sección pedida después de entrar.
+  useEffect(() => {
+    try {
+      const v = new URLSearchParams(window.location.search).get('vista');
+      if (v) {
+        sessionStorage.setItem('eywa_vista', v);
+        window.history.replaceState({}, '', window.location.pathname);
+        if (!user) setShowLogin(true);
+      }
+    } catch { /* sin sessionStorage: se ignora el enlace */ }
+  }, [user]);
+  useEffect(() => {
+    if (!user) return;
+    let v: string | null = null;
+    try { v = sessionStorage.getItem('eywa_vista'); sessionStorage.removeItem('eywa_vista'); } catch {}
+    const destinos: Record<string, () => void> = {
+      dataroom:    () => { setOrgTab('dataroom'); setCurrentView('organization'); },
+      diagnostico: () => setCurrentView('diagnostic'),
+      validador:   () => setCurrentView('validator'),
+      academia:    () => setCurrentView('edutech'),
+    };
+    if (v && destinos[v]) destinos[v]();
+  }, [user]);
 
   // Al ENTRAR a "Diagnóstico" se decide una sola vez si mostrar el resumen de
   // "ya completado" (evita que la pantalla cambie a mitad del cuestionario si el
@@ -111,7 +138,7 @@ export default function Page() {
           )
         )}
         {currentView === 'validator' && <ValidadorProyectos />}
-        {currentView === 'organization' && <OrganizationProfile onNavigate={(view) => setCurrentView(view as ViewType)} />}
+        {currentView === 'organization' && <OrganizationProfile key={orgTab} initialTab={orgTab} onNavigate={(view) => setCurrentView(view as ViewType)} />}
         {currentView === 'simbiocreacion' && <SimbiocreacionDashboard />}
         {currentView === 'portfolio' && <InvestorPortfolio />}
         {currentView === 'mobile' && <MobileApp />}
