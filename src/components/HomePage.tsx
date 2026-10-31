@@ -112,9 +112,7 @@ export function HomePage({ onGetStarted }: HomePageProps) {
               Acceder a la Plataforma
               <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
             </button>
-            <button className="w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 bg-white/10 backdrop-blur-md border border-white/30 text-white rounded-xl hover:bg-white/20 transition-all text-sm md:text-lg font-medium">
-              Ver Demo
-            </button>
+            {/* "Ver Demo" retirado: no había demo (PLAN B4). */}
           </div>
 
           {/* Stats */}

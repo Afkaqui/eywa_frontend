@@ -343,17 +343,13 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic }: HeroDashb
           <div className="bg-white/70 backdrop-blur-xl border border-gray-200/50 rounded-xl shadow-lg p-6 md:p-8">
             <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-4 md:mb-6 uppercase tracking-wide text-sm">Acciones Rápidas</h3>
             <div className="space-y-3">
-              <button className="w-full px-4 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-all text-sm font-medium text-left">
-                Iniciar Nueva Evaluación
-              </button>
-              <button className="w-full px-4 py-3 bg-white border border-gray-200 text-gray-900 rounded-lg hover:bg-gray-50 transition-all text-sm font-medium text-left">
-                Generar Reporte
-              </button>
-              <button className="w-full px-4 py-3 bg-white border border-gray-200 text-gray-900 rounded-lg hover:bg-gray-50 transition-all text-sm font-medium text-left">
-                Ver Análisis
-              </button>
-              <button className="w-full px-4 py-3 bg-white border border-gray-200 text-gray-900 rounded-lg hover:bg-gray-50 transition-all text-sm font-medium text-left">
-                Exportar Datos
+              {/* "Generar Reporte", "Ver Análisis" y "Exportar Datos" se retiraron: no
+                  hacían nada (PLAN B3). El informe PDF se descarga al terminar el diagnóstico. */}
+              <button
+                onClick={onStartDiagnostic}
+                className="w-full px-4 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-all text-sm font-medium text-left"
+              >
+                {diagnosticResult ? 'Repetir diagnóstico (el informe PDF sale al terminar)' : 'Iniciar Nueva Evaluación'}
               </button>
             </div>
           </div>
