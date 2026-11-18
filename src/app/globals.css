@@ -182,3 +182,34 @@
 html {
   font-size: var(--font-size);
 }
+
+/* ── Movimiento de la identidad v2 (ver IDENTIDAD.md §9) ─────────────────── */
+@keyframes ey-blur-in { from { opacity: 0; filter: blur(10px); transform: translateY(10px); } to { opacity: 1; filter: blur(0); transform: none; } }
+@keyframes ey-fade-up { from { opacity: 0; transform: translateY(36px); } to { opacity: 1; transform: none; } }
+@keyframes ey-pop { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: none; } }
+@keyframes ey-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes ey-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes ey-zoom-out { from { transform: scale(1.12); } to { transform: scale(1); } }
+
+/* Entrada al cargar (titulares palabra por palabra: usar animation-delay) */
+.ey-blur-in { display: inline-block; animation: ey-blur-in .9s cubic-bezier(.2,.7,.2,1) both; }
+.ey-float { animation: ey-float 5s ease-in-out infinite; }
+.ey-marquee { display: flex; width: max-content; animation: ey-marquee 30s linear infinite; }
+.ey-hero-zoom { animation: ey-zoom-out 2.4s cubic-bezier(.2,.7,.2,1) both; }
+.ey-lift { transition: transform .35s ease, box-shadow .35s ease; }
+.ey-lift:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(17,24,39,.10); }
+.ey-zoom { overflow: hidden; }
+.ey-zoom img { transition: transform .8s ease; }
+.ey-zoom:hover img { transform: scale(1.04); }
+
+/* Aparición al hacer scroll: solo donde el navegador lo soporta; si no, se ve normal */
+@supports (animation-timeline: view()) {
+  .ey-reveal { animation: ey-fade-up linear both; animation-timeline: view(); animation-range: entry 0% entry 70%; }
+  .ey-reveal-blur { animation: ey-blur-in linear both; animation-timeline: view(); animation-range: entry 0% entry 60%; }
+  .ey-reveal-pop { animation: ey-pop linear both; animation-timeline: view(); animation-range: entry 0% entry 60%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ey-blur-in, .ey-float, .ey-marquee, .ey-hero-zoom, .ey-reveal, .ey-reveal-blur, .ey-reveal-pop { animation: none !important; }
+  .ey-lift:hover, .ey-zoom:hover img { transform: none; }
+}

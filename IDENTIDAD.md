@@ -142,3 +142,37 @@ borde gris-200* sobre *fondo gris-50*.
 2. **Logo:** el archivo `public/logo.png` dice "DATAOPS STARTUP", no EYWA. Reemplazar por
    el logo real de EYWA (manteniendo el concepto árbol-red y el verde).
 3. Unificar el estilo de título por pantalla (mezcla de `font-light` y `font-bold`).
+4. **Identidad v2 (§9):** llevar las vistas internas (paneles de EYWA y app de Agro) al
+   nuevo patrón; hoy solo las landings lo usan. Maqueta de referencia con todas las vistas:
+   https://claude.ai/artifact/1YKtdFTYe9r7s3n4xhWDgW
+
+---
+
+## 9. Identidad v2 (2026-11-17) — landings y adelante
+
+Inspirada en el movimiento de Open Food Chain y en la combinación foto + texto de SpaceAG,
+sin copiar sus diseños. Todo lo de §1–§7 sigue vigente; esto lo amplía.
+
+- **Nombre de marca centralizado:** `src/lib/brand.ts` (`BRAND.name`, `BRAND.tagline`,
+  `BRAND.agro`). El nombre "EYWA" cambiará: el texto nuevo lo lee de ahí.
+- **CTA principal = píldora:** `rounded-full bg-emerald-500 text-emerald-950 font-semibold`
+  (hover `bg-emerald-400` y sube 2px). Secundario: píldora con `border-gray-300` (o
+  `border-white/50` sobre foto). Los botones de la app interna siguen con `rounded-lg`
+  hasta migrarlos.
+- **Agro:** mismo sistema con verde más profundo: `green-800` (botones), `green-950`
+  (fondos con foto), `green-500` (CTA sobre oscuro). No usar `teal`.
+- **Titulares:** grandes, `font-bold`/`font-semibold`, `tracking-tight`. Recursos:
+  dos tonos (`text-gray-400` + negro) y palabras clave resaltadas en negrita verde.
+- **Foto + texto:** filas alternas imagen/texto, banda de foto a sangre con overlay verde
+  oscuro y cifras encima, tarjetas `rounded-3xl`, fotos del territorio (nunca genéricas).
+- **Movimiento** (clases en `globals.css` y en `agro-web/index.html`):
+  - `ey-blur-in` — entrada al cargar, palabra por palabra con `animation-delay`.
+  - `ey-reveal`, `ey-reveal-blur`, `ey-reveal-pop` — aparición al hacer scroll
+    (CSS `animation-timeline: view()`; donde no hay soporte, el contenido se ve igual).
+  - `ey-lift` (tarjetas que suben), `ey-zoom` (foto que se acerca), `ey-float`
+    (ilustración flotando), `ey-marquee` (marquesina), `ey-hero-zoom` (foto del hero).
+  - Todo se apaga con `prefers-reduced-motion`.
+- **Honestidad radical aplicada al marketing:** cifras solo reales (`/stats/public`), con
+  esqueleto mientras cargan (nunca "—"); ilustraciones de producto rotuladas
+  "Vista de ejemplo"; respaldos como texto hasta tener permiso para usar sus logos; nada
+  de teléfonos, correos o redes de relleno.
