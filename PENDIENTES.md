@@ -1649,3 +1649,13 @@ significa "esperando la próxima edición". El trabajo no es solo buscar fondos 
 
 **Regla:** si algo se presenta en una reunión como hecho y no existe, se anota aquí y se dice
 "en desarrollo" hasta construirlo.
+
+**Avance 2026-11-18** (backend `0839ccb`, frontend `816e134`):
+- ✅ Observaciones del consultor: Validador → pestaña "Revisión del consultor" (solo gestor/admin/superadmin;
+  la empresa no las ve). Columnas `consultor_notas*` en `project_plans`.
+- ✅ Océanos azules: `funds.postulantes` + `postulantes_fuente`, en el formulario del gestor y en la ficha del fondo.
+- ✅ Panel Principal: el feed "Actividad del Sistema" era INVENTADO (auditoría, carbono por IoT…); se reemplazó
+  por "En desarrollo" (IMI/TRL, nota 70/30, OKR, PRODUCE) con lo que necesita cada uno.
+- ⏳ Hoja para Eduardo (glosario de 25 términos con columna Decisión + insumos IMI/OKR/MINAM/fichas):
+  https://claude.ai/artifact/UAuwkWDezhSbC7ubBRbpLp
+- Pendiente aparte: `MobileApp.tsx` (vista 'mobile', sin acceso desde el menú) aún muestra cifras de ejemplo.
