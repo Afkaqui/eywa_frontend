@@ -30,6 +30,7 @@ function pesoRespaldo(label: string): number {
   return 0;
 }
 
+const fmt = (n: number) => n.toLocaleString('es-PE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const ORDEN_CAT = ['perfil', 'ambiental', 'social', 'economico', 'general'];
 // Bandas de menor a mayor para la escala visual.
 const BANDAS = [...GENES_BANDS].reverse();
@@ -88,7 +89,12 @@ export function TrustScorePanel({ result, onRepeat, onOpenDataroom }: Props) {
         cat,
         nombre: GENES_CATEGORIES[cat] ?? cat,
         peso: its.reduce((s, i) => s + i.peso, 0),
-        prom: Math.round(its.reduce((s, i) => s + i.pct, 0) / its.length),
+        prom: (() => {
+          const w = its.reduce((s, i) => s + i.peso, 0);
+          return Math.round(w > 0
+            ? its.reduce((s, i) => s + i.peso * i.pct, 0) / w
+            : its.reduce((s, i) => s + i.pct, 0) / its.length);
+        })(),
         its,
       }));
   }, [items]);
@@ -99,6 +105,8 @@ export function TrustScorePanel({ result, onRepeat, onOpenDataroom }: Props) {
     .filter(it => it.gana >= 0.5)
     .sort((a, b) => b.gana - a.gana)
     .slice(0, 3), [items]);
+
+  const totalMejora = mejoras.reduce((s, m) => s + m.gana, 0);
 
   // F: diagnóstico anterior (la historia viene de antiguo a reciente).
   const anterior = historia.length >= 2 ? historia[historia.length - 2] : null;
@@ -116,7 +124,7 @@ export function TrustScorePanel({ result, onRepeat, onOpenDataroom }: Props) {
             <ProfessionalTrustGauge score={score} />
           </div>
           <div className="w-full mt-2">
-            <div className="text-sm text-gray-500 text-center lg:text-left"><b className="text-gray-900">{score}/100</b> · {genes} de {GENES_SCALE} puntos GENES · autoevaluación</div>
+            <div className="text-sm text-gray-500 text-center lg:text-left"><b className="text-gray-900">{score}/100</b> · {genes} de {GENES_SCALE} puntos GENES · autoevaluación (respuestas declaradas)</div>
             <div className="mt-3 flex items-center gap-2 flex-wrap">
               <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold ${getGenesBandClasses(genes)}`}>
                 <Award className="w-4 h-4" /> Categoría {banda}
@@ -124,7 +132,7 @@ export function TrustScorePanel({ result, onRepeat, onOpenDataroom }: Props) {
               {delta !== null && (
                 <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${delta >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
                   {delta >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
-                  {delta >= 0 ? '+' : ''}{delta} vs. anterior
+                  {delta >= 0 ? '+' : ''}{fmt(delta)} pts vs. anterior
                 </span>
               )}
             </div>
@@ -134,7 +142,7 @@ export function TrustScorePanel({ result, onRepeat, onOpenDataroom }: Props) {
               <div className="relative">
                 <div className="flex gap-1 h-2.5">
                   {BANDAS.map(b => (
-                    <div key={b.label} className={`flex-1 rounded-full ${b.label === banda ? BANDA_COLOR[b.label] : 'bg-gray-100'}`} />
+                    <div key={b.label} className={`flex-1 rounded-full ${BANDA_COLOR[b.label]} ${b.label === banda ? '' : 'opacity-30'}`} />
                   ))}
                 </div>
                 <div
@@ -144,8 +152,10 @@ export function TrustScorePanel({ result, onRepeat, onOpenDataroom }: Props) {
                 />
               </div>
               <div className="flex mt-2">
-                {BANDAS.map(b => (
-                  <span key={b.label} className={`flex-1 text-[11px] text-center ${b.label === banda ? 'font-semibold text-gray-900' : 'text-gray-400'}`}>{b.label}</span>
+                {BANDAS.map((b, i) => (
+                  <span key={b.label} className={`flex-1 text-[11px] text-center leading-tight ${b.label === banda ? 'font-semibold text-gray-900' : 'text-gray-400'}`}>
+                    {b.label}<br /><span className="font-normal text-gray-400">{b.min}–{i < BANDAS.length - 1 ? BANDAS[i + 1].min - 1 : GENES_SCALE}</span>
+                  </span>
                 ))}
               </div>
               <p className="mt-3 text-sm text-gray-600">
@@ -221,14 +231,19 @@ export function TrustScorePanel({ result, onRepeat, onOpenDataroom }: Props) {
 
           {mejoras.length > 0 && (
             <div className="mt-6">
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Dónde mejorar</div>
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Dónde mejorar</div>
+              <p className="text-sm text-gray-600 mb-3">
+                Con estos {mejoras.length} sumas hasta <b className="text-emerald-700">+{fmt(totalMejora)} pts</b>
+                {siguiente && totalMejora >= faltan ? <> y llegas a <b className="text-gray-900">{siguiente.label}</b></> : null}.
+              </p>
               <div className="space-y-2">
                 {mejoras.map((m, i) => (
                   <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-emerald-50/60 border border-emerald-100">
                     <span className="w-7 h-7 rounded-full bg-emerald-700 text-white text-xs font-semibold flex items-center justify-center flex-shrink-0">{i + 1}</span>
                     <div className="flex-1 min-w-0">
+                      <div className="text-[11px] font-semibold text-emerald-700 uppercase tracking-wide">{GENES_CATEGORIES[m.cat] ?? m.cat}</div>
                       <div className="text-sm font-medium text-gray-900">{m.label}</div>
-                      <div className="text-xs text-gray-500">Hoy {m.score}/{m.maxScore} · hasta <b className="text-emerald-700">+{m.gana.toFixed(1)} pts</b> GENES</div>
+                      <div className="text-xs text-gray-500">Hoy {m.score}/{m.maxScore} · hasta <b className="text-emerald-700">+{fmt(m.gana)} pts</b> GENES</div>
                     </div>
                     <button onClick={onOpenDataroom} className="text-xs font-medium text-emerald-700 hover:text-emerald-900 flex items-center gap-1 flex-shrink-0">
                       <Upload className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Subir evidencia</span> <ArrowRight className="w-3.5 h-3.5 sm:hidden" />

@@ -63,7 +63,7 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic, onOpenDatar
           {/* Page Title */}
           <div className="pt-10 md:pt-16">
             <h1 className="ey-blur-in text-3xl md:text-4xl lg:text-5xl font-semibold text-white mb-2 md:mb-3 tracking-tight" style={{ textShadow: '0 2px 18px rgba(0,0,0,.45)' }}>Centro de Control</h1>
-            <p className="text-emerald-100 text-sm md:text-base lg:text-lg font-medium" style={{ textShadow: '0 1px 12px rgba(0,0,0,.5)' }}>Orquestación de sostenibilidad y monitoreo en tiempo real</p>
+            <p className="text-emerald-100 text-sm md:text-base lg:text-lg font-medium" style={{ textShadow: '0 1px 12px rgba(0,0,0,.5)' }}>Tu impacto medido con la metodología GENES</p>
           </div>
         </div>
       </div>
