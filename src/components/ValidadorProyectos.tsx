@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { RevisionConsultor } from './RevisionConsultor';
 import { getGenesBandClasses } from '@/lib/constants/scoring';
 import {
   ValidatorRepository,
@@ -84,7 +85,9 @@ export function ValidadorProyectos() {
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState<ProjectPlan | null>(null);
   const [showReportModal, setShowReportModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'proyectos' | 'reportes'>('proyectos');
+  const [activeTab, setActiveTab] = useState<'proyectos' | 'reportes' | 'revision'>('proyectos');
+  const { profile: perfilActual } = useAuth();
+  const esStaff = ['gestor', 'admin', 'superadmin'].includes(perfilActual?.role ?? '');
 
   const reports = projects.filter(p => p.report);
   const openReport = (project: ProjectPlan) => { setSelectedProject(project); setShowReportModal(true); };
@@ -236,7 +239,7 @@ export function ValidadorProyectos() {
       {/* Tabs: Proyectos | Reportes */}
       <div className="px-8 pt-6">
         <div className="flex items-center gap-1 border-b border-gray-200">
-          {([['proyectos', 'Proyectos', projects.length], ['reportes', 'Reportes', reports.length]] as const).map(([id, label, count]) => (
+          {([['proyectos', 'Proyectos', projects.length], ['reportes', 'Reportes', reports.length], ...(esStaff ? [['revision', 'Revisión del consultor', null]] : [])] as [typeof activeTab, string, number | null][]).map(([id, label, count]) => (
             <button
               key={id}
               onClick={() => setActiveTab(id)}
@@ -246,7 +249,7 @@ export function ValidadorProyectos() {
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              {label} <span className="ml-1 text-xs text-gray-400">{count}</span>
+              {label} {count !== null && <span className="ml-1 text-xs text-gray-400">{count}</span>}
             </button>
           ))}
         </div>
@@ -256,6 +259,8 @@ export function ValidadorProyectos() {
           disponible, con un <strong>análisis preliminar</strong> basado en reglas.
         </div>
       </div>
+
+      {activeTab === 'revision' && esStaff && <RevisionConsultor />}
 
       {/* ── Vista: PROYECTOS ── */}
       {activeTab === 'proyectos' && (

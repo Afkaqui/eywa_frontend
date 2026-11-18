@@ -212,26 +212,28 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic, onOpenDatar
 
         {/* Bottom Section: Recent Activity & Metrics */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Recent Activity */}
-          <div className="lg:col-span-2 bg-white/70 backdrop-blur-xl border border-gray-200/50 rounded-xl shadow-lg p-6 md:p-8">
-            <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-4 md:mb-6 uppercase tracking-wide text-sm">Actividad del Sistema</h3>
+          {/* En desarrollo. Antes aquí había un feed de "Actividad del Sistema" con
+              eventos INVENTADOS (auditoría completada, carbono desde sensores IoT…).
+              Regla de la reunión 2026-10-08: lo que no existe se dice "en desarrollo". */}
+          <div className="lg:col-span-2 bg-white border border-gray-200 rounded-2xl shadow-lg p-6 md:p-8">
+            <div className="flex items-baseline justify-between gap-3 mb-4 md:mb-6">
+              <h3 className="font-semibold text-gray-900 uppercase tracking-wide text-sm">En desarrollo</h3>
+              <span className="text-xs text-gray-400">Lo que viene, con lo que necesita para salir</span>
+            </div>
             <div className="space-y-4">
               {[
-                { event: 'Auditoría de acreditación completada', time: 'Hace 2 horas', status: 'success', detail: 'Score: 85/100' },
-                { event: 'Datos de carbono sincronizados', time: 'Hace 5 horas', status: 'info', detail: 'Fuente: Sensores IoT' },
-                { event: 'Nuevo requisito de cumplimiento', time: 'Hace 1 día', status: 'warning', detail: 'Regulación EU 2024/789' },
-                { event: 'Reporte para inversores generado', time: 'Hace 2 días', status: 'success', detail: 'Reporte Q4 2025' },
-              ].map((item, i) => (
-                <div key={i} className="flex items-start gap-3 md:gap-4 pb-4 border-b border-gray-100 last:border-0">
-                  <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-                    item.status === 'success' ? 'bg-emerald-500' : 
-                    item.status === 'warning' ? 'bg-amber-500' : 'bg-blue-500'
-                  }`}></div>
+                { t: 'Índice de Madurez Industrial (IMI) y TRL/CRL', d: 'Reporte de madurez por empresa dentro del diagnóstico', espera: 'Criterios y escala de Eduardo' },
+                { t: 'Nota conceptual asistida (70/30)', d: 'Borrador a partir del problema, el MPP y el diagnóstico; el consultor completa el 30%', espera: 'En construcción' },
+                { t: 'Tablero de objetivos (OKR)', d: 'Objetivos y resultados clave por organización', espera: 'Diseño con Eduardo' },
+                { t: 'Indicadores de economía circular (PRODUCE)', d: 'Conexión con la calculadora y las hojas de ruta sectoriales', espera: 'Aún no conectado' },
+              ].map((item) => (
+                <div key={item.t} className="flex items-start gap-3 md:gap-4 pb-4 border-b border-gray-100 last:border-0">
+                  <div className="w-2 h-2 rounded-full mt-2 flex-shrink-0 bg-amber-400" />
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs md:text-sm font-medium text-gray-900 truncate">{item.event}</div>
-                    <div className="text-xs text-gray-500 mt-1">{item.detail}</div>
+                    <div className="text-sm font-medium text-gray-900">{item.t}</div>
+                    <div className="text-xs text-gray-500 mt-1">{item.d}</div>
                   </div>
-                  <div className="text-xs text-gray-400 flex-shrink-0">{item.time}</div>
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 flex-shrink-0 whitespace-nowrap">{item.espera}</span>
                 </div>
               ))}
             </div>

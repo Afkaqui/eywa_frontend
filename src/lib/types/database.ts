@@ -102,6 +102,9 @@ export interface Fund {
   deadline_text: string | null; // "Por convocatoria", "Abierto", "Ventanilla…"
   checklist: string | null;
   url: string | null;
+  // Competencia (océanos azules): postulantes en la última edición y fuente del dato
+  postulantes?: number | null;
+  postulantes_fuente?: string | null;
   // Re-verificación nocturna (§16)
   verify_status?: 'vigente' | 'cerrado' | 'enlace_roto' | 'bloqueado' | 'sin_datos' | 'error' | null;
   verified_at?: string | null;

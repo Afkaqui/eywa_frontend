@@ -356,6 +356,10 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
                     <p><span className="font-medium text-gray-700">Montos:</span>{' '}
                       <span className="text-gray-600">{f.amounts}</span></p>
                   )}
+                  {f.postulantes != null && (
+                    <p><span className="font-medium text-gray-700">Competencia:</span>{' '}
+                      <span className="text-gray-600">{f.postulantes.toLocaleString('es-PE')} postulantes en la última edición{f.postulantes_fuente ? ` (fuente: ${f.postulantes_fuente})` : ''}</span></p>
+                  )}
                   {f.checklist && (
                     <p><span className="font-medium text-gray-700">Checklist (Gate 0):</span>{' '}
                       <span className="text-gray-600">{f.checklist}</span></p>
@@ -440,6 +444,8 @@ function FundFormModal({ fund, existingTypes, onClose, onSaved }: {
     deadline_text:    fund?.deadline_text ?? '',
     checklist:        fund?.checklist ?? '',
     url:              fund?.url ?? '',
+    postulantes:      fund?.postulantes != null ? String(fund.postulantes) : '',
+    postulantes_fuente: fund?.postulantes_fuente ?? '',
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -467,6 +473,8 @@ function FundFormModal({ fund, existingTypes, onClose, onSaved }: {
         deadline_text:    form.deadline_text || null,
         checklist:        form.checklist || null,
         url:              form.url || null,
+        postulantes:      form.postulantes.trim() === '' ? null : Math.max(0, Math.round(Number(form.postulantes))),
+        postulantes_fuente: form.postulantes_fuente || null,
       };
       const res = await fetch(fund ? `/api/proxy/funds/${fund.id}` : '/api/proxy/funds', {
         method: fund ? 'PATCH' : 'POST',
@@ -583,6 +591,17 @@ function FundFormModal({ fund, existingTypes, onClose, onSaved }: {
           <div>
             <label className={labelCls}>Checklist (evidencia Gate 0)</label>
             <textarea value={form.checklist} onChange={e => set('checklist', e.target.value)} rows={2} className={`${inputCls} resize-none`} />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className={labelCls}>Postulantes (última edición)</label>
+              <input type="number" min={0} value={form.postulantes} onChange={e => set('postulantes', e.target.value)} placeholder="Ej. 32" className={inputCls} />
+            </div>
+            <div className="sm:col-span-2">
+              <label className={labelCls}>Fuente del dato <span className="font-normal text-gray-400">— para priorizar fondos con menos competencia</span></label>
+              <input value={form.postulantes_fuente} onChange={e => set('postulantes_fuente', e.target.value)} placeholder="Publicado por el fondo, edición 2025…" className={inputCls} />
+            </div>
           </div>
 
           <div>
