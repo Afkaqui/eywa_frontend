@@ -183,70 +183,50 @@ export function ValidadorProyectos() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="px-8 py-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-light text-gray-900 mb-2">
-                Validador de Proyectos
-              </h1>
-              <p className="text-gray-600">Crea tus proyectos, adjunta su documentación y genera un análisis ESG asistido por IA</p>
-            </div>
-            <button
-              onClick={() => setShowNewProjectModal(true)}
-              className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all flex items-center gap-2 font-medium shadow-sm"
-            >
-              <Plus className="w-5 h-5" />
-              Nuevo Proyecto
-            </button>
+      {/* Encabezado (identidad v2, maqueta "Validador de proyectos") */}
+      <div className="px-4 sm:px-6 lg:px-8 pt-8 md:pt-10">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
+          <div>
+            <div className="text-xs font-semibold text-emerald-700 uppercase tracking-wider mb-1">Antes de postular</div>
+            <h1 className="ey-blur-in text-3xl md:text-4xl font-semibold text-gray-900 tracking-tight">Validador de proyectos</h1>
+            <p className="text-gray-600 mt-1.5">Te decimos qué tan listo está tu proyecto y qué le falta antes de enviarlo a un fondo.</p>
           </div>
+          <button
+            onClick={() => setShowNewProjectModal(true)}
+            className="self-start md:self-auto px-5 py-2.5 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 transition-all flex items-center gap-2 text-sm font-semibold"
+          >
+            <Plus className="w-4 h-4" />
+            Nuevo proyecto
+          </button>
+        </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-4 gap-4">
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-2">
-                <FileText className="w-5 h-5 text-blue-600" />
-                <span className="text-2xl font-semibold text-blue-900">{stats.total}</span>
-              </div>
-              <div className="text-sm text-blue-700 font-medium">Total Proyectos</div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          {([
+            [FileText, stats.total, 'Proyectos', 'text-gray-900'],
+            [CheckCircle, stats.analyzed, 'Analizados', 'text-emerald-700'],
+            [Activity, stats.pending, 'Sin analizar', 'text-amber-600'],
+            [Award, stats.avgScore ? stats.avgScore.toFixed(0) : '—', 'Puntaje promedio', 'text-gray-900'],
+          ] as const).map(([Icono, valor, etiqueta, color]) => (
+            <div key={etiqueta} className="ey-lift bg-white border border-gray-200 rounded-2xl p-4 md:p-5">
+              <Icono className="w-5 h-5 text-emerald-600 mb-3" />
+              <div className={`text-2xl md:text-3xl font-semibold tracking-tight ${color}`}>{valor}</div>
+              <div className="text-xs text-gray-500 mt-0.5">{etiqueta}</div>
             </div>
-            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-2">
-                <CheckCircle className="w-5 h-5 text-emerald-600" />
-                <span className="text-2xl font-semibold text-emerald-900">{stats.analyzed}</span>
-              </div>
-              <div className="text-sm text-emerald-700 font-medium">Analizados</div>
-            </div>
-            <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 border border-yellow-200 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-2">
-                <Activity className="w-5 h-5 text-yellow-600" />
-                <span className="text-2xl font-semibold text-yellow-900">{stats.pending}</span>
-              </div>
-              <div className="text-sm text-yellow-700 font-medium">Pendientes</div>
-            </div>
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-2">
-                <Award className="w-5 h-5 text-purple-600" />
-                <span className="text-2xl font-semibold text-purple-900">{stats.avgScore.toFixed(0)}</span>
-              </div>
-              <div className="text-sm text-purple-700 font-medium">Score Promedio</div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
 
       {/* Tabs: Proyectos | Reportes */}
-      <div className="px-8 pt-6">
-        <div className="flex items-center gap-1 border-b border-gray-200">
+      <div className="px-4 sm:px-6 lg:px-8 pt-6">
+        <div className="flex items-center gap-1 bg-gray-100 rounded-full p-1 w-fit max-w-full overflow-x-auto">
           {([['proyectos', 'Proyectos', projects.length], ['reportes', 'Reportes', reports.length], ...(esStaff ? [['revision', 'Revisión del consultor', null]] : [])] as [typeof activeTab, string, number | null][]).map(([id, label, count]) => (
             <button
               key={id}
               onClick={() => setActiveTab(id)}
-              className={`px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ${
+              className={`px-4 py-2 rounded-full text-sm whitespace-nowrap transition-colors ${
                 activeTab === id
-                  ? 'border-emerald-600 text-emerald-700'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'bg-white shadow-sm text-gray-900 font-semibold'
+                  : 'text-gray-500 hover:text-gray-800 font-medium'
               }`}
             >
               {label} {count !== null && <span className="ml-1 text-xs text-gray-400">{count}</span>}
@@ -264,9 +244,9 @@ export function ValidadorProyectos() {
 
       {/* ── Vista: PROYECTOS ── */}
       {activeTab === 'proyectos' && (
-      <div className="px-8 py-6">
-        <div className="bg-white border border-gray-200 rounded-xl p-4 mb-6">
-          <div className="flex items-center gap-4">
+      <div className="px-4 sm:px-6 lg:px-8 py-6">
+        <div className="bg-white border border-gray-200 rounded-2xl p-3 md:p-4 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 md:gap-4">
             {/* Search */}
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -275,7 +255,7 @@ export function ValidadorProyectos() {
                 placeholder="Buscar proyectos..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
 
@@ -322,13 +302,13 @@ export function ValidadorProyectos() {
           {filteredProjects.map((project) => (
             <div
               key={project.id}
-              className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all"
+              className="ey-lift bg-white border border-gray-200 rounded-2xl p-5 md:p-6"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
+              <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                      {project.id}
+                    <span className="text-[11px] font-mono text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full" title={project.id}>
+                      #{project.id.slice(0, 8)}
                     </span>
                     <span className={`text-xs font-medium px-2 py-1 rounded ${
                       project.status === 'analyzed'
@@ -341,10 +321,10 @@ export function ValidadorProyectos() {
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">{project.name}</h3>
                   <p className="text-gray-600 text-sm mb-4">{project.description}</p>
 
-                  <div className="grid grid-cols-5 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
-                        <Building2 className="w-4 h-4 text-purple-600" />
+                      <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                        <Building2 className="w-4 h-4 text-emerald-700" />
                       </div>
                       <div>
                         <div className="text-xs text-gray-500">Tipo</div>
@@ -352,8 +332,8 @@ export function ValidadorProyectos() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
-                        <DollarSign className="w-4 h-4 text-green-600" />
+                      <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                        <DollarSign className="w-4 h-4 text-emerald-700" />
                       </div>
                       <div>
                         <div className="text-xs text-gray-500">Presupuesto</div>
@@ -363,8 +343,8 @@ export function ValidadorProyectos() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                        <Calendar className="w-4 h-4 text-blue-600" />
+                      <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                        <Calendar className="w-4 h-4 text-emerald-700" />
                       </div>
                       <div>
                         <div className="text-xs text-gray-500">Duración</div>
@@ -388,8 +368,8 @@ export function ValidadorProyectos() {
                     </div>
                     {project.report && (
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center">
-                          <Award className="w-4 h-4 text-yellow-600" />
+                        <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                          <Award className="w-4 h-4 text-emerald-700" />
                         </div>
                         <div>
                           <div className="text-xs text-gray-500">Score ESG</div>
@@ -1069,8 +1049,8 @@ function NewProjectModal({ onClose, onCreated }: { onClose: () => void; onCreate
               </div>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
-              <Lightbulb className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start gap-3">
+              <Lightbulb className="w-5 h-5 text-emerald-700 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-blue-800">
                 <p className="font-medium mb-1">Análisis del proyecto</p>
                 <p>Una vez creado, podrás <strong>analizarlo con IA</strong> desde la lista de proyectos. Si el servicio de IA no estuviera disponible, se genera un análisis preliminar basado en reglas y el reporte lo indica.</p>
@@ -1355,8 +1335,8 @@ function ReportModal({
             <div className="grid grid-cols-3 gap-4">
               {[
                 { label: 'Ambiental', v: report.esgScores.environmental, wrap: 'bg-emerald-50 border-emerald-200', text: 'text-emerald-900', bar: 'bg-emerald-600' },
-                { label: 'Social', v: report.esgScores.social, wrap: 'bg-blue-50 border-blue-200', text: 'text-blue-900', bar: 'bg-blue-600' },
-                { label: 'Gobernanza', v: report.esgScores.governance, wrap: 'bg-purple-50 border-purple-200', text: 'text-purple-900', bar: 'bg-purple-600' },
+                { label: 'Social', v: report.esgScores.social, wrap: 'bg-lime-50 border-lime-200', text: 'text-lime-900', bar: 'bg-lime-600' },
+                { label: 'Gobernanza', v: report.esgScores.governance, wrap: 'bg-gray-50 border-gray-200', text: 'text-gray-900', bar: 'bg-gray-800' },
               ].map(d => (
                 <div key={d.label} className={`border rounded-xl p-5 ${d.wrap}`}>
                   <div className="text-xs text-gray-600 mb-1">{d.label}</div>
@@ -1406,18 +1386,18 @@ function ReportModal({
           </div>
 
           {/* Recommendations */}
-          <div className="bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200 rounded-xl p-6">
+          <div className="bg-emerald-50/60 border border-emerald-200 rounded-xl p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Lightbulb className="w-5 h-5 text-blue-600" />
+              <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <Lightbulb className="w-5 h-5 text-emerald-700" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900">Recomendaciones Estratégicas</h3>
             </div>
             <ul className="space-y-3">
               {report.recommendations.map((rec, i) => (
                 <li key={i} className="flex items-start gap-3 bg-white rounded-lg p-3">
-                  <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                    <span className="text-xs font-bold text-blue-600">{i + 1}</span>
+                  <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs font-bold text-emerald-700">{i + 1}</span>
                   </div>
                   <span className="text-gray-700">{rec}</span>
                 </li>
