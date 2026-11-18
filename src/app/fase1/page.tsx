@@ -45,7 +45,7 @@ const TOOLS: Tool[] = [
   {
     id: 'simbiocreacion',
     icon: Network,
-    color: '#ec4899',
+    color: '#8b5cf6',
     name: 'Simbiocreación',
     tagline: 'Mapea y documenta sesiones de co-creación',
     what: 'Herramienta para registrar y visualizar sesiones de innovación colaborativa. Cada sesión se representa como un grafo interactivo que conecta participantes, grupos e ideas.',
@@ -379,7 +379,7 @@ export default function ResumenPage() {
             {[
               { icon: Shield,       label: 'Basado en estándares ESG',    color: '#0ea5e9' },
               { icon: TrendingUp,   label: 'Medición continua',           color: '#10b981' },
-              { icon: Users,        label: 'Colaboración y co-creación',  color: '#ec4899' },
+              { icon: Users,        label: 'Colaboración y co-creación',  color: '#8b5cf6' },
               { icon: GraduationCap, label: 'Formación especializada',    color: '#8b5cf6' },
             ].map(({ icon: Icon, label, color }) => (
               <span key={label} className="flex items-center gap-2 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-100 px-4 py-2 rounded-xl">
@@ -432,7 +432,7 @@ export default function ResumenPage() {
                 title: 'Mide y colabora',
                 desc:  'Tu Índice ESG nace del diagnóstico y se actualiza con cada evaluación. Simbiocreación documenta el aprendizaje colectivo. El Validador estructura tus proyectos de impacto.',
                 icons: [Leaf, Network, CheckCircle2],
-                colors: ['#0ea5e9', '#ec4899', '#06b6d4'],
+                colors: ['#0ea5e9', '#8b5cf6', '#06b6d4'],
                 step: '02',
               },
               {

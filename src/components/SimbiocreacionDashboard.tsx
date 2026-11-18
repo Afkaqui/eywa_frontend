@@ -79,12 +79,12 @@ const ODS_LIST = [
 
 const NODE_PRESETS = [
   { type: 'category'    as const, label: 'Categoría',   color: '#f59e0b', r: 30 },
-  { type: 'group'       as const, label: 'Grupo',        color: '#ec4899', r: 22 },
+  { type: 'group'       as const, label: 'Grupo',        color: '#047857', r: 22 },
   { type: 'institution' as const, label: 'Institución',  color: '#8b5cf6', r: 26 },
   { type: 'person'      as const, label: 'Persona',      color: '#94a3b8', r: 12 },
 ];
 
-const NODE_COLORS = ['#059669','#f59e0b','#ec4899','#8b5cf6','#3b82f6','#ef4444','#10b981','#f97316'];
+const NODE_COLORS = ['#059669','#f59e0b','#84cc16','#8b5cf6','#3b82f6','#ef4444','#10b981','#f97316'];
 
 const EMPTY_FORM = {
   nombre: '', lugar: '', fecha: '', horaInicio: '', descripcion: '',
@@ -138,7 +138,7 @@ function buildGraph(item: Simbiocreacion, width: number, height: number): { node
       }))
     : [
         { id: 'cat-0', label: 'Categoría 1', color: '#f59e0b' },
-        { id: 'cat-1', label: 'Categoría 2', color: '#ec4899' },
+        { id: 'cat-1', label: 'Categoría 2', color: '#047857' },
         { id: 'cat-2', label: 'Categoría 3', color: '#8b5cf6' },
       ];
 
@@ -161,7 +161,7 @@ function buildGraph(item: Simbiocreacion, width: number, height: number): { node
       const gDist  = Math.min(width, height) * 0.44;
       nodes.push({ id: gId, label: gLabel, type: 'group',
         x: cx + Math.cos(gAngle) * gDist, y: cy + Math.sin(gAngle) * gDist,
-        vx: 0, vy: 0, r: 22, color: '#ec4899' });
+        vx: 0, vy: 0, r: 22, color: '#047857' });
       edges.push({ from: cat.id, to: gId });
     });
   });
@@ -452,7 +452,7 @@ export const NetworkGraph = forwardRef<GraphHandle, NetworkGraphProps>(function 
 
 function StatCard({ label, value, accent }: { label: string; value: number|string; accent: string }) {
   return (
-    <div className={`rounded-2xl p-5 text-white ${accent}`}>
+    <div className={`ey-lift rounded-2xl p-5 text-white ${accent}`}>
       <div className="text-sm font-medium opacity-80 mb-1">{label}</div>
       <div className="text-3xl font-bold">{value}</div>
     </div>
@@ -668,7 +668,7 @@ export function SimbiocreacionDashboard() {
       const anchor = stored.nodes.find(n => n.type === 'center') ?? stored.nodes[0];
       const nodeId = `grp-${Date.now()}`;
       payload.graphData = {
-        nodes: [...stored.nodes, { id: nodeId, label: nombre.slice(0, 12), type: 'group', color: '#ec4899' }],
+        nodes: [...stored.nodes, { id: nodeId, label: nombre.slice(0, 12), type: 'group', color: '#047857' }],
         edges: [...stored.edges, { from: anchor.id, to: nodeId }],
       };
     }
@@ -880,14 +880,14 @@ export function SimbiocreacionDashboard() {
           {subView==='lista'&&(
             <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-                <StatCard label="Actores Mapeados"       value={actoresMapeados} accent="bg-gradient-to-br from-pink-500 to-rose-600"/>
-                <StatCard label="Total Simbiocreaciones" value={items.length} accent="bg-gradient-to-br from-pink-400 to-pink-500"/>
-                <StatCard label="Total Grupos / Tags"     value={totalGrupos}   accent="bg-gradient-to-br from-pink-300 to-pink-400"/>
-                <StatCard label="ODS Relacionados"       value={totalOds}     accent="bg-gradient-to-br from-pink-200 to-pink-300"/>
+                <StatCard label="Actores Mapeados"       value={actoresMapeados} accent="bg-gradient-to-br from-emerald-700 to-emerald-900"/>
+                <StatCard label="Total Simbiocreaciones" value={items.length} accent="bg-gradient-to-br from-emerald-600 to-emerald-700"/>
+                <StatCard label="Total Grupos / Tags"     value={totalGrupos}   accent="bg-gradient-to-br from-emerald-500 to-emerald-600"/>
+                <StatCard label="ODS Relacionados"       value={totalOds}     accent="bg-gradient-to-br from-gray-800 to-gray-900"/>
               </div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-gray-900">Mis Simbiocreaciones</h2>
-                <button onClick={openCrear} className="flex items-center gap-2 px-5 py-2.5 bg-pink-500 text-white rounded-xl text-sm font-semibold hover:bg-pink-600 transition-all shadow-sm">
+                <button onClick={openCrear} className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-full text-sm font-semibold hover:bg-emerald-600 transition-all shadow-sm">
                   <Plus className="w-4 h-4"/>Nueva simbiocreación
                 </button>
               </div>
@@ -903,7 +903,7 @@ export function SimbiocreacionDashboard() {
                   <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4"><Network className="w-8 h-8 text-emerald-300"/></div>
                   <h3 className="text-lg font-semibold text-gray-700 mb-2">Sin simbiocreaciones aún</h3>
                   <p className="text-sm text-gray-400 mb-6">Crea tu primera sesión de co-creación colaborativa.</p>
-                  <button onClick={openCrear} className="inline-flex items-center gap-2 px-6 py-3 bg-pink-500 text-white rounded-xl text-sm font-medium hover:bg-pink-600 transition-all">
+                  <button onClick={openCrear} className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-full text-sm font-medium hover:bg-emerald-600 transition-all">
                     <Plus className="w-4 h-4"/>Nueva simbiocreación
                   </button>
                 </div>
@@ -1018,7 +1018,7 @@ export function SimbiocreacionDashboard() {
                       ]).map(({icon:Icon,label,panel})=>(
                         <button key={panel} title={label}
                           onClick={()=>setActivePanel(activePanel===panel?null:panel)}
-                          className={`w-11 h-11 rounded-full flex items-center justify-center shadow-md transition-all ${activePanel===panel?'bg-pink-600 text-white scale-110 ring-2 ring-pink-300':'bg-pink-500 text-white hover:bg-pink-600'}`}>
+                          className={`w-11 h-11 rounded-full flex items-center justify-center shadow-md transition-all ${activePanel===panel?'bg-emerald-600 text-white scale-110 ring-2 ring-emerald-300':'bg-emerald-500 text-white hover:bg-emerald-600'}`}>
                           <Icon className="w-4 h-4"/>
                         </button>
                       ))}
@@ -1056,7 +1056,7 @@ export function SimbiocreacionDashboard() {
                       <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl border border-gray-200 px-4 py-3 shadow-sm text-sm text-gray-700 space-y-1 max-w-[200px] z-10">
                         <div className="flex items-center gap-2"><Users className="w-4 h-4 text-emerald-600"/><span className="font-medium">{nPersonas} {nPersonas===1?'persona':'personas'}</span></div>
                         <div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-violet-500"/><span className="font-medium">{nInstituciones} {nInstituciones===1?'institución':'instituciones'}</span></div>
-                        <div className="flex items-center gap-2"><Network className="w-4 h-4 text-pink-500"/><span className="font-medium">{selected.tags.length} grupos</span></div>
+                        <div className="flex items-center gap-2"><Network className="w-4 h-4 text-emerald-500"/><span className="font-medium">{selected.tags.length} grupos</span></div>
                         <div className="flex items-center gap-2"><Leaf className="w-4 h-4 text-emerald-500"/><span className="font-medium">{selected.ods.length} ODS</span></div>
                       </div>
                     );
@@ -1065,7 +1065,7 @@ export function SimbiocreacionDashboard() {
                   {/* ── Node detail panel (view mode, click on node) ── */}
                   {!editMode&&selectedNode&&(
                     <div className="absolute right-4 top-16 w-72 bg-white rounded-2xl shadow-2xl z-20 overflow-hidden border border-gray-100 flex flex-col max-h-[calc(100%-5rem)]">
-                      <div className="bg-pink-500 px-4 py-3 flex-shrink-0 flex items-start justify-between gap-2">
+                      <div className="bg-emerald-500 px-4 py-3 flex-shrink-0 flex items-start justify-between gap-2">
                         <p className="text-white text-xs font-semibold leading-tight truncate">
                           {selectedNode.type==='center'?'Simbiocreación':selectedNode.type==='category'?'Categoría':selectedNode.type==='institution'?'Institución':'Grupo'}
                         </p>
@@ -1321,7 +1321,7 @@ export function SimbiocreacionDashboard() {
                             <p className="text-sm text-gray-500 mb-6">Se agregará como un nuevo nodo al grafo de la simbiocreación.</p>
                             <div className="flex gap-3">
                               <button onClick={closePanel} className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all">Cancelar</button>
-                              <button onClick={()=>setNuevoGrupoConfirmed(true)} className="flex-1 px-4 py-2.5 text-sm font-medium bg-pink-500 text-white rounded-xl hover:bg-pink-600 transition-all">Confirmar</button>
+                              <button onClick={()=>setNuevoGrupoConfirmed(true)} className="flex-1 px-4 py-2.5 text-sm font-medium bg-emerald-600 text-white rounded-full hover:bg-emerald-600 transition-all">Confirmar</button>
                             </div>
                           </div>
                         ):(
@@ -1332,11 +1332,11 @@ export function SimbiocreacionDashboard() {
                             </div>
                             <input autoFocus type="text" placeholder="Nombre del nuevo grupo" value={nuevoGrupoName}
                               onChange={e=>setNuevoGrupoName(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')handleAddGrupo();}}
-                              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 mb-4"/>
+                              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 mb-4"/>
                             <div className="flex gap-3">
                               <button onClick={()=>{ setNuevoGrupoConfirmed(false); setNuevoGrupoName(''); }} className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl hover:bg-gray-50">Atrás</button>
                               <button onClick={handleAddGrupo} disabled={!nuevoGrupoName.trim()||addingGrupo}
-                                className="flex-1 px-4 py-2.5 text-sm font-medium bg-pink-500 text-white rounded-xl hover:bg-pink-600 disabled:opacity-40 flex items-center justify-center gap-2">
+                                className="flex-1 px-4 py-2.5 text-sm font-medium bg-emerald-600 text-white rounded-full hover:bg-emerald-600 disabled:opacity-40 flex items-center justify-center gap-2">
                                 {addingGrupo?<><Loader2 className="w-4 h-4 animate-spin"/>Agregando…</>:'Agregar'}
                               </button>
                             </div>
@@ -1370,7 +1370,7 @@ export function SimbiocreacionDashboard() {
                     <div className="absolute left-0 top-0 bottom-0 w-80 bg-white shadow-2xl z-20 flex flex-col overflow-hidden border-r border-gray-100">
                       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
                         <div className="flex items-center gap-2">
-                          {activePanel==='mis-grupos'&&<Lightbulb className="w-5 h-5 text-pink-500"/>}
+                          {activePanel==='mis-grupos'&&<Lightbulb className="w-5 h-5 text-emerald-500"/>}
                           {activePanel==='busquedas'&&<Users className="w-5 h-5 text-emerald-600"/>}
                           {activePanel==='stats'&&<BarChart2 className="w-5 h-5 text-emerald-600"/>}
                           <h3 className="font-semibold text-gray-900 text-sm">
@@ -1384,7 +1384,7 @@ export function SimbiocreacionDashboard() {
                       {activePanel==='mis-grupos'&&(
                         <div className="flex-1 overflow-y-auto p-4 space-y-3">
                           <button onClick={()=>{ closePanel(); setTimeout(()=>setActivePanel('nuevo-grupo'),50); }}
-                            className="flex items-center gap-2 w-full px-4 py-2.5 bg-pink-500 text-white rounded-xl text-sm font-semibold hover:bg-pink-600 transition-all justify-center">
+                            className="flex items-center gap-2 w-full px-4 py-2.5 bg-emerald-600 text-white rounded-full text-sm font-semibold hover:bg-emerald-600 transition-all justify-center">
                             <Plus className="w-4 h-4"/>Nuevo grupo
                           </button>
                           {selected.tags.length===0?(
@@ -1432,11 +1432,11 @@ export function SimbiocreacionDashboard() {
                           <>
                             <div className="flex gap-2 px-4 pt-3 pb-2 flex-shrink-0">
                               <button onClick={()=>{ setBusquedasTab('grupos'); setBusquedasQuery(''); }}
-                                className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${busquedasTab==='grupos'?'bg-pink-500 text-white':'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                                className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${busquedasTab==='grupos'?'bg-emerald-500 text-white':'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
                                 Grupos <span className="ml-1 opacity-70 text-xs">({groupNodes.length})</span>
                               </button>
                               <button onClick={()=>{ setBusquedasTab('participantes'); setBusquedasQuery(''); }}
-                                className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${busquedasTab==='participantes'?'bg-pink-500 text-white':'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                                className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${busquedasTab==='participantes'?'bg-emerald-500 text-white':'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
                                 Actores <span className="ml-1 opacity-70 text-xs">({personNodes.length})</span>
                               </button>
                             </div>
@@ -1449,7 +1449,7 @@ export function SimbiocreacionDashboard() {
                                   placeholder={busquedasTab==='grupos'?'Buscar grupo…':'Buscar actor…'}
                                   value={busquedasQuery}
                                   onChange={e=>setBusquedasQuery(e.target.value)}
-                                  className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 bg-gray-50"/>
+                                  className="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-300 bg-gray-50"/>
                               </div>
                             </div>
 
@@ -1467,7 +1467,7 @@ export function SimbiocreacionDashboard() {
                                           <span className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
                                             style={{backgroundColor:n.color}}>{i+1}</span>
                                           <div className="min-w-0 flex-1">
-                                            <div className={`text-sm font-semibold truncate ${isCategory?'text-amber-700':'text-pink-700'}`}>{n.label}</div>
+                                            <div className={`text-sm font-semibold truncate ${isCategory?'text-amber-700':'text-emerald-700'}`}>{n.label}</div>
                                             <div className="text-xs text-gray-400">{isCategory?'Categoría':'Grupo'} · {children} hijo{children!==1?'s':''}</div>
                                           </div>
                                           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
@@ -1541,10 +1541,10 @@ export function SimbiocreacionDashboard() {
                       {/* Stats */}
                       {activePanel==='stats'&&(
                         <div className="flex-1 overflow-y-auto p-5 space-y-4">
-                          <div className="bg-pink-50 border border-pink-100 rounded-2xl p-4 space-y-3">
-                            <div className="flex items-center justify-between"><span className="text-sm text-gray-600">Participantes</span><span className="text-2xl font-extrabold text-pink-600">{selected.tags.length*2}</span></div>
-                            <div className="h-px bg-pink-100"/>
-                            <div className="flex items-center justify-between"><span className="text-sm text-gray-600">Grupos</span><span className="text-2xl font-extrabold text-pink-600">{selected.tags.length}</span></div>
+                          <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 space-y-3">
+                            <div className="flex items-center justify-between"><span className="text-sm text-gray-600">Participantes</span><span className="text-2xl font-extrabold text-emerald-600">{selected.tags.length*2}</span></div>
+                            <div className="h-px bg-emerald-100"/>
+                            <div className="flex items-center justify-between"><span className="text-sm text-gray-600">Grupos</span><span className="text-2xl font-extrabold text-emerald-600">{selected.tags.length}</span></div>
                           </div>
                           <div className="grid grid-cols-2 gap-3">
                             <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-center"><div className="text-xs text-emerald-600 mb-1">ODS</div><div className="text-xl font-bold text-emerald-700">{selected.ods.length}</div></div>
@@ -1565,7 +1565,7 @@ export function SimbiocreacionDashboard() {
                             </div>
                           )}
                           <a href="https://app.simbiocreacion.com/symbiocreation" target="_blank" rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-pink-500 text-white text-sm font-semibold rounded-xl hover:bg-pink-600 transition-all mt-2">
+                            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-emerald-500 text-white text-sm font-semibold rounded-xl hover:bg-emerald-600 transition-all mt-2">
                             <ExternalLink className="w-4 h-4"/> Ver en Simbiocreación
                           </a>
                         </div>
@@ -1634,7 +1634,7 @@ export function SimbiocreacionDashboard() {
           {/* CREAR / EDITAR */}
           {(subView==='crear'||subView==='editar')&&(
             <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
-              <div className="bg-white border border-pink-200 rounded-2xl p-6 md:p-8 mb-6">
+              <div className="bg-white border border-emerald-200 rounded-2xl p-6 md:p-8 mb-6">
                 <div className="flex items-end gap-4 mb-4">
                   <div className="flex-1">
                     <input type="text" placeholder="Nombre de la simbiocreación*" value={form.nombre}
@@ -1700,7 +1700,7 @@ export function SimbiocreacionDashboard() {
               <div className="flex items-center justify-end gap-3">
                 <button onClick={goLista} className="px-6 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-900 rounded-xl hover:bg-gray-100 transition-all">Cancelar</button>
                 <button onClick={handleGuardar} disabled={!form.nombre.trim()||saving}
-                  className="flex items-center gap-2 px-7 py-2.5 text-sm font-medium bg-pink-500 text-white rounded-xl hover:bg-pink-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+                  className="flex items-center gap-2 px-7 py-2.5 text-sm font-medium bg-emerald-600 text-white rounded-full hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
                   {saving?<><Loader2 className="w-4 h-4 animate-spin"/>Guardando...</>:subView==='editar'?'Guardar cambios':'Crear'}
                 </button>
               </div>
@@ -1748,7 +1748,7 @@ export function SimbiocreacionDashboard() {
           ):(
             <div className="space-y-px">
               {ranking.map((entry,i)=>{
-                const rankColors=['text-pink-500','text-pink-400','text-pink-300'];
+                const rankColors=['text-amber-500','text-gray-400','text-amber-700'];
                 const isMe=entry.userId===user?.id;
                 return (
                   <div key={entry.userId} className={`flex items-center gap-4 px-5 py-4 border-b border-gray-100 last:border-0 rounded-xl transition-all ${isMe?'bg-emerald-50 border-emerald-100':'bg-white hover:bg-gray-50'}`}>

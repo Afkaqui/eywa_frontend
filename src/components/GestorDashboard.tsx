@@ -84,7 +84,7 @@ function ActivationFunnel() {
 
   if (!data || data.registered === 0) return null;
 
-  const STEP_COLOR = ['bg-gray-800', 'bg-emerald-600', 'bg-emerald-500', 'bg-teal-500', 'bg-sky-500'];
+  const STEP_COLOR = ['bg-gray-800', 'bg-emerald-600', 'bg-emerald-500', 'bg-emerald-400', 'bg-sky-500'];
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
