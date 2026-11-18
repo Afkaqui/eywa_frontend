@@ -112,15 +112,11 @@ export function TrustScorePanel({ result, onRepeat, onOpenDataroom }: Props) {
         {/* A · Resumen */}
         <div className="flex flex-col items-center lg:items-start">
           <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 self-start">Trust Score</div>
-          <div className="w-full flex justify-center scale-110 md:scale-125 my-4 md:my-6">
+          <div className="w-full flex justify-center">
             <ProfessionalTrustGauge score={score} />
           </div>
           <div className="w-full mt-2">
-            <div className="flex items-baseline gap-2">
-              <span className="text-5xl md:text-6xl font-semibold text-gray-900 tracking-tight">{score}</span>
-              <span className="text-xl text-gray-400">/100</span>
-            </div>
-            <div className="mt-1 text-sm text-gray-500">{genes} de {GENES_SCALE} puntos GENES · autoevaluación</div>
+            <div className="text-sm text-gray-500 text-center lg:text-left"><b className="text-gray-900">{score}/100</b> · {genes} de {GENES_SCALE} puntos GENES · autoevaluación</div>
             <div className="mt-3 flex items-center gap-2 flex-wrap">
               <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold ${getGenesBandClasses(genes)}`}>
                 <Award className="w-4 h-4" /> Categoría {banda}
