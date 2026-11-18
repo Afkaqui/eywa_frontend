@@ -195,6 +195,7 @@ html {
 .ey-blur-in { display: inline-block; animation: ey-blur-in .9s cubic-bezier(.2,.7,.2,1) both; }
 .ey-float { animation: ey-float 5s ease-in-out infinite; }
 .ey-marquee { display: flex; width: max-content; animation: ey-marquee 30s linear infinite; }
+.ey-marquee:hover, .ey-marquee:focus-within { animation-play-state: paused; }
 .ey-hero-zoom { animation: ey-zoom-out 2.4s cubic-bezier(.2,.7,.2,1) both; }
 .ey-lift { transition: transform .35s ease, box-shadow .35s ease; }
 .ey-lift:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(17,24,39,.10); }
@@ -214,7 +215,9 @@ html {
 @keyframes ey-fade { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
   .ey-blur-in { animation: ey-fade .6s ease both; }
-  .ey-float, .ey-marquee, .ey-hero-zoom { animation: none !important; }
+  .ey-float, .ey-hero-zoom { animation: none !important; }
+  /* El carrusel de respaldos sigue moviéndose, más lento; se pausa al pasar el cursor */
+  .ey-marquee { animation-duration: 55s; }
   .ey-lift:hover, .ey-zoom:hover img { transform: none; }
   @supports (animation-timeline: view()) {
     .ey-reveal, .ey-reveal-blur, .ey-reveal-pop { animation: ey-fade linear both; animation-timeline: view(); animation-range: entry 0% entry 50%; }
