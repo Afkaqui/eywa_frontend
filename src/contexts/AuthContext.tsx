@@ -88,7 +88,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
         redirect: false,
       });
-      if (result?.error) return { error: 'Credenciales incorrectas' };
+      if (result?.error) {
+        return { error: result.code === 'servicio'
+          ? 'No pudimos conectar con el servidor. Intenta de nuevo en unos segundos.'
+          : 'Credenciales incorrectas' };
+      }
       return { error: null };
     } catch {
       return { error: 'Error al iniciar sesión' };

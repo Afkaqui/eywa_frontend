@@ -46,7 +46,7 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic }: HeroDashb
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1705998989555-87ed424a269d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhbWF6b24lMjByYWluZm9yZXN0JTIwYWVyaWFsfGVufDF8fHx8MTc2OTEwMTY4NHww&ixlib=rb-4.1.0&q=80&w=1080')`,
+            backgroundImage: `url('https://images.unsplash.com/photo-1769794305664-cfb57957246f?auto=format&fit=crop&w=1600&q=75')`,
           }}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 via-gray-900/60 to-white"></div>

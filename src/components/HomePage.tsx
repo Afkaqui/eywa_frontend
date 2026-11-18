@@ -5,8 +5,12 @@ import { ArrowRight, Check, ShieldCheck, FolderCheck, Search, Plus, Trophy } fro
 import { AnimatedBadge, RotatingText, BorderBeam, NumberTicker, Spotlight, Marquee, StepsTimeline, StepNumber, Orbits } from '@/components/fx';
 import { BRAND } from '@/lib/brand';
 
-// Foto del bosque amazónico (la misma que usaba la landing anterior).
-const BOSQUE = 'https://images.unsplash.com/photo-1705998989555-87ed424a269d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1600';
+// Fotos (Unsplash, licencia libre): una distinta por sección.
+const FOTO = {
+  selva: 'https://images.unsplash.com/photo-1682887523090-8eed9a92a6e5?auto=format&fit=crop&w=1600&q=75',      // selva vista desde arriba
+  equipo: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1200&q=75', // equipo trabajando con laptops
+  rio: 'https://images.unsplash.com/photo-1774830970925-e176508dc0ab?auto=format&fit=crop&w=1600&q=75',        // río y selva brumosa
+};
 
 interface HomePageProps {
   onGetStarted: () => void;
@@ -202,7 +206,7 @@ export function HomePage({ onGetStarted }: HomePageProps) {
 
       {/* ── Banda de foto + cifras reales ── */}
       <section className="relative overflow-hidden bg-emerald-950">
-        <img src={BOSQUE} alt="Bosque amazónico visto desde arriba" className="absolute inset-0 h-full w-full object-cover opacity-45" />
+        <img src={FOTO.selva} alt="Selva amazónica vista desde arriba" className="absolute inset-0 h-full w-full object-cover opacity-45" />
         <div className="relative mx-auto flex max-w-7xl flex-col gap-14 px-4 pb-16 pt-24 sm:px-6">
           <h2 className="ey-reveal-blur ml-auto max-w-2xl text-3xl font-semibold leading-tight text-white md:text-4xl">
             Los fondos ya no aceptan promesas. Si declaras impacto, tienes que poder probarlo.
@@ -239,7 +243,7 @@ export function HomePage({ onGetStarted }: HomePageProps) {
             <div className="ey-reveal-pop ey-zoom relative h-72 w-full flex-1 overflow-hidden rounded-3xl bg-gray-100 md:h-80">
               {img ? (
                 <>
-                  <img src={BOSQUE} alt="" className="h-full w-full object-cover" />
+                  <img src={FOTO.equipo} alt="Equipo revisando su evidencia en laptops" className="h-full w-full object-cover" />
                   <div className="absolute inset-x-5 bottom-5 flex justify-between gap-3 rounded-xl bg-white/95 px-4 py-3 text-sm">
                     <span>Informe de impacto.pdf</span><span className="font-semibold text-emerald-700">✓ Verificado</span>
                   </div>
@@ -357,7 +361,7 @@ export function HomePage({ onGetStarted }: HomePageProps) {
 
       {/* ── CTA final ── */}
       <section className="relative overflow-hidden bg-emerald-900">
-        <img src={BOSQUE} alt="" className="absolute inset-0 h-full w-full object-cover opacity-25" />
+        <img src={FOTO.rio} alt="" className="absolute inset-0 h-full w-full object-cover opacity-30" />
         <div className="relative mx-auto flex max-w-4xl flex-col items-center gap-6 px-4 py-24 text-center sm:px-6">
           <h2 className="ey-reveal-blur text-3xl font-semibold tracking-tight text-white md:text-5xl">Haz que tu impacto sea la razón por la que te financian.</h2>
           <div className="flex flex-col gap-3 sm:flex-row">

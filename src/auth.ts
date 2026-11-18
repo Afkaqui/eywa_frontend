@@ -1,9 +1,13 @@
-import NextAuth from 'next-auth';
+import NextAuth, { CredentialsSignin } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
 import type { UserRole, UserPlan } from '@/lib/types/database';
 
 const API_URL = process.env.BACKEND_URL ?? 'http://localhost:4001';
+
+// Si el backend no responde (p. ej. mientras se redespliega) no es un problema de
+// contraseña: se marca con otro código para que la pantalla lo diga claramente.
+class ServicioNoDisponible extends CredentialsSignin { code = 'servicio'; }
 
 // ── Extensiones de tipos de Auth.js ───────────────────────────────────────────
 declare module 'next-auth' {
@@ -59,6 +63,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             }),
           });
 
+          if (res.status >= 500) throw new ServicioNoDisponible();
           if (!res.ok) return null;
 
           const { token, user } = await res.json();
@@ -72,8 +77,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             company:      user.company ?? null,
             backendToken: token, // ← guardamos el JWT del backend
           };
-        } catch {
-          return null;
+        } catch (e) {
+          if (e instanceof ServicioNoDisponible) throw e;
+          throw new ServicioNoDisponible(); // red caída o respuesta ilegible
         }
       },
     }),

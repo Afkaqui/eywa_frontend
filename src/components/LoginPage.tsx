@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Mail, Lock, User, Building2, ArrowLeft, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { BRAND } from '@/lib/brand';
+import { Orbits, AnimatedBadge } from '@/components/fx';
 
-const logo = "/logo.png";
+const logo = BRAND.logo;
 
 interface LoginPageProps {
   onBack: () => void;
@@ -75,13 +77,13 @@ export function LoginPage({ onBack }: LoginPageProps) {
           <div className="flex items-center gap-3 mb-12">
             <img src={logo} alt="EYWA Logo" className="w-12 h-12 object-contain" />
             <div>
-              <div className="text-gray-900 font-bold text-2xl tracking-tight">EYWA</div>
-              <div className="text-emerald-600 text-xs tracking-wider">SUSTAINABILITY PLATFORM</div>
+              <div className="text-gray-900 font-bold text-2xl tracking-tight">{BRAND.name}</div>
+              <div className="text-emerald-600 text-xs font-medium uppercase tracking-wider">{BRAND.tagline}</div>
             </div>
           </div>
 
           <div className="mb-8">
-            <h1 className="text-4xl font-light text-gray-900 mb-3">
+            <h1 key={isLogin ? 'in' : 'up'} className="ey-blur-in text-4xl font-bold tracking-tight text-gray-900 mb-3">
               {isLogin ? 'Bienvenido' : 'Crear cuenta'}
             </h1>
             <p className="text-gray-600">
@@ -91,10 +93,10 @@ export function LoginPage({ onBack }: LoginPageProps) {
             </p>
           </div>
 
-          <div className="flex gap-2 mb-8 bg-gray-100 p-1 rounded-lg">
+          <div className="flex gap-1 mb-8 bg-gray-100 p-1 rounded-full">
             <button
               onClick={() => { setIsLogin(true); setError(null); setSuccessMsg(null); }}
-              className={`flex-1 py-2.5 rounded-md text-sm font-medium transition-all ${
+              className={`flex-1 py-2.5 rounded-full text-sm font-medium transition-all ${
                 isLogin
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
@@ -104,7 +106,7 @@ export function LoginPage({ onBack }: LoginPageProps) {
             </button>
             <button
               onClick={() => { setIsLogin(false); setError(null); setSuccessMsg(null); }}
-              className={`flex-1 py-2.5 rounded-md text-sm font-medium transition-all ${
+              className={`flex-1 py-2.5 rounded-full text-sm font-medium transition-all ${
                 !isLogin
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
@@ -138,7 +140,7 @@ export function LoginPage({ onBack }: LoginPageProps) {
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                    className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                     placeholder="Juan Pérez"
                     required={!isLogin}
                   />
@@ -157,7 +159,7 @@ export function LoginPage({ onBack }: LoginPageProps) {
                     type="text"
                     value={formData.company}
                     onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                    className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                    className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                     placeholder="Nombre de la empresa"
                     required={!isLogin}
                   />
@@ -175,7 +177,7 @@ export function LoginPage({ onBack }: LoginPageProps) {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                  className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                   placeholder="correo@empresa.com"
                   required
                 />
@@ -192,7 +194,7 @@ export function LoginPage({ onBack }: LoginPageProps) {
                   type={showPassword ? 'text' : 'password'}
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full pl-11 pr-12 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                  className="w-full pl-11 pr-12 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                   placeholder="••••••••"
                   required
                   minLength={6}
@@ -250,7 +252,7 @@ export function LoginPage({ onBack }: LoginPageProps) {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-all font-semibold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-3.5 bg-emerald-500 text-emerald-950 rounded-full hover:bg-emerald-400 hover:-translate-y-0.5 transition-all font-semibold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center justify-center gap-2"
             >
               {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
               {isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}
@@ -274,35 +276,26 @@ export function LoginPage({ onBack }: LoginPageProps) {
         </div>
       </div>
 
-      {/* Right Side - Image */}
-      <div className="hidden lg:block lg:w-1/2 relative">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1622353133218-825cfebb6844?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBhZ3JpY3VsdHVyZSUyMGZpZWxkfGVufDF8fHx8MTc2OTEwMjIwMHww&ixlib=rb-4.1.0&q=80&w=1080')`,
-          }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/90 to-gray-900/80"></div>
-        </div>
+      {/* Lado derecho: foto + órbitas (identidad v2) */}
+      <div className="hidden lg:block lg:w-1/2 relative overflow-hidden bg-emerald-950">
+        <img
+          src="https://images.unsplash.com/photo-1745879985235-d3f2ad8b58c3?auto=format&fit=crop&w=1600&q=75"
+          alt="Manos sosteniendo mazorcas de cacao"
+          className="ey-hero-zoom absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/40 via-emerald-950/55 to-emerald-950/95" />
+        <Orbits size={620} className="right-[-160px] top-[-140px] opacity-80" />
 
         <div className="relative z-10 h-full flex flex-col justify-between p-12">
+          <div><AnimatedBadge>Sello verificable · metodología GENES</AnimatedBadge></div>
           <div>
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-emerald-300 text-sm font-medium mb-8">
-              Plataforma Institucional
-            </div>
-          </div>
-
-          <div>
-            <h2 className="text-5xl font-light text-white mb-6 leading-tight">
-              Sostenibilidad<br />
-              <span className="font-semibold">verificable y medible</span>
+            <h2 className="text-5xl font-semibold text-white mb-6 leading-[1.08] tracking-tight">
+              <span className="ey-blur-in" style={{ animationDelay: '.15s' }}>Tu impacto,</span>{' '}
+              <span className="ey-blur-in text-emerald-300" style={{ animationDelay: '.35s' }}>convertido en evidencia que financia</span>
             </h2>
-            <p className="text-xl text-gray-300 mb-12 leading-relaxed max-w-lg">
-              Diagnóstico GENES, dataroom por empresa y conexión con fondos e inversores
-              de impacto.
+            <p className="ey-blur-in text-lg text-emerald-50/90 leading-relaxed max-w-lg" style={{ animationDelay: '.55s' }}>
+              Diagnóstico GENES, dataroom con sello verificable y conexión con fondos e inversores de impacto. Una sola cuenta para {BRAND.name} y {BRAND.agro}.
             </p>
-
-            {/* Se retiraron cifras de ejemplo (Trust Score 85, 6.5k t CO₂, 24 empresas) que no eran datos reales. */}
           </div>
         </div>
       </div>
