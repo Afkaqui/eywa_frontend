@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { ArrowRight, Check, ShieldCheck, FolderCheck, Search, Plus } from 'lucide-react';
+import { ArrowRight, Check, ShieldCheck, FolderCheck, Search, Plus, Trophy } from 'lucide-react';
+import { AnimatedBadge, RotatingText, BorderBeam, NumberTicker, Spotlight, Marquee, StepsTimeline, StepNumber, Orbits } from '@/components/fx';
 import { BRAND } from '@/lib/brand';
 
 // Foto del bosque amazónico (la misma que usaba la landing anterior).
@@ -16,8 +17,16 @@ interface PublicStats {
   funds: number; certificates: number; documents: number;
 }
 
-// Respaldos reales (sin logos hasta tener permiso de uso).
-const RESPALDOS = ['ProInnóvate', 'DER Cusco', 'Incuval Ventures · UNHEVAL', 'Lab to Market · UPCH', 'GENES Perú', 'ARS LAB'];
+// Respaldos reales, con sus logos oficiales (public/respaldos).
+const RESPALDOS = [
+  { nombre: 'ProInnóvate', logo: '/respaldos/proinnovate.png' },
+  { nombre: 'Innovandes Cusco · DER Cusco', logo: '/respaldos/innovandes-cusco.png' },
+  { nombre: 'Cámara de Comercio del Cusco', logo: '/respaldos/camara-cusco.png' },
+  { nombre: 'Incuval Ventures · UNHEVAL', logo: '/respaldos/incuval.svg' },
+  { nombre: 'Universidad Peruana Cayetano Heredia', logo: '/respaldos/upch.svg' },
+  { nombre: 'GENES Perú', logo: '/respaldos/genes-peru.png' },
+  { nombre: 'ARS LAB', logo: '/respaldos/arslab.png' },
+];
 
 const FAQ = [
   { q: '¿Cuánto cuesta?', a: 'El diagnóstico es gratuito. Los planes para organizaciones están pendientes de publicar.' },
@@ -44,7 +53,7 @@ function Cifra({ valor, etiqueta }: { valor: number | null; etiqueta: string }) 
     <div className="ey-reveal border-t border-white/35 pt-5">
       {valor === null
         ? <div className="h-12 w-24 rounded-lg bg-white/15 animate-pulse" aria-label="Cargando" />
-        : <div className="text-5xl font-semibold text-white">{valor}</div>}
+        : <NumberTicker value={valor} className="block text-5xl font-semibold text-white" />}
       <div className="mt-1 text-sm text-emerald-100">{etiqueta}</div>
     </div>
   );
@@ -58,7 +67,9 @@ export function HomePage({ onGetStarted }: HomePageProps) {
       .then(d => { if (d && typeof d.actors === 'number') setStats(d); })
       .catch(() => {});
   }, []);
-  const hoy = new Date().toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' });
+  // La fecha se calcula en el navegador para no diferir del HTML del servidor.
+  const [hoy, setHoy] = useState('');
+  useEffect(() => { setHoy(new Date().toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' })); }, []);
 
   const btnPrimario = 'inline-flex items-center justify-center gap-2 rounded-full bg-emerald-500 px-6 py-3.5 text-base font-semibold text-emerald-950 transition-transform hover:-translate-y-0.5 hover:bg-emerald-400';
   const btnSecundario = 'inline-flex items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-6 py-3.5 text-base font-medium text-gray-900 transition-transform hover:-translate-y-0.5';
@@ -92,15 +103,21 @@ export function HomePage({ onGetStarted }: HomePageProps) {
       </nav>
 
       {/* ── Hero ── */}
-      <section id="inicio" className="bg-gradient-to-b from-white to-gray-50">
-        <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 md:py-20 lg:grid-cols-2">
+      <Spotlight className="overflow-hidden bg-gradient-to-b from-white to-gray-50">
+      <section id="inicio">
+        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 md:py-20 lg:grid-cols-2">
           <div className="flex flex-col gap-6">
-            <span className="ey-blur-in inline-flex w-fit items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 sm:text-sm">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />Ganador ProInnóvate · Región Cusco
+            <span className="ey-blur-in">
+              <AnimatedBadge href={BRAND.agroUrl} icon={<Trophy className="h-4 w-4 text-amber-500" />}>
+                {BRAND.agro} ganó Emprendimientos Innovadores · ProInnóvate Cusco
+              </AnimatedBadge>
             </span>
             <h1 className="text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
               <Palabras texto="Convierte tu impacto en" desde={0.05} />
-              <Palabras texto="evidencia que financia" desde={0.35} className="text-emerald-600" />
+              <Palabras texto="evidencia que" desde={0.35} className="text-emerald-600" />
+              <span className="ey-blur-in text-emerald-600" style={{ animationDelay: '.5s' }}>
+                <RotatingText words={['financia', 'se verifica', 'te conecta']} />
+              </span>
             </h1>
             <p className="ey-blur-in max-w-xl text-lg leading-relaxed text-gray-600" style={{ animationDelay: '.6s' }}>
               {BRAND.name} diagnostica tu organización, ordena tus pruebas en un dataroom con sello verificable y te conecta con los fondos que encajan contigo.
@@ -117,9 +134,13 @@ export function HomePage({ onGetStarted }: HomePageProps) {
           </div>
 
           {/* Teléfono con el sello (ilustración) */}
-          <div className="relative flex justify-center py-6">
-            <div className="ey-blur-in" style={{ animationDelay: '.3s' }}>
-              <div className="ey-float w-[280px] -rotate-3 overflow-hidden rounded-[44px] border-[10px] border-gray-900 bg-white shadow-2xl">
+          <div className="relative flex items-center justify-center py-6">
+            <Orbits size={540} className="left-1/2 top-1/2 -ml-[270px] -mt-[270px] hidden sm:block" />
+            <Orbits size={360} rings={3} className="left-1/2 top-1/2 -ml-[180px] -mt-[180px] sm:hidden" />
+            <div className="ey-blur-in relative" style={{ animationDelay: '.3s' }}>
+              <div className="ey-float relative -rotate-3">
+              <BorderBeam radius="44px" />
+              <div className="w-[280px] overflow-hidden rounded-[44px] border-[10px] border-gray-900 bg-white shadow-2xl">
                 <div className="flex flex-col gap-3 p-4">
                   <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
                     <img src={BRAND.logo} alt="" className="h-5 w-5 object-contain" />Sello {BRAND.name}
@@ -137,17 +158,23 @@ export function HomePage({ onGetStarted }: HomePageProps) {
                   <span className="rounded-full bg-emerald-600 py-2.5 text-center text-xs font-semibold text-white">Ver evidencia →</span>
                 </div>
               </div>
+              </div>
             </div>
             <span className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs text-gray-400">Vista de ejemplo</span>
           </div>
         </div>
       </section>
+      </Spotlight>
 
       {/* ── Marquesina de respaldos ── */}
-      <section aria-label="Nos respaldan" className="overflow-hidden border-y border-gray-100 py-6">
-        <div className="ey-marquee gap-14 whitespace-nowrap text-base font-semibold text-gray-400">
-          {[...RESPALDOS, ...RESPALDOS].map((r, i) => <span key={i} className="px-7">{r}</span>)}
-        </div>
+      <section aria-label="Nos respaldan" className="border-y border-gray-100 py-7">
+        <p className="mb-5 text-center text-xs font-semibold uppercase tracking-wider text-gray-400">Nos respaldan</p>
+        <Marquee>
+          {RESPALDOS.map(r => (
+            <img key={r.nombre} src={r.logo} alt={r.nombre} title={r.nombre} loading="lazy"
+              className="mx-9 h-10 w-auto max-w-[170px] object-contain opacity-70 grayscale transition hover:opacity-100 hover:grayscale-0 md:h-12" />
+          ))}
+        </Marquee>
       </section>
 
       {/* ── Problema ── */}
@@ -185,7 +212,7 @@ export function HomePage({ onGetStarted }: HomePageProps) {
             <Cifra valor={stats?.funds ?? null} etiqueta="fondos y oportunidades activas" />
             <Cifra valor={stats?.documents ?? null} etiqueta="documentos de evidencia resguardados" />
           </div>
-          <span className="text-xs text-emerald-200">● Datos en vivo de la plataforma · {hoy}</span>
+          <span className="text-xs text-emerald-200">● Datos en vivo de la plataforma{hoy ? ` · ${hoy}` : ''}</span>
         </div>
       </section>
 
@@ -205,7 +232,7 @@ export function HomePage({ onGetStarted }: HomePageProps) {
         ].map(({ n, t, d, img }) => (
           <div key={n} className={`flex flex-col items-center gap-12 lg:flex-row ${n % 2 === 0 ? 'lg:flex-row-reverse' : ''}`}>
             <div className="ey-reveal flex flex-1 flex-col gap-4">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 font-semibold">{n}</span>
+              <StepNumber n={n} />
               <h3 className="text-2xl leading-snug md:text-3xl">{t}</h3>
               <p className="leading-relaxed text-gray-600">{d}</p>
             </div>
@@ -251,19 +278,13 @@ export function HomePage({ onGetStarted }: HomePageProps) {
             <p className="text-gray-600"><b className="text-gray-900">Empiezas gratis.</b> Sin instalar nada y sin cambiar tus sistemas.</p>
             <button onClick={onGetStarted} className={`${btnPrimario} w-fit`}>Empezar ahora</button>
           </div>
-          <div className="flex flex-1 flex-col gap-4">
-            {[
+          <div className="flex-1">
+            <StepsTimeline items={[
               ['Crea tu cuenta y tu organización', 'Un correo y dos minutos. Invita a tu equipo cuando quieras.'],
               ['Responde el diagnóstico', 'Recibes tu Trust Score y recomendaciones al terminar.'],
               ['Sube tu evidencia', 'Cada documento queda ligado al criterio que respalda.'],
               ['Postula con el sello', 'Comparte tu enlace verificable con el fondo o inversionista.'],
-            ].map(([t, d], i) => (
-              <div key={t} className="ey-reveal ey-lift flex flex-col gap-2 rounded-3xl border border-gray-200 bg-white p-7">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 font-bold text-emerald-800">{i + 1}</span>
-                <h3 className="text-lg font-semibold">{t}</h3>
-                <p className="text-gray-500">{d}</p>
-              </div>
-            ))}
+            ]} />
           </div>
         </div>
       </section>

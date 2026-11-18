@@ -223,3 +223,57 @@ html {
     .ey-reveal, .ey-reveal-blur, .ey-reveal-pop { animation: ey-fade linear both; animation-timeline: view(); animation-range: entry 0% entry 50%; }
   }
 }
+
+/* ── Componentes animados (src/components/fx.tsx) ───────────────────────── */
+@property --fx-angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+@keyframes fx-spin { to { --fx-angle: 360deg; } }
+@keyframes fx-shine { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+@keyframes fx-rotate-in { from { opacity: 0; filter: blur(8px); transform: translateY(40%); } to { opacity: 1; filter: blur(0); transform: none; } }
+
+/* Insignia: borde en degradado que gira + brillo en el texto */
+.fx-badge { background: linear-gradient(#ecfdf5, #ecfdf5) padding-box, conic-gradient(from var(--fx-angle), #a7f3d0, #10b981, #fde68a, #10b981, #a7f3d0) border-box; border: 1.5px solid transparent; color: #047857; animation: fx-spin 5s linear infinite; }
+.fx-shine { background: linear-gradient(110deg, #047857 40%, #6ee7b7 50%, #047857 60%) 0 0 / 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: fx-shine 3.2s linear infinite; }
+
+/* Texto rotativo */
+.fx-rotate { animation: fx-rotate-in .55s cubic-bezier(.2,.7,.2,1) both; }
+
+/* Haz que recorre el borde */
+.fx-beam { padding: 2px; background: conic-gradient(from var(--fx-angle), transparent 0 75%, #34d399 85%, #a7f3d0 90%, transparent 100%); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; animation: fx-spin 4s linear infinite; }
+
+/* Foco que sigue al cursor */
+.fx-spot { --fx-x: 70%; --fx-y: 20%; }
+.fx-spot::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(520px circle at var(--fx-x) var(--fx-y), rgba(16,185,129,.13), transparent 70%); transition: background .2s; }
+
+/* Marquesina con bordes difuminados */
+.fx-marquee-mask { -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-badge, .fx-beam { animation-duration: 12s; }
+  .fx-shine { animation: none; color: #047857; background: none; }
+  .fx-rotate { animation: ey-fade .4s ease both; }
+}
+
+/* Línea de tiempo de pasos (StepsTimeline) */
+@keyframes fx-ping { 0% { box-shadow: 0 0 0 0 rgba(16,185,129,.45); } 100% { box-shadow: 0 0 0 14px rgba(16,185,129,0); } }
+.fx-steps-line { position: absolute; left: 19px; top: 28px; bottom: 28px; width: 2px; background: #e5e7eb; border-radius: 2px; }
+.fx-steps-line > i { display: block; width: 100%; height: calc(var(--p, 0) * 100%); background: linear-gradient(#6ee7b7, #059669); border-radius: 2px; transition: height .15s linear; }
+.fx-step { opacity: .35; transform: translateX(28px); transition: opacity .6s ease, transform .6s cubic-bezier(.2,.7,.2,1), border-color .4s; }
+.fx-step.is-in { opacity: 1; transform: none; border-color: #a7f3d0; }
+.fx-step-num { transition: background-color .4s, color .4s, border-color .4s; }
+.fx-step.is-in .fx-step-num { background: #10b981; border-color: #10b981; color: #fff; animation: fx-ping 1s ease-out 1; }
+.fx-num { transition: background-color .5s, color .5s, border-color .5s; }
+.fx-num.is-in { background: #10b981; border-color: #10b981; color: #fff; animation: fx-ping 1s ease-out 1; }
+@media (prefers-reduced-motion: reduce) { .fx-step { transform: none; } }
+
+/* Órbitas de puntos (Orbits) */
+@keyframes fx-orbit { to { transform: rotate(360deg); } }
+@keyframes fx-twinkle { 0%, 100% { opacity: .9; transform: scale(1); } 50% { opacity: .35; transform: scale(.6); } }
+@keyframes fx-orbits-in { from { opacity: 0; transform: scale(.7) rotate(-40deg); } to { opacity: 1; transform: none; } }
+.fx-orbits { animation: fx-orbits-in 1.6s cubic-bezier(.2,.7,.2,1) both; }
+.fx-orbit { animation: fx-orbit 80s linear infinite; }
+.fx-dot { animation: fx-twinkle 4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .fx-orbits { animation: ey-fade 1s ease both; }
+  .fx-orbit { animation-duration: 240s !important; }
+  .fx-dot { animation: none; }
+}
