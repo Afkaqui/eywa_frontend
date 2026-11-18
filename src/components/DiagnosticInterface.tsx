@@ -7,12 +7,14 @@ import { GENES_SCALE, GENES_MAX_POINTS, GENES_CATEGORIES, getGenesBand, getGenes
 import { generateDiagnosticReportPdf } from '@/lib/diagnostic-pdf';
 import { useAuth } from '@/contexts/AuthContext';
 import {
-  OrganizationRepository, setOrgActivaId, resolverOrgActiva,
+  OrganizationRepository, setOrgActivaId, resolverOrgActiva, getOrgActivaId,
   type OrgListado,
 } from '@/lib/repositories/organization-repository';
 import type { DiagnosticQuestion } from '@/lib/types/database';
 
 const logo = "/logo.png";
+// Foto de respaldo para el panel de contexto cuando la pregunta no trae imagen.
+const FOTO_CONTEXTO = 'https://images.unsplash.com/photo-1769794305664-cfb57957246f?auto=format&fit=crop&w=900&q=70';
 
 // Fallback questions for when DB is empty or unavailable
 const fallbackQuestions = [
@@ -116,6 +118,32 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
 
   useEffect(() => { fetchQuestions(); }, [fetchQuestions]);
 
+  // ── Borrador: las respuestas se guardan en ESTE navegador, por empresa, hasta
+  // terminar. Antes salir del diagnóstico (o recargar) borraba todo lo respondido.
+  const [restaurado, setRestaurado] = useState(false);
+  const claveBorrador = () => `eywa_diag_borrador_${getOrgActivaId() ?? 'sin-org'}`;
+  useEffect(() => {
+    if (loadingQuestions || restaurado || diagnosticQuestions.length === 0) return;
+    try {
+      const b = JSON.parse(localStorage.getItem(claveBorrador()) ?? 'null');
+      if (b && b.n === diagnosticQuestions.length && b.answers) {
+        setAnswers(b.answers);
+        setCurrentQuestion(Math.min(Number(b.current) || 0, diagnosticQuestions.length - 1));
+      }
+    } catch { /* sin localStorage: se sigue sin borrador */ }
+    setRestaurado(true);
+  }, [loadingQuestions, restaurado, diagnosticQuestions.length]);
+  useEffect(() => {
+    if (!restaurado || Object.keys(answers).length === 0) return;
+    try {
+      localStorage.setItem(claveBorrador(), JSON.stringify({
+        n: diagnosticQuestions.length, answers,
+        current: Math.min(currentQuestion, diagnosticQuestions.length - 1), at: Date.now(),
+      }));
+    } catch { /* cuota llena o modo privado */ }
+  }, [answers, currentQuestion, restaurado, diagnosticQuestions.length]);
+  const borrarBorrador = () => { try { localStorage.removeItem(claveBorrador()); } catch {} };
+
   const totalSteps = diagnosticQuestions.length;
 
   const progress = totalSteps > 0 ? ((currentQuestion + 1) / totalSteps) * 100 : 0;
@@ -187,6 +215,7 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
   };
 
   const handleProcessResults = () => {
+    borrarBorrador();
     setIsProcessing(true);
     setTimeout(() => {
       setIsProcessing(false);
@@ -215,6 +244,7 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
   };
 
   const handleRectify = () => {
+    borrarBorrador();
     setCurrentQuestion(0);
     setAnswers({});
     setShowResults(false);
@@ -447,17 +477,17 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
   // Completion Screen
   if (isCompleted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-50 flex items-center justify-center p-8">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 md:p-8">
         <div className="max-w-2xl w-full">
-          <div className="bg-white rounded-2xl shadow-2xl border border-emerald-100 p-12 text-center">
+          <div className="ey-fade bg-white rounded-2xl shadow-xl border border-gray-200 p-8 md:p-12 text-center">
             <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 className="w-10 h-10 text-emerald-600" />
             </div>
-            <h1 className="text-4xl font-light text-gray-900 mb-4">
-              Diagnóstico Completado
+            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-gray-900 mb-4">
+              Diagnóstico completado
             </h1>
             <p className="text-lg text-gray-600 mb-8">
-              Gracias por completar el cuestionario de diagnóstico de sostenibilidad. Sus respuestas serán procesadas para generar un informe detallado.
+              Respondiste todas las preguntas. Al ver los resultados se calcula tu puntaje GENES y puedes descargar el informe en PDF.
             </p>
             <div className="bg-emerald-50 rounded-xl p-6 mb-8">
               <div className="text-sm text-gray-600 mb-2">Preguntas Respondidas</div>
@@ -465,158 +495,191 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
                 {totalSteps} / {totalSteps}
               </div>
             </div>
-            <button
-              onClick={handleProcessResults}
-              className="px-8 py-3 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-all shadow-md"
-            >
-              Ver Resultados
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                onClick={() => setCurrentQuestion(totalSteps - 1)}
+                className="px-6 py-3 rounded-full border border-gray-300 bg-white text-sm font-medium text-gray-900 hover:bg-gray-50"
+              >
+                ← Revisar respuestas
+              </button>
+              <button
+                onClick={handleProcessResults}
+                className="px-8 py-3 rounded-full bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700"
+              >
+                Ver resultados
+              </button>
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
+  // Categorías en el orden en que aparecen las preguntas (chips de progreso).
+  const categorias = [...new Set(diagnosticQuestions.map(q => q.category ?? 'general'))];
+  const catActual = currentQ.category ?? 'general';
+  const respondidas = Object.keys(answers).length;
+  // Impacto real en la escala GENES (0-75): puntos × peso × 15. Sin peso (preguntas
+  // de respaldo) se muestra el puntaje tal cual.
+  const impacto = (puntos: number) => (currentQ.weight ?? 0) > 0
+    ? Math.round(puntos * (currentQ.weight ?? 0) * (GENES_SCALE / GENES_MAX_POINTS) * 10) / 10
+    : puntos;
+  const maxPuntos = Math.max(0, ...currentQ.options.map(o => o.score));
+  const fmtPts = (n: number) => n.toLocaleString('es-PE', { maximumFractionDigits: 1 });
+  const irACategoria = (cat: string) => {
+    const idxs = diagnosticQuestions.map((q, i) => ((q.category ?? 'general') === cat ? i : -1)).filter(i => i >= 0);
+    const destino = idxs.find(i => !answers[i]) ?? idxs[0];
+    if (destino !== undefined) setCurrentQuestion(destino);
+  };
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Progress Bar */}
-      <div className="fixed top-0 left-0 right-0 h-0.5 bg-gray-100 z-50">
-        <div 
-          className="h-full bg-gradient-to-r from-emerald-500 to-emerald-700 transition-all duration-500"
-          style={{ width: `${progress}%` }}
-        ></div>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10">
+        {/* Encabezado */}
+        <div className="mb-6">
+          <div className="text-xs font-semibold text-emerald-700 uppercase tracking-wider mb-1">Metodología GENES</div>
+          <h1 className="ey-blur-in text-3xl md:text-4xl font-semibold text-gray-900 tracking-tight">Diagnóstico de impacto</h1>
+        </div>
 
-      <div className="flex min-h-screen">
-        {/* Left Side: Form */}
-        <div className="flex-1 p-16 flex flex-col">
-          {/* A QUÉ EMPRESA se está evaluando. GENES evalúa criterios de empresa
-              (RUC, CEO mujer, insumos sostenibles), así que sin decir cuál el
-              resultado no significa nada — y con varias empresas era ambiguo. */}
-          <DiagnosticoOrgBar
-            onSinOrganizacion={setSinOrganizacion}
-            onChange={() => {
-              // Las respuestas son de la empresa anterior: se descartan. Antes esto
-              // recargaba la pagina, lo que ademas devolvia al Panel Principal y
-              // obligaba a volver a entrar a Diagnostico.
-              setAnswers({});
-              setCurrentQuestion(0);
-              setShowResults(false);
-            }}
-          />
+        {/* A QUÉ EMPRESA se está evaluando. GENES evalúa criterios de empresa
+            (RUC, CEO mujer, insumos sostenibles), así que sin decir cuál el
+            resultado no significa nada — y con varias empresas era ambiguo. */}
+        <DiagnosticoOrgBar
+          onSinOrganizacion={setSinOrganizacion}
+          onChange={() => {
+            // Las respuestas son de la empresa anterior: se descartan y se carga
+            // el borrador guardado de la nueva, si lo hay.
+            setAnswers({});
+            setCurrentQuestion(0);
+            setShowResults(false);
+            setRestaurado(false);
+          }}
+        />
 
-          {/* Sin empresa el cuestionario ni se ofrece: dejarlo visible permitia
-              completarlo entero y guardar un diagnostico sin dueno. */}
-          {sinOrganizacion ? null : (
-          <>
-          {/* Header */}
-          <div className="mb-12">
-            <div className="text-sm text-gray-500 mb-2 uppercase tracking-wider">
-              Pregunta {currentQuestion + 1} de {totalSteps}
+        {/* Sin empresa el cuestionario ni se ofrece: dejarlo visible permitia
+            completarlo entero y guardar un diagnostico sin dueno. */}
+        {sinOrganizacion ? null : (
+        <>
+        {/* Progreso por categorías */}
+        <section className="bg-white border border-gray-200 rounded-2xl p-5 mb-5">
+          <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
+            <span className="text-sm font-semibold text-gray-900">Pregunta {currentQuestion + 1} de {totalSteps}</span>
+            <span className="text-xs text-gray-500">
+              {respondidas} respondida{respondidas === 1 ? '' : 's'} · se guardan en este navegador hasta que termines
+            </span>
+          </div>
+          <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+            <div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600 transition-all duration-500" style={{ width: `${progress}%` }} />
+          </div>
+          {categorias.length > 1 && (
+            <div className="flex flex-wrap gap-2 mt-4">
+              {categorias.map(cat => {
+                const idxs = diagnosticQuestions.map((q, i) => ((q.category ?? 'general') === cat ? i : -1)).filter(i => i >= 0);
+                const completa = idxs.every(i => answers[i]);
+                const actual = cat === catActual;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => irACategoria(cat)}
+                    className={`px-3 py-1.5 rounded-full text-[13px] transition-colors ${
+                      actual ? 'bg-gray-900 text-white font-semibold'
+                      : completa ? 'bg-emerald-50 text-emerald-700 font-medium hover:bg-emerald-100'
+                      : 'border border-gray-200 text-gray-600 hover:border-emerald-400'
+                    }`}
+                  >
+                    {completa && !actual ? '✓ ' : ''}{GENES_CATEGORIES[cat] ?? cat}
+                  </button>
+                );
+              })}
             </div>
-            <h1 className="text-5xl font-light text-gray-900 mb-4 leading-tight">
-              {currentQ.title}
-            </h1>
-            <p className="text-lg text-gray-500 font-light">
-              {currentQ.description}
-            </p>
-          </div>
-
-          {/* Question Options - Elegant List */}
-          <div className="flex-1 space-y-3 max-w-2xl">
-            {currentQ.options.map((option, index) => {
-              const isSelected = selectedAnswer === option.value;
-              return (
-                <button
-                  key={index}
-                  onClick={() => handleSelectAnswer(option.value)}
-                  className={`w-full px-6 py-5 border rounded-lg transition-all text-left flex items-center justify-between group ${
-                    isSelected
-                      ? 'border-emerald-600 bg-emerald-50/50'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50/50'
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                      isSelected 
-                        ? 'border-emerald-600 bg-emerald-600' 
-                        : 'border-gray-300 group-hover:border-gray-400'
-                    }`}>
-                      {isSelected && <Check className="w-3 h-3 text-white" />}
-                    </div>
-                    <span className={`font-medium ${
-                      isSelected ? 'text-gray-900' : 'text-gray-700'
-                    }`}>
-                      {option.label}
-                    </span>
-                  </div>
-                  {isSelected && (
-                    <div className="text-xs text-emerald-600 font-medium uppercase tracking-wider">
-                      Seleccionado
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Navigation */}
-          <div className="flex items-center justify-between mt-12 pt-8 border-t border-gray-200">
-            <button 
-              onClick={handlePrevious}
-              disabled={currentQuestion === 0}
-              className={`px-6 py-3 font-medium text-sm transition-colors ${
-                currentQuestion === 0
-                  ? 'text-gray-300 cursor-not-allowed'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Pregunta Anterior
-            </button>
-            <button
-              onClick={handleNext}
-              disabled={!selectedAnswer}
-              className={`px-8 py-3 rounded-lg font-medium text-sm transition-all ${
-                selectedAnswer
-                  ? 'bg-gray-900 text-white hover:bg-gray-800 shadow-md'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              }`}
-            >
-              {currentQuestion === totalSteps - 1 ? 'Finalizar Diagnóstico' : 'Continuar a Siguiente Pregunta'}
-            </button>
-          </div>
-          </>
           )}
-        </div>
+        </section>
 
-        {/* Right Side: Context Image */}
-        <div className="w-[40%] relative overflow-hidden">
-          <div 
-            className="absolute inset-0 bg-cover bg-center transition-all duration-500"
-            style={{
-              backgroundImage: `url('${currentQ.context.image}')`,
-            }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-l from-transparent via-emerald-900/20 to-emerald-900/40"></div>
-          </div>
+        <section className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-5 items-start">
+          {/* Pregunta */}
+          <div key={currentQuestion} className="ey-fade bg-white border border-gray-200 rounded-2xl p-6 md:p-8">
+            <span className="inline-block text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 mb-4">
+              • {GENES_CATEGORIES[catActual] ?? catActual}
+            </span>
+            <h2 className="text-2xl md:text-[26px] font-semibold text-gray-900 tracking-tight mb-2">{currentQ.title}</h2>
+            {currentQ.description && <p className="text-[15px] text-gray-600 mb-6">{currentQ.description}</p>}
 
-          {/* Overlay Info Card */}
-          <div className="absolute bottom-8 left-8 right-8">
-            <div className="bg-white/90 backdrop-blur-xl border border-white/50 rounded-xl p-6 shadow-2xl">
-              <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">Contexto</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{currentQ.context.title}</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">
-                {currentQ.context.description}
-              </p>
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">Impacto en Score</span>
-                  <span className="font-semibold text-emerald-600">{currentQ.context.impact}</span>
-                </div>
-              </div>
+            <fieldset className="space-y-2.5">
+              <legend className="sr-only">Opciones</legend>
+              {currentQ.options.map((option, index) => {
+                const isSelected = selectedAnswer === option.value;
+                return (
+                  <label
+                    key={index}
+                    className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-colors ${
+                      isSelected ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200 hover:border-emerald-400'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name={`q-${currentQuestion}`}
+                      checked={isSelected}
+                      onChange={() => handleSelectAnswer(option.value)}
+                      className="accent-emerald-600 w-4 h-4 flex-shrink-0"
+                    />
+                    <span className={`flex-1 text-[15px] ${isSelected ? 'font-medium text-gray-900' : 'text-gray-700'}`}>{option.label}</span>
+                    <span className={`text-xs flex-shrink-0 ${isSelected ? 'text-emerald-700 font-semibold' : 'text-gray-400'}`}>
+                      {option.score > 0 ? `+${fmtPts(impacto(option.score))}` : '0'}
+                    </span>
+                  </label>
+                );
+              })}
+            </fieldset>
+
+            <div className="flex items-center justify-between gap-3 flex-wrap mt-8">
+              <button
+                onClick={handlePrevious}
+                disabled={currentQuestion === 0}
+                className="px-5 py-2.5 rounded-full border border-gray-300 bg-white text-sm font-medium text-gray-900 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                ← Anterior
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={!selectedAnswer}
+                className="px-5 py-2.5 rounded-full bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+              >
+                {currentQuestion === totalSteps - 1 ? 'Finalizar diagnóstico' : 'Siguiente pregunta →'}
+              </button>
             </div>
           </div>
-        </div>
+
+          {/* Contexto */}
+          <aside key={`ctx-${currentQuestion}`} className="ey-fade space-y-4">
+            <div className="relative h-44 rounded-2xl overflow-hidden bg-emerald-950">
+              <div
+                className="absolute inset-0 bg-cover bg-center opacity-70"
+                style={{ backgroundImage: `url('${currentQ.context.image || FOTO_CONTEXTO}')` }}
+              />
+              {maxPuntos > 0 && (
+                <span className="absolute left-3.5 bottom-3.5 px-2.5 py-1 rounded-full bg-white text-xs font-semibold text-emerald-700">
+                  hasta +{fmtPts(impacto(maxPuntos))} puntos
+                </span>
+              )}
+            </div>
+            {currentQ.context.description && (
+              <div className="bg-white border border-gray-200 rounded-2xl p-5">
+                <h3 className="text-[15px] font-semibold text-gray-900 mb-1.5">¿Por qué importa?</h3>
+                <p className="text-sm leading-relaxed text-gray-600">{currentQ.context.description}</p>
+              </div>
+            )}
+            {(currentQ.weight ?? 0) > 0 && (
+              <div className="bg-white border border-gray-200 rounded-2xl p-5">
+                <h3 className="text-[15px] font-semibold text-gray-900 mb-1.5">Peso en tu puntaje</h3>
+                <p className="text-sm leading-relaxed text-gray-600">
+                  Este criterio vale el <b className="text-gray-900">{Math.round((currentQ.weight ?? 0) * 100)}%</b> del puntaje GENES (0 a 75).
+                </p>
+              </div>
+            )}
+          </aside>
+        </section>
+        </>
+        )}
       </div>
     </div>
   );
