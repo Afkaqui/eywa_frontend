@@ -97,5 +97,5 @@ export default auth((req) => {
 
 export const config = {
   // Imágenes públicas (logos de respaldos en SVG, fotos) se sirven sin pasar por el middleware.
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|opengraph-image|.*\\.(?:png|svg|jpg|jpeg|webp)$).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|opengraph-image|manifest.webmanifest|robots.txt|sitemap.xml|.*\\.(?:png|svg|jpg|jpeg|webp|ico)$).*)'],
 };

@@ -125,7 +125,7 @@ export default function Page() {
         onLogout={signOut}
       />
 
-      <div className="flex-1 min-w-0 ml-0 md:ml-[var(--ey-sidebar,5rem)] pb-20 md:pb-0 transition-all duration-300">
+      <div key={currentView} className="ey-app ey-view flex-1 min-w-0 ml-0 md:ml-[var(--ey-sidebar,5rem)] pb-20 md:pb-0 transition-all duration-300">
         {currentView === 'hero' && <HeroDashboard diagnosticResult={diagnosticResult} onStartDiagnostic={() => setCurrentView('diagnostic')} />}
         {currentView === 'diagnostic' && (
           diagnosticResult && showDiagnosticSummary ? (

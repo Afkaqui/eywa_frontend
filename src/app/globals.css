@@ -277,3 +277,34 @@ html {
   .fx-orbit { animation-duration: 240s !important; }
   .fx-dot { animation: none; }
 }
+
+/* ── Identidad v2 en la intranet (contenedor .ey-app de page.tsx) ──────────────
+   Armoniza todas las vistas internas sin tocar su estructura: entrada al cambiar
+   de sección, tarjetas que aparecen en cascada, botones en píldora y campos
+   redondeados. Solo afecta al contenido, no a la barra lateral. */
+@keyframes ey-view-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.ey-view { animation: ey-view-in .45s cubic-bezier(.2,.7,.2,1) both; }
+.ey-app :is([class~="grid"], [class~="space-y-4"], [class~="space-y-6"]) > * { animation: ey-view-in .5s cubic-bezier(.2,.7,.2,1) both; }
+.ey-app :is([class~="grid"], [class~="space-y-4"], [class~="space-y-6"]) > *:nth-child(2) { animation-delay: .05s; }
+.ey-app :is([class~="grid"], [class~="space-y-4"], [class~="space-y-6"]) > *:nth-child(3) { animation-delay: .1s; }
+.ey-app :is([class~="grid"], [class~="space-y-4"], [class~="space-y-6"]) > *:nth-child(4) { animation-delay: .15s; }
+.ey-app :is([class~="grid"], [class~="space-y-4"], [class~="space-y-6"]) > *:nth-child(5) { animation-delay: .2s; }
+.ey-app :is([class~="grid"], [class~="space-y-4"], [class~="space-y-6"]) > *:nth-child(n+6) { animation-delay: .25s; }
+
+/* Botones de acción en píldora (verde EYWA o el oscuro de los CTA) */
+.ey-app :is(button, a):is([class~="bg-emerald-600"], [class~="bg-emerald-500"], [class~="bg-gray-900"]) {
+  border-radius: 9999px; transition: transform .2s ease, background-color .2s ease, box-shadow .2s ease;
+}
+.ey-app :is(button, a):is([class~="bg-emerald-600"], [class~="bg-emerald-500"], [class~="bg-gray-900"]):not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(5,150,105,.18); }
+
+/* Tarjetas: sombra suave al pasar el cursor */
+.ey-app [class~="bg-white"][class~="border"]:is([class~="rounded-xl"], [class~="rounded-2xl"]) { transition: box-shadow .3s ease, border-color .3s ease; }
+.ey-app [class~="bg-white"][class~="border"]:is([class~="rounded-xl"], [class~="rounded-2xl"]):hover { box-shadow: 0 12px 30px rgba(17,24,39,.06); }
+
+/* Campos de formulario más redondeados */
+.ey-app :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea)[class~="rounded-lg"] { border-radius: .75rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ey-view, .ey-app :is([class~="grid"], [class~="space-y-4"], [class~="space-y-6"]) > * { animation: ey-fade .3s ease both; }
+  .ey-app :is(button, a):hover { transform: none !important; }
+}
