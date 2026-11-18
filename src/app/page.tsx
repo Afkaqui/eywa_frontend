@@ -126,7 +126,7 @@ export default function Page() {
       />
 
       <div key={currentView} className="ey-app ey-view flex-1 min-w-0 ml-0 md:ml-[var(--ey-sidebar,5rem)] pb-20 md:pb-0 transition-all duration-300">
-        {currentView === 'hero' && <HeroDashboard diagnosticResult={diagnosticResult} onStartDiagnostic={() => setCurrentView('diagnostic')} />}
+        {currentView === 'hero' && <HeroDashboard diagnosticResult={diagnosticResult} onStartDiagnostic={() => setCurrentView('diagnostic')} onOpenDataroom={() => { setOrgTab('dataroom'); setCurrentView('organization'); }} />}
         {currentView === 'diagnostic' && (
           diagnosticResult && showDiagnosticSummary ? (
             <DiagnosticCompleted

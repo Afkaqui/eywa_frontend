@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import type { UserRole } from '@/lib/types/database';
 import { ROLE_LABELS, ROLE_COLORS } from '@/lib/constants/roles';
+import { BRAND } from '@/lib/brand';
 
 const logo = "/logo.png";
 
@@ -151,11 +152,11 @@ export function NavigationSidebar({ currentView, userRole, userName, userEmail, 
         {/* Header */}
         <div className={`border-b border-gray-200 ${isExpanded ? 'p-6' : 'px-2 py-5'}`}>
           <div className={`flex items-center gap-3 ${isExpanded ? '' : 'justify-center'}`}>
-            <img src={logo} alt="EYWA Logo" className="w-10 h-10 object-contain flex-shrink-0" />
+            <img src={logo} alt={`${BRAND.name} logo`} className="w-10 h-10 object-contain flex-shrink-0" />
             {isExpanded && (
               <div className="overflow-hidden">
-                <div className="text-gray-900 font-bold text-xl tracking-tight">EYWA</div>
-                <div className="text-emerald-600 text-xs tracking-wider">PLATFORM</div>
+                <div className="text-gray-900 font-bold text-xl tracking-tight">{BRAND.name}</div>
+                <div className="text-emerald-600 text-[11px] leading-tight">{BRAND.tagline}</div>
               </div>
             )}
           </div>

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { getOrgActivaId } from '@/lib/repositories/organization-repository';
 import { TrendingUp, TrendingDown, Activity, Landmark, Award, ArrowRight, User, Mail, Briefcase, Crown, Sparkles, Stethoscope, FolderLock, AlertCircle } from 'lucide-react';
 import { ProfessionalTrustGauge } from './ProfessionalTrustGauge';
+import { TrustScorePanel } from './TrustScorePanel';
 import { useAuth } from '@/contexts/AuthContext';
 import { calculatePercentage, getGenesBand, getGenesBandClasses } from '@/lib/constants/scoring';
 import { StatsRepository, type UserStats } from '@/lib/repositories/stats-repository';
@@ -14,9 +15,10 @@ const logo = "/logo.png";
 interface HeroDashboardProps {
   diagnosticResult?: DiagnosticResult | null;
   onStartDiagnostic?: () => void;
+  onOpenDataroom?: () => void;
 }
 
-export function HeroDashboard({ diagnosticResult, onStartDiagnostic }: HeroDashboardProps) {
+export function HeroDashboard({ diagnosticResult, onStartDiagnostic, onOpenDataroom }: HeroDashboardProps) {
   const { profile } = useAuth();
   const accountPlan = profile?.plan || 'free';
   const userEmail = profile?.email || '';
@@ -70,72 +72,11 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic }: HeroDashb
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 md:-mt-32 relative z-20 pb-8 md:pb-16">
         {/* Trust Score - Central Element */}
         <div className="mb-6 md:mb-8">
-          <div className="bg-white/70 backdrop-blur-xl border border-gray-200/50 rounded-2xl shadow-2xl p-6 md:p-8 lg:p-12">
             {hasScore ? (
-              <div className="flex flex-col lg:flex-row items-center lg:items-center justify-between gap-8">
-                {/* Gauge */}
-                <div className="flex-1 flex justify-center w-full">
-                  <ProfessionalTrustGauge score={score} />
-                </div>
-
-                {/* Score Details */}
-                <div className="flex-1 space-y-4 md:space-y-6 w-full lg:pl-12 lg:border-l border-gray-200">
-                  <div>
-                    <div className="text-xs md:text-sm font-medium text-gray-500 uppercase tracking-wider mb-2">Calificación Trust Score</div>
-                    <div className="flex items-baseline gap-3">
-                      <span className="text-4xl md:text-5xl lg:text-6xl font-light text-gray-900">{score}</span>
-                      <span className="text-xl md:text-2xl text-gray-400 font-light">/100</span>
-                    </div>
-                    <div className="mt-2 text-sm text-gray-500">
-                      {diagnosticResult.score} de {diagnosticResult.maxScore} puntos GENES
-                    </div>
-                    <div className="mt-3 flex items-center gap-2 flex-wrap">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs md:text-sm font-semibold ${genesBadge}`}>
-                        <Award className="w-4 h-4" />
-                        Categoría {genesLevel}
-                      </span>
-                      <span className="text-xs text-gray-400">autoevaluación</span>
-                    </div>
-                  </div>
-
-                  <div className="pt-4 md:pt-6 border-t border-gray-200">
-                    <div className="text-xs text-gray-500 uppercase tracking-wider mb-3">Desglose por Categoría</div>
-                    <div className="space-y-3">
-                      {diagnosticResult.breakdown.map((item, i) => {
-                        const pct = item.maxScore > 0 ? Math.round((item.score / item.maxScore) * 100) : 0;
-                        return (
-                          <div key={i} className="flex items-center gap-3">
-                            <span className="text-xs md:text-sm text-gray-600 w-20 md:w-36 truncate" title={item.label}>{item.label}</span>
-                            <div className="flex-1 h-1 bg-gray-100 rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 transition-all duration-700"
-                                style={{ width: `${pct}%` }}
-                              ></div>
-                            </div>
-                            <span className="text-xs md:text-sm font-semibold text-gray-900 w-10 text-right">{pct}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3 mt-4 md:mt-6">
-                    <button
-                      onClick={onStartDiagnostic}
-                      className="flex-1 px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-all font-medium text-sm flex items-center justify-center gap-2"
-                    >
-                      <Stethoscope className="w-4 h-4" />
-                      Repetir Diagnóstico
-                    </button>
-                  </div>
-
-                  <div className="text-xs text-gray-400 text-center">
-                    Completado el {new Date(diagnosticResult.completedAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                  </div>
-                </div>
-              </div>
+              <TrustScorePanel result={diagnosticResult} onRepeat={onStartDiagnostic} onOpenDataroom={onOpenDataroom} />
             ) : (
-              /* No diagnostic yet - CTA */
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-xl p-6 md:p-8 lg:p-12">
+              {/* Sin diagnóstico aún: CTA */}
               <div className="flex flex-col items-center text-center py-8">
                 <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-6">
                   <ProfessionalTrustGauge score={0} />
@@ -153,8 +94,8 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic }: HeroDashb
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
-            )}
           </div>
+            )}
         </div>
 
         {/* Data Cards Grid */}
