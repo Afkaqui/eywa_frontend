@@ -31,6 +31,8 @@ interface NavigationSidebarProps {
   userName: string;
   userEmail: string;
   userId?: string;
+  /** Plan de la cuenta: se muestra junto al nombre, como "Nombre · Premium". */
+  userPlan?: string;
   onNavigate: (view: string) => void;
   onLogout: () => void;
 }
@@ -69,8 +71,15 @@ function UserAvatar({ userId, size = 40 }: { userId?: string; size?: number }) {
   );
 }
 
-export function NavigationSidebar({ currentView, userRole, userName, userEmail, userId, onNavigate, onLogout }: NavigationSidebarProps) {
+const PLAN_LABELS: Record<string, string> = { premium: 'Premium', pro: 'Pro', free: 'Gratuito' };
+
+export function NavigationSidebar({ currentView, userRole, userName, userEmail, userId, userPlan, onNavigate, onLogout }: NavigationSidebarProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  // El contenido se desplaza según el ancho real de la barra (antes quedaba tapado
+  // con la barra expandida, que mide 18rem y el contenido solo dejaba 5rem).
+  useEffect(() => {
+    document.documentElement.style.setProperty('--ey-sidebar', isExpanded ? '18rem' : '5rem');
+  }, [isExpanded]);
 
   // Conteo REAL de notificaciones (antes había un "3" hardcodeado).
   // Se refresca al cambiar de vista: completar una acción hace desaparecer su aviso.
@@ -234,7 +243,14 @@ export function NavigationSidebar({ currentView, userRole, userName, userEmail, 
               <div className="flex items-center gap-3">
                 <UserAvatar userId={userId} size={40} />
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold text-gray-900 truncate">{userName}</div>
+                  <div className="flex items-baseline gap-1 min-w-0 text-sm">
+                    <span className="font-semibold text-gray-900 truncate">{userName}</span>
+                    {userPlan && (
+                      <span className={`shrink-0 text-xs ${userPlan === 'premium' ? 'text-amber-600 font-medium' : 'text-gray-500'}`}>
+                        · {PLAN_LABELS[userPlan] ?? userPlan}
+                      </span>
+                    )}
+                  </div>
                   <div className="text-xs text-gray-500 truncate">{userEmail}</div>
                   <span className={`inline-block mt-1 px-2 py-0.5 rounded text-xs font-medium ${ROLE_COLORS[userRole]}`}>
                     {ROLE_LABELS[userRole]}

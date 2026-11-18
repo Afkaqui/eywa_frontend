@@ -120,11 +120,12 @@ export default function Page() {
         userName={profile?.fullName || 'Usuario'}
         userEmail={profile?.email || ''}
         userId={profile?.id ?? user?.id}
+        userPlan={profile?.plan || 'free'}
         onNavigate={(view) => setCurrentView(view as ViewType)}
         onLogout={signOut}
       />
 
-      <div className="flex-1 ml-0 md:ml-20 pb-20 md:pb-0 transition-all duration-300">
+      <div className="flex-1 min-w-0 ml-0 md:ml-[var(--ey-sidebar,5rem)] pb-20 md:pb-0 transition-all duration-300">
         {currentView === 'hero' && <HeroDashboard diagnosticResult={diagnosticResult} onStartDiagnostic={() => setCurrentView('diagnostic')} />}
         {currentView === 'diagnostic' && (
           diagnosticResult && showDiagnosticSummary ? (

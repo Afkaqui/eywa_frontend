@@ -49,7 +49,7 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic }: HeroDashb
             backgroundImage: `url('https://images.unsplash.com/photo-1769794305664-cfb57957246f?auto=format&fit=crop&w=1600&q=75')`,
           }}
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 via-gray-900/60 to-white"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/85 via-emerald-950/70 to-white"></div>
           {/* Subtle noise texture overlay */}
           <div className="absolute inset-0 opacity-20" style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
@@ -58,53 +58,10 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic }: HeroDashb
 
         {/* Header Content */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 md:pt-12">
-          {/* User Info Card - Top Right */}
-          <div className="flex justify-end mb-4 md:mb-6">
-            <div className={`backdrop-blur-xl rounded-xl border-2 p-3 md:p-4 shadow-2xl ${
-              accountPlan === 'premium'
-                ? 'bg-gradient-to-br from-amber-500/20 to-yellow-500/20 border-amber-400/50'
-                : 'bg-white/10 border-white/20'
-            }`}>
-              <div className="flex items-center gap-3 md:gap-4">
-                <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center ${
-                  accountPlan === 'premium'
-                    ? 'bg-gradient-to-br from-amber-400 to-yellow-500'
-                    : 'bg-gradient-to-br from-emerald-500 to-emerald-700'
-                }`}>
-                  {accountPlan === 'premium' ? (
-                    <Crown className="w-5 h-5 md:w-6 md:h-6 text-white" />
-                  ) : (
-                    <User className="w-5 h-5 md:w-6 md:h-6 text-white" />
-                  )}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-xs md:text-sm font-semibold text-white">{profile?.fullName || 'Usuario'}</span>
-                    {accountPlan === 'premium' && (
-                      <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-amber-300" />
-                    )}
-                  </div>
-                  <div className="text-xs text-white/70 flex items-center gap-1.5 mb-1">
-                    <Mail className="w-3 h-3" />
-                    <span className="hidden sm:inline">{userEmail}</span>
-                    <span className="sm:hidden">Admin</span>
-                  </div>
-                  <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold ${
-                    accountPlan === 'premium'
-                      ? 'bg-amber-400 text-amber-900'
-                      : 'bg-gray-500/30 text-white border border-white/20'
-                  }`}>
-                    {accountPlan === 'premium' ? '✦ Premium' : 'Plan Gratuito'}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Page Title */}
-          <div className="pt-4 md:pt-8">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-light text-white mb-2 md:mb-3 tracking-tight">Centro de Control</h1>
-            <p className="text-emerald-200 text-sm md:text-base lg:text-lg font-light">Orquestación de sostenibilidad y monitoreo en tiempo real</p>
+          <div className="pt-10 md:pt-16">
+            <h1 className="ey-blur-in text-3xl md:text-4xl lg:text-5xl font-semibold text-white mb-2 md:mb-3 tracking-tight" style={{ textShadow: '0 2px 18px rgba(0,0,0,.45)' }}>Centro de Control</h1>
+            <p className="text-emerald-100 text-sm md:text-base lg:text-lg font-medium" style={{ textShadow: '0 1px 12px rgba(0,0,0,.5)' }}>Orquestación de sostenibilidad y monitoreo en tiempo real</p>
           </div>
         </div>
       </div>
