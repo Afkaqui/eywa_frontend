@@ -48,7 +48,7 @@ export function SolicitudesBaja() {
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(d?.error ?? 'No se pudo completar');
-      setAviso(`${tipo === 'eliminar' ? 'Cuenta eliminada' : 'Solicitud rechazada'}.${d.correo_enviado ? ' Se envió el correo.' : ' Ojo: el correo no se pudo enviar.'}`);
+      setAviso(`${tipo === 'eliminar' ? 'Cuenta eliminada' : 'Solicitud rechazada'}.${!s.cuenta ? ' No había cuenta con ese correo, así que no se envió ningún correo.' : d.correo_enviado ? ' Se envió el correo.' : ' Ojo: el correo no se pudo enviar.'}`);
       setRechazando(null); setNota('');
       await cargar();
     } catch (e) { setError(e instanceof Error ? e.message : 'No se pudo completar'); }
