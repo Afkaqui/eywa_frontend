@@ -84,18 +84,22 @@ export default function Page() {
   );
 
   // Load latest diagnostic result (non-blocking)
+  // Depende del ID, no del objeto `user`: la sesión se refresca varias veces al
+  // entrar y cada refresco trae un objeto nuevo. Con `[user]` se pedía el
+  // diagnóstico 4 veces seguidas y el puntaje tardaba ~5 s en aparecer.
+  const userId = user?.id;
   useEffect(() => {
-    if (!user) return;
+    if (!userId) { setDiagCargando(false); return; }
     let cancelled = false;
 
     setDiagCargando(true);
-    diagnosticService.getLatestResult(user.id, getOrgActivaId())
+    diagnosticService.getLatestResult(userId, getOrgActivaId())
       .then(result => { if (!cancelled) setDiagnosticResult(result); })
       .catch(() => { /* table may not exist */ })
       .finally(() => { if (!cancelled) setDiagCargando(false); });
 
     return () => { cancelled = true; };
-  }, [user, diagnosticService]);
+  }, [userId, diagnosticService]);
 
   // Save diagnostic result via service
   const handleDiagnosticComplete = useCallback(async (result: DiagnosticResult) => {
