@@ -5,10 +5,10 @@ import { BRAND } from '@/lib/brand';
 // cuenta (único consentimiento; cubre también la evaluación con MAVI).
 // Fuente: borrador "EYWA · Términos y Política de privacidad" (claude.ai doc),
 // pendiente de revisión legal. Si el texto cambia, cambiar TERMINOS_VERSION.
-const TERMINOS_VERSION = '2026-11-19 (preliminar)';
+const TERMINOS_VERSION = '2026-11-19';
 
 export const metadata: Metadata = {
-  title: `Términos y política de privacidad · ${BRAND.name}`,
+  title: 'Términos y política de privacidad',
   description: `Términos y condiciones de uso y política de privacidad de ${BRAND.name} y ${BRAND.agro}.`,
 };
 
