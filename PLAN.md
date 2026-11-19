@@ -112,10 +112,10 @@ la **vertical agro**, un proyecto ProInnóvate aparte.
 | # | Tarea | Estado |
 |---|---|---|
 | D1 | Re-verificación nocturna del catálogo | ✅ En producción (cron 23:00, cola de revisión) |
-| D2 | Descubrimiento: **Prociencia** (API de WordPress, verificada) | Pendiente |
+| D2 | Descubrimiento: **Prociencia** (API de WordPress, verificada) | ✅ En producción (2026-11-18): job `descubrir-fondos`, cron 23:30. Primera corrida: 4 convocatorias |
 | D3 | Descubrimiento: **ProInnóvate** en `gob.pe` | Pendiente: falta resolver cómo leer la página |
 | D4 | Descubrimiento: **UE Funding & Tenders** (API pública), filtrada por temas EYWA y elegibilidad LatAm | Pendiente |
-| D5 | Fondos nuevos como **candidatos ocultos** hasta que un gestor los apruebe | Pendiente |
+| D5 | Fondos nuevos como **candidatos ocultos** hasta que un gestor los apruebe | ✅ En producción: "Aprobar y publicar" / "Descartar" en la cola de revisión |
 | D6 | Historial de corridas visible y aviso "cierran pronto" con datos vivos | Parcial (la corrida ya se registra) |
 
 Regla: lo automático propone, un gestor decide. Medido: las reglas de fechas no son lo bastante
