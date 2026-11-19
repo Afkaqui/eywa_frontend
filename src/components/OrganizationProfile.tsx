@@ -281,19 +281,37 @@ export function OrganizationProfile({ onNavigate, initialTab = 'perfil' }: {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-4xl mx-auto">
 
-        {/* Header */}
-        <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-emerald-600" />
+        {/* Portada de la organización (identidad v2, maqueta "Mi organización") */}
+        <div className="mb-6 bg-white border border-gray-200 rounded-2xl overflow-hidden">
+          <div className="relative h-28 md:h-36 bg-emerald-950">
+            <div
+              className="absolute inset-0 bg-cover bg-center opacity-60"
+              style={{ backgroundImage: "url('https://images.unsplash.com/photo-1769794305664-cfb57957246f?auto=format&fit=crop&w=1400&q=70')" }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/70 to-transparent" />
+            <div className="absolute left-5 bottom-3 text-xs font-semibold text-emerald-100 uppercase tracking-wider">Mi organización</div>
+          </div>
+          <div className="px-5 pb-5 -mt-8 relative flex items-end gap-4 flex-wrap">
+            <div className="w-16 h-16 rounded-2xl bg-white border border-gray-200 shadow-sm flex items-center justify-center overflow-hidden flex-shrink-0">
+              {logoUrl
+                // eslint-disable-next-line @next/next/no-img-element
+                ? <img src={logoUrl} alt="" className="w-full h-full object-contain" />
+                : <span className="text-2xl font-semibold text-emerald-700">{(form.tradeName || form.name || 'O').trim().charAt(0).toUpperCase()}</span>}
             </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-light text-gray-900">Mi Organización</h1>
-              <p className="text-sm text-gray-500">Gestiona el perfil y sostenibilidad de tu organización</p>
+            <div className="min-w-0 flex-1 pt-9">
+              <h1 className="text-xl md:text-2xl font-semibold text-gray-900 tracking-tight truncate">
+                {form.tradeName?.trim() || form.name?.trim() || 'Nueva organización'}
+              </h1>
+              <p className="text-sm text-gray-500 truncate">
+                {[form.sector, form.country, form.ruc ? `RUC ${form.ruc}` : ''].filter(Boolean).join(' · ') || 'Completa el perfil para encajar con fondos'}
+              </p>
             </div>
           </div>
+        </div>
+
+        <div className="mb-6 flex items-start justify-between gap-4 flex-wrap empty:hidden">
 
           {/* Selector de organización activa. Solo aparece si hay más de una o si
               puede agregar otra: con una sola empresa la vista queda igual que antes. */}
@@ -321,10 +339,10 @@ export function OrganizationProfile({ onNavigate, initialTab = 'perfil' }: {
         </div>
 
         {/* Tab switcher */}
-        <div className="flex gap-1 mb-8 bg-gray-100 p-1 rounded-xl w-fit">
+        <div className="flex gap-1 mb-8 bg-gray-100 p-1 rounded-full w-fit max-w-full overflow-x-auto">
           <button
             onClick={() => setActiveTab('perfil')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
               activeTab === 'perfil'
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-500 hover:text-gray-700'
@@ -335,7 +353,7 @@ export function OrganizationProfile({ onNavigate, initialTab = 'perfil' }: {
           </button>
           <button
             onClick={() => setActiveTab('esg')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
               activeTab === 'esg'
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-500 hover:text-gray-700'
@@ -346,7 +364,7 @@ export function OrganizationProfile({ onNavigate, initialTab = 'perfil' }: {
           </button>
           <button
             onClick={() => setActiveTab('dataroom')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
               activeTab === 'dataroom'
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-500 hover:text-gray-700'

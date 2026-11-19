@@ -84,7 +84,7 @@ export function Dataroom({ orgId }: { orgId?: string } = {}) {
     <div className="space-y-6">
       {/* Vista delegada (gestor/superadmin): solo ver y descargar */}
       {readOnly && (
-        <div className="flex items-center gap-2.5 text-sm text-blue-800 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+        <div className="flex items-center gap-2.5 text-sm text-emerald-900 bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3">
           <Eye className="w-4 h-4 flex-shrink-0" />
           <p>
             Vista de <strong>solo lectura</strong> del dataroom de{' '}
@@ -95,7 +95,7 @@ export function Dataroom({ orgId }: { orgId?: string } = {}) {
       )}
 
       {/* Resumen de completitud */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6">
+      <div className="bg-white border border-gray-200 rounded-2xl p-6">
         <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
           <div className="flex items-center gap-4 flex-1">
             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${
@@ -143,6 +143,33 @@ export function Dataroom({ orgId }: { orgId?: string } = {}) {
       {/* Invitaciones a terceros. Solo el DUEÑO: un gestor con acceso delegado
           tiene permiso de lectura, no de repartir accesos a documentos ajenos. */}
       {!readOnly && <DataroomInvitations orgId={orgId} />}
+
+      {/* Vista rápida de carpetas (maqueta "Dataroom"): avance de cada una y acceso directo */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {data.folders.map(folder => {
+          const lista = folder.total_items > 0 && folder.completed_items === folder.total_items;
+          return (
+            <button
+              key={folder.id}
+              onClick={() => {
+                setOpenFolder(folder.id);
+                requestAnimationFrame(() => document.getElementById(`carpeta-${folder.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+              }}
+              className={`ey-lift text-left rounded-2xl border p-4 transition-colors ${
+                openFolder === folder.id ? 'border-emerald-500 bg-emerald-50/60' : 'border-gray-200 bg-white hover:border-emerald-300'
+              }`}
+            >
+              <div className="text-sm font-semibold text-gray-900 truncate" title={folder.name}>{folder.name}</div>
+              <div className="mt-1 text-xs text-gray-500">
+                <span className={lista ? 'text-emerald-700 font-semibold' : 'text-gray-700 font-medium'}>{folder.completed_items}</span> de {folder.total_items} listos
+              </div>
+              <div className="mt-2.5 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div className={`h-full rounded-full ${lista ? 'bg-emerald-600' : 'bg-amber-500'}`} style={{ width: `${folder.percentage}%` }} />
+              </div>
+            </button>
+          );
+        })}
+      </div>
 
       {/* Carpetas */}
       <div className="space-y-3">
@@ -358,7 +385,7 @@ function FolderCard({ folder, open, onToggle, onChanged, readOnly = false, orgId
   const done = folder.completed_items === folder.total_items && folder.total_items > 0;
 
   return (
-    <div className={`bg-white border rounded-xl overflow-hidden transition-colors ${done ? 'border-emerald-200' : 'border-gray-200'}`}>
+    <div id={`carpeta-${folder.id}`} className={`scroll-mt-6 bg-white border rounded-2xl overflow-hidden transition-colors ${done ? 'border-emerald-200' : 'border-gray-200'}`}>
       <button onClick={onToggle} className="w-full flex items-center gap-4 p-5 text-left hover:bg-gray-50 transition-colors">
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${done ? 'bg-emerald-100' : 'bg-gray-100'}`}>
           {open
