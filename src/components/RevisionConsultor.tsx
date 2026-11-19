@@ -13,6 +13,7 @@ interface PlanRevision {
   status: string; etapa: string | null; budget: number | null; duration: string | null;
   problema: Problema | null; mpp: { insumo?: string; subproductos?: { nombre: string }[] } | null;
   documentos: number; analizado: boolean; createdAt: string;
+  madurez?: { trl: number | null; crl: number | null; fecha: string | null } | null;
   autor: { nombre: string | null; email: string; empresa: string | null };
   consultor: { notas: string | null; at: string | null; por: string | null };
 }
@@ -142,6 +143,12 @@ export function RevisionConsultor() {
                           ))}
                         </dl>
                       ) : <p className="text-gray-400">La empresa aún no la completó.</p>}
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Madurez (calculadora CONCYTEC)</div>
+                      {p.madurez ? (
+                        <p className="text-gray-600">{p.madurez.trl != null ? `TRL ${p.madurez.trl}` : 'TRL —'} · {p.madurez.crl != null ? `CRL ${p.madurez.crl}` : 'CRL —'}</p>
+                      ) : <p className="text-gray-400">Sin calcular.</p>}
                     </div>
                     <div>
                       <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Máximo Producto Posible</div>

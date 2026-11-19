@@ -11,6 +11,7 @@ import {
 } from '@/lib/repositories/validator-repository';
 import { MaviPanel } from '@/components/MaviPanel';
 import { EstructuraProyecto } from '@/components/EstructuraProyecto';
+import { MadurezConcytec } from '@/components/MadurezConcytec';
 import { 
   Plus,
   Search, 
@@ -450,6 +451,14 @@ export function ValidadorProyectos() {
               {/* Problema y Máximo Producto Posible (PLAN C1, C2): alimentan el análisis. */}
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <EstructuraProyecto
+                  plan={project}
+                  onActualizar={(p) => setProjects(prev => prev.map(x => (x.id === p.id ? p : x)))}
+                />
+              </div>
+
+              {/* TRL/CRL con la metodología del CONCYTEC (EYWA registra, no calcula). */}
+              <div className="mt-3">
+                <MadurezConcytec
                   plan={project}
                   onActualizar={(p) => setProjects(prev => prev.map(x => (x.id === p.id ? p : x)))}
                 />

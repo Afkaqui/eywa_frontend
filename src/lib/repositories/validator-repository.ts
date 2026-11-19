@@ -65,6 +65,8 @@ export interface ProjectPlanRow {
   etapa?: 'idea' | 'prototipo' | 'operando' | null;
   problema?: ProblemaDef | null;
   mpp?: MppDef | null;
+  /** TRL/CRL de la calculadora del CONCYTEC (referencial). */
+  madurez?: { trl: number | null; crl: number | null; fecha: string | null; nota: string | null } | null;
   mavi?: MaviEstado;
 }
 
@@ -142,6 +144,16 @@ export class ValidatorRepository {
   /** Guarda la definición del problema y/o el Máximo Producto Posible. */
   async saveEstructura(id: string, data: { problema?: ProblemaDef | null; mpp?: MppDef | null }): Promise<ProjectPlanRow> {
     const d = await apiFetch<{ plan: ProjectPlanRow }>(`/api/proxy/validator/plans/${id}/estructura`, {
+      method:  'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(data),
+    });
+    return d.plan;
+  }
+
+  /** Registra el TRL/CRL obtenido en la calculadora del CONCYTEC. */
+  async saveMadurez(id: string, data: { trl: number | null; crl: number | null; fecha?: string | null; nota?: string | null }): Promise<ProjectPlanRow> {
+    const d = await apiFetch<{ plan: ProjectPlanRow }>(`/api/proxy/validator/plans/${id}/madurez`, {
       method:  'PUT',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify(data),

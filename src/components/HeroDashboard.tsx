@@ -237,7 +237,7 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic, onOpenDatar
             </div>
             <div className="space-y-4">
               {[
-                { t: 'Índice de Madurez Industrial (IMI) y TRL/CRL', d: 'Reporte de madurez por empresa dentro del diagnóstico', espera: 'Criterios y escala de Eduardo' },
+                { t: 'Índice de Madurez Industrial (IMI)', d: 'Madurez de maquinaria, energía y operación de la empresa (el TRL/CRL ya se registra en el Validador con la calculadora del CONCYTEC)', espera: 'Criterios y escala de Eduardo' },
                 { t: 'Nota conceptual asistida (70/30)', d: 'Borrador a partir del problema, el MPP y el diagnóstico; el consultor completa el 30%', espera: 'En construcción' },
                 { t: 'Tablero de objetivos (OKR)', d: 'Objetivos y resultados clave por organización', espera: 'Diseño con Eduardo' },
                 { t: 'Indicadores de economía circular (PRODUCE)', d: 'Conexión con la calculadora y las hojas de ruta sectoriales', espera: 'Aún no conectado' },
