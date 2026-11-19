@@ -87,6 +87,10 @@ export default function Page() {
   // Depende del ID, no del objeto `user`: la sesión se refresca varias veces al
   // entrar y cada refresco trae un objeto nuevo. Con `[user]` se pedía el
   // diagnóstico 4 veces seguidas y el puntaje tardaba ~5 s en aparecer.
+  // Al cambiar de sección se vuelve arriba: antes se conservaba el scroll de la
+  // sección anterior y, p. ej., Portafolio se abría a media página.
+  useEffect(() => { window.scrollTo({ top: 0 }); }, [currentView]);
+
   const userId = user?.id;
   useEffect(() => {
     if (!userId) { setDiagCargando(false); return; }
