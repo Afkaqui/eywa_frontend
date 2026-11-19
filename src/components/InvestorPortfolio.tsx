@@ -87,37 +87,51 @@ export function InvestorPortfolio() {
     { label: 'Empresas', value: companies.length, note: '' },
   ];
 
+  // Exporta el listado de empresas tal como se ve (sin datos inventados).
+  const exportarCsv = () => {
+    const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const filas = [
+      ['Empresa', 'Sector', 'Origen', 'Puntaje', 'Categoría GENES', 'Estado'],
+      ...companies.map(c => [c.name, c.sector, c.source === 'manual' ? 'Agregada por gestor' : c.viaApi ? 'Vía API' : 'Plataforma', c.score ?? 'Pendiente', c.level ?? '', c.status]),
+    ];
+    const csv = '\uFEFF' + filas.map(f => f.map(esc).join(',')).join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = `portafolio-eywa-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-[1600px] mx-auto px-8 py-6">
-          <div className="flex items-center justify-between mb-8">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
-              <h1 className="text-3xl font-light text-gray-900 mb-2">Portfolio de Inversores</h1>
-              <p className="text-gray-500">Monitoreo de empresas y metricas de sostenibilidad</p>
+              <h1 className="ey-blur-in text-3xl font-semibold tracking-tight text-gray-900 mb-2">Portafolio</h1>
+              <p className="text-gray-500">Empresas, actores del ecosistema y fondos en un solo lugar</p>
             </div>
             <div className="flex items-center gap-3">
-              <button className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-all text-sm font-medium flex items-center gap-2">
-                <Download className="w-4 h-4" />
-                Exportar
-              </button>
+              {/* "Nuevo reporte" se retiró: su modal solo escribía en la consola (no
+                  generaba nada). Exportar descarga el listado real en CSV. */}
               <button
-                onClick={() => setShowReportModal(true)}
-                className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-all text-sm font-medium"
+                onClick={exportarCsv}
+                disabled={companies.length === 0}
+                className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-full hover:bg-gray-50 transition-all text-sm font-medium flex items-center gap-2 disabled:opacity-40"
               >
-                Nuevo Reporte
+                <Download className="w-4 h-4" />
+                Exportar CSV
               </button>
             </div>
           </div>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             {portfolioStats.map((stat, i) => (
-              <div key={i} className="bg-gray-50 rounded-lg p-4">
+              <div key={i} className="bg-gray-50 rounded-2xl p-4">
                 <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">{stat.label}</div>
                 {stat.value !== null && stat.value !== undefined ? (
-                  <span className="text-2xl font-light text-gray-900">{stat.value}</span>
+                  <span className="text-2xl font-semibold tracking-tight text-gray-900">{stat.value}</span>
                 ) : (
                   <div>
                     <span className="text-base font-semibold text-gray-400">Pendiente</span>
@@ -235,7 +249,7 @@ export function InvestorPortfolio() {
                               : company.incomplete
                               ? 'bg-amber-50 text-amber-700 border border-amber-200'
                               : company.viaApi
-                              ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                               : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                           }`}>
                             {company.source !== 'plataforma' ? 'Externa' : company.incomplete ? 'Registro incompleto' : company.viaApi ? 'Vía API' : 'Verificada'}
@@ -270,7 +284,7 @@ export function InvestorPortfolio() {
                         ? 'bg-amber-50 text-amber-700 border border-amber-200'
                         : company.status === 'Registro incompleto'
                         ? 'bg-gray-50 text-gray-500 border border-gray-200'
-                        : 'bg-blue-50 text-blue-700 border border-blue-200'
+                        : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                     }`}>
                       {company.status}
                     </span>

@@ -42,11 +42,11 @@ export function NotificationsPanel({ onNavigate }: { onNavigate?: (view: string)
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-3xl mx-auto">
         <div className="mb-6 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-            <Bell className="w-5 h-5 text-emerald-600" />
+          <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+            <Bell className="w-5 h-5 text-emerald-700" />
           </div>
           <div>
-            <h1 className="text-2xl md:text-3xl font-light text-gray-900">Notificaciones</h1>
+            <h1 className="ey-blur-in text-2xl md:text-3xl font-semibold tracking-tight text-gray-900">Notificaciones</h1>
             <p className="text-sm text-gray-500">Avisos y acciones pendientes de tu cuenta</p>
           </div>
         </div>
@@ -66,11 +66,11 @@ export function NotificationsPanel({ onNavigate }: { onNavigate?: (view: string)
             {notices.map((n) => (
               <div key={n.id} className="bg-white border border-gray-200 rounded-2xl p-5 flex items-start gap-4">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                  n.type === 'action' ? 'bg-amber-100' : 'bg-blue-100'
+                  n.type === 'action' ? 'bg-amber-100' : 'bg-emerald-100'
                 }`}>
                   {n.type === 'action'
                     ? <AlertCircle className="w-5 h-5 text-amber-600" />
-                    : <Info className="w-5 h-5 text-blue-600" />}
+                    : <Info className="w-5 h-5 text-emerald-600" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-sm font-semibold text-gray-900 mb-1">{n.title}</h3>

@@ -72,11 +72,11 @@ export function SuperAdminDashboard() {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
-              <Shield className="w-5 h-5 text-red-600" />
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+              <Shield className="w-5 h-5 text-emerald-700" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-light text-gray-900">Super Administración</h1>
+              <h1 className="ey-blur-in text-2xl md:text-3xl font-semibold tracking-tight text-gray-900">Super Administración</h1>
               <p className="text-sm text-gray-500">Gestión completa de usuarios, roles y planes</p>
             </div>
           </div>
@@ -86,9 +86,9 @@ export function SuperAdminDashboard() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {[
             { label: 'Total Usuarios', value: stats.total, icon: Users, color: 'bg-gray-900' },
-            { label: 'Administradores', value: stats.admins, icon: Shield, color: 'bg-purple-600' },
+            { label: 'Administradores', value: stats.admins, icon: Shield, color: 'bg-gray-800' },
             { label: 'Premium', value: stats.premium, icon: Crown, color: 'bg-amber-500' },
-            { label: 'Gestores', value: stats.gestores, icon: Users, color: 'bg-blue-600' },
+            { label: 'Gestores', value: stats.gestores, icon: Users, color: 'bg-emerald-600' },
           ].map((stat, i) => (
             <div key={i} className="bg-white border border-gray-200 rounded-xl p-5">
               <div className={`w-8 h-8 rounded-lg ${stat.color} flex items-center justify-center mb-3`}>

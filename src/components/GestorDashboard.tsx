@@ -20,11 +20,11 @@ export function GestorDashboard() {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-              <Database className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+              <Database className="w-5 h-5 text-emerald-700" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-light text-gray-900">Gestión de Datos</h1>
+              <h1 className="ey-blur-in text-2xl md:text-3xl font-semibold tracking-tight text-gray-900">Gestión de Datos</h1>
               <p className="text-sm text-gray-500">Administra empresas del portfolio y preguntas diagnósticas</p>
             </div>
           </div>
@@ -304,7 +304,7 @@ function PortfolioManager() {
                             : c.incomplete
                             ? 'bg-amber-100 text-amber-700'
                             : c.viaApi
-                            ? 'bg-blue-100 text-blue-700'
+                            ? 'bg-emerald-100 text-emerald-700'
                             : 'bg-emerald-100 text-emerald-700'
                         }`}>
                           {c.source !== 'plataforma' ? 'Externa' : c.incomplete ? 'Registro incompleto' : c.viaApi ? 'Vía API' : 'Verificada'}

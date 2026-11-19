@@ -150,17 +150,17 @@ export function SettingsDashboard() {
 
         {/* Header */}
         <div className="mb-6 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-            <Settings className="w-5 h-5 text-gray-600" />
+          <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+            <Settings className="w-5 h-5 text-emerald-700" />
           </div>
           <div>
-            <h1 className="text-2xl md:text-3xl font-light text-gray-900">Configuración</h1>
+            <h1 className="ey-blur-in text-2xl md:text-3xl font-semibold tracking-tight text-gray-900">Configuración</h1>
             <p className="text-sm text-gray-500">Gestiona tu cuenta y seguridad</p>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-8 bg-gray-100 p-1 rounded-xl w-fit">
+        <div className="flex gap-1 mb-8 bg-gray-100 p-1 rounded-full w-fit max-w-full overflow-x-auto">
           {([
             { id: 'perfil',    Icon: User, label: 'Datos personales' },
             { id: 'seguridad', Icon: Lock, label: 'Contraseña'       },
@@ -168,7 +168,7 @@ export function SettingsDashboard() {
             <button
               key={id}
               onClick={() => setActiveTab(id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 activeTab === id
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'

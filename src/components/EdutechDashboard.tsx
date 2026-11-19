@@ -28,8 +28,8 @@ import type { Course, CourseEnrollment, CourseCategory, CourseLevel } from '@/li
 
 const CATEGORY_CONFIG: Record<CourseCategory, { label: string; icon: typeof Leaf; color: string; bg: string }> = {
   agrotech: { label: 'Agrotech', icon: Leaf, color: 'text-green-700', bg: 'bg-green-50 border-green-200' },
-  edutech: { label: 'Edutech', icon: GraduationCap, color: 'text-blue-700', bg: 'bg-blue-50 border-blue-200' },
-  banca_sostenible: { label: 'Banca Sostenible', icon: TrendingUp, color: 'text-purple-700', bg: 'bg-purple-50 border-purple-200' },
+  edutech: { label: 'Edutech', icon: GraduationCap, color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
+  banca_sostenible: { label: 'Banca Sostenible', icon: TrendingUp, color: 'text-lime-700', bg: 'bg-lime-50 border-lime-200' },
   esg: { label: 'ESG', icon: Globe, color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
   general: { label: 'General', icon: BookOpen, color: 'text-gray-700', bg: 'bg-gray-50 border-gray-200' },
 };
@@ -127,11 +127,11 @@ export function EdutechDashboard() {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-              <GraduationCap className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
+              <GraduationCap className="w-5 h-5 text-emerald-700" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Academia EYWA</h1>
+              <h1 className="ey-blur-in text-2xl md:text-3xl font-semibold tracking-tight text-gray-900">Academia EYWA</h1>
               <p className="text-sm text-gray-500">Capacitacion para emprendedores sostenibles</p>
             </div>
           </div>
@@ -141,8 +141,8 @@ export function EdutechDashboard() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                <BookOpen className="w-5 h-5 text-blue-600" />
+              <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center">
+                <BookOpen className="w-5 h-5 text-emerald-600" />
               </div>
               <div>
                 <div className="text-2xl font-bold text-gray-900">{stats.totalCourses}</div>
@@ -174,8 +174,8 @@ export function EdutechDashboard() {
           </div>
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
-                <Award className="w-5 h-5 text-purple-600" />
+              <div className="w-10 h-10 bg-lime-50 rounded-lg flex items-center justify-center">
+                <Award className="w-5 h-5 text-lime-600" />
               </div>
               <div>
                 <div className="text-2xl font-bold text-gray-900">{stats.completed}</div>
@@ -194,7 +194,7 @@ export function EdutechDashboard() {
               placeholder="Buscar cursos, instructores..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -230,7 +230,7 @@ export function EdutechDashboard() {
         {enrollments.filter(e => !e.completed).length > 0 && (
           <div className="mb-8">
             <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <Play className="w-5 h-5 text-blue-600" />
+              <Play className="w-5 h-5 text-emerald-600" />
               Mis cursos en progreso
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -244,14 +244,14 @@ export function EdutechDashboard() {
                   <button
                     key={enrollment.id}
                     onClick={() => setSelectedCourse(course)}
-                    className="bg-white rounded-xl border border-blue-200 p-4 text-left hover:shadow-md transition-all group"
+                    className="bg-white rounded-xl border border-emerald-200 p-4 text-left hover:shadow-md transition-all group"
                   >
                     <div className="flex items-start gap-3 mb-3">
                       <div className={`w-10 h-10 rounded-lg ${catConfig.bg} border flex items-center justify-center flex-shrink-0`}>
                         <CatIcon className={`w-5 h-5 ${catConfig.color}`} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-bold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                        <h3 className="text-sm font-bold text-gray-900 truncate group-hover:text-emerald-600 transition-colors">
                           {course.title}
                         </h3>
                         <p className="text-xs text-gray-500">{course.instructor}</p>
@@ -260,11 +260,11 @@ export function EdutechDashboard() {
                     <div className="flex items-center gap-2">
                       <div className="flex-1 bg-gray-100 rounded-full h-2">
                         <div
-                          className="bg-blue-500 h-2 rounded-full transition-all"
+                          className="bg-emerald-500 h-2 rounded-full transition-all"
                           style={{ width: `${enrollment.progress}%` }}
                         />
                       </div>
-                      <span className="text-xs font-bold text-blue-600">{enrollment.progress}%</span>
+                      <span className="text-xs font-bold text-emerald-600">{enrollment.progress}%</span>
                     </div>
                   </button>
                 );
@@ -373,7 +373,7 @@ export function EdutechDashboard() {
                         </div>
                       )}
                       {enrollment && !enrollment.completed && (
-                        <div className="absolute top-3 right-3 px-2 py-1 bg-blue-500 text-white text-xs font-bold rounded-full">
+                        <div className="absolute top-3 right-3 px-2 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full">
                           {enrollment.progress}%
                         </div>
                       )}
@@ -390,7 +390,7 @@ export function EdutechDashboard() {
                         </span>
                       </div>
 
-                      <h3 className="text-base font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
+                      <h3 className="text-base font-bold text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors line-clamp-2">
                         {course.title}
                       </h3>
                       <p className="text-xs text-gray-500 mb-4 line-clamp-2">{course.description}</p>

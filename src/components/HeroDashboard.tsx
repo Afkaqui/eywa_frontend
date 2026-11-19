@@ -16,9 +16,10 @@ interface HeroDashboardProps {
   diagnosticResult?: DiagnosticResult | null;
   onStartDiagnostic?: () => void;
   onOpenDataroom?: () => void;
+  onOpenAcademia?: () => void;
 }
 
-export function HeroDashboard({ diagnosticResult, onStartDiagnostic, onOpenDataroom }: HeroDashboardProps) {
+export function HeroDashboard({ diagnosticResult, onStartDiagnostic, onOpenDataroom, onOpenAcademia }: HeroDashboardProps) {
   const { profile } = useAuth();
   const accountPlan = profile?.plan || 'free';
   const userEmail = profile?.email || '';
@@ -117,8 +118,8 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic, onOpenDatar
           {/* KPI 2: evolución del índice vs. la evaluación anterior */}
           <KpiCard
             icon={stats?.esg?.delta != null && stats.esg.delta < 0 ? TrendingDown : TrendingUp}
-            iconBg="bg-blue-50"
-            iconColor={stats?.esg?.delta != null && stats.esg.delta < 0 ? 'text-rose-600' : 'text-blue-600'}
+            iconBg="bg-emerald-50"
+            iconColor={stats?.esg?.delta != null && stats.esg.delta < 0 ? 'text-rose-600' : 'text-emerald-600'}
             label="Evolución del índice"
             value={
               stats?.esg?.delta != null
@@ -135,8 +136,8 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic, onOpenDatar
           {/* KPI 3: dataroom */}
           <KpiCard
             icon={FolderLock}
-            iconBg="bg-purple-50"
-            iconColor="text-purple-600"
+            iconBg="bg-lime-50"
+            iconColor="text-lime-600"
             label="Dataroom completo"
             value={stats?.dataroom ? `${stats.dataroom.percentage}%` : '—'}
             hint={
@@ -163,11 +164,11 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic, onOpenDatar
 
         {/* Edutech Program Highlight */}
         <div className="mb-6 md:mb-8">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/50 rounded-2xl shadow-lg p-6 md:p-8">
+          <div className="bg-emerald-50/70 border border-emerald-200/60 rounded-2xl p-6 md:p-8">
             <div className="flex flex-col lg:flex-row items-start justify-between gap-6">
               <div className="flex-1 w-full">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-emerald-700 flex items-center justify-center flex-shrink-0">
                     <Briefcase className="w-5 h-5 md:w-6 md:h-6 text-white" />
                   </div>
                   <div>
@@ -176,23 +177,23 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic, onOpenDatar
                   </div>
                 </div>
                 <p className="text-sm md:text-base text-gray-700 mb-6 leading-relaxed">
-                  Programa diseñado para fortalecer las capacidades de los usuarios en tendencias de <span className="font-semibold text-blue-700">economía circular</span> y <span className="font-semibold text-blue-700">sostenibilidad</span>. 
+                  Programa diseñado para fortalecer las capacidades de los usuarios en tendencias de <span className="font-semibold text-emerald-700">economía circular</span> y <span className="font-semibold text-emerald-700">sostenibilidad</span>. 
                   Acceso a cursos especializados, webinars en vivo y material actualizado sobre las últimas prácticas y regulaciones del sector.
                 </p>
                 <div className="grid grid-cols-3 gap-3 md:gap-4">
-                  <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 md:p-4 border border-blue-200/30">
+                  <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 md:p-4 border border-emerald-200/30">
                     <div className="text-sm md:text-base font-semibold text-gray-900 mb-1">
                       {stats ? stats.academy.enrolled : '—'}
                     </div>
                     <div className="text-xs text-gray-600 uppercase tracking-wider">Cursos Inscritos</div>
                   </div>
-                  <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 md:p-4 border border-blue-200/30">
+                  <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 md:p-4 border border-emerald-200/30">
                     <div className="text-sm md:text-base font-semibold text-gray-900 mb-1">
                       {stats ? `${stats.academy.hours} h` : '—'}
                     </div>
                     <div className="text-xs text-gray-600 uppercase tracking-wider">Horas Formativas</div>
                   </div>
-                  <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 md:p-4 border border-blue-200/30">
+                  <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 md:p-4 border border-emerald-200/30">
                     <div className="text-sm md:text-base font-semibold text-gray-900 mb-1">
                       {stats ? `${stats.academy.avg_progress}%` : '—'}
                     </div>
@@ -201,7 +202,7 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic, onOpenDatar
                 </div>
               </div>
               <div className="w-full lg:w-auto lg:ml-8">
-                <button className="w-full lg:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all font-medium text-sm shadow-lg flex items-center justify-center gap-2">
+                <button onClick={onOpenAcademia} className="w-full lg:w-auto px-6 py-3 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 transition-all font-semibold text-sm flex items-center justify-center gap-2">
                   Acceder a Cursos
                   <ArrowRight className="w-4 h-4" />
                 </button>

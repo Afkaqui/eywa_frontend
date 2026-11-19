@@ -22,7 +22,7 @@ interface Props {
 const CATEGORY_ORDER = ['perfil', 'ambiental', 'social', 'economico'] as const;
 
 const CATEGORY_COLORS: Record<string, string> = {
-  perfil:    'bg-indigo-500',
+  perfil:    'bg-emerald-800',
   ambiental: 'bg-emerald-500',
   social:    'bg-amber-500',
   economico: 'bg-sky-500',
@@ -51,7 +51,7 @@ export function DiagnosticCompleted({ result, onRetake, onNavigate }: Props) {
           <div className="w-16 h-16 rounded-2xl bg-emerald-100 flex items-center justify-center mx-auto mb-4">
             <CheckCircle2 className="w-8 h-8 text-emerald-600" />
           </div>
-          <h1 className="text-2xl md:text-3xl font-light text-gray-900 mb-2">
+          <h1 className="ey-blur-in text-2xl md:text-3xl font-semibold tracking-tight text-gray-900 mb-2">
             Ya completaste tu diagnóstico ESG
           </h1>
           {date && <p className="text-sm text-gray-500">Última evaluación: {date}</p>}
