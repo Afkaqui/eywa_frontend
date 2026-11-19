@@ -365,7 +365,12 @@ export function CourseViewer({ course, onBack }: CourseViewerProps) {
             <div className="space-y-4 mb-6">
               {content.sections.map((section, i) => {
                 const isOpen = expanded === section.id;
+                // YouTube → iframe; archivo propio del servidor (mp4/webm o audio) → reproductor nativo.
+                // Antes solo se entendía YouTube: los vídeos servidos desde el VPS (S5C1, S7C1)
+                // mostraban el ícono ▶ pero ningún reproductor.
                 const embed = section.video_url ? toYouTubeEmbed(section.video_url) : null;
+                const archivo = !embed && section.video_url ? section.video_url : null;
+                const esAudio = !!archivo && /\.(m4a|mp3|ogg|wav)(\?|$)/i.test(archivo);
 
                 return (
                   <div key={section.id} className={`bg-white rounded-2xl border overflow-hidden transition-colors ${section.completed ? 'border-emerald-200' : 'border-gray-200'}`}>
@@ -398,6 +403,16 @@ export function CourseViewer({ course, onBack }: CourseViewerProps) {
                         {section.description && (
                           <p className="text-sm text-gray-600 leading-relaxed">{section.description}</p>
                         )}
+
+                        {archivo && (esAudio ? (
+                          <audio src={archivo} controls preload="metadata" className="w-full" />
+                        ) : (
+                          <video
+                            src={archivo} controls preload="metadata" playsInline
+                            controlsList="nodownload" title={section.title}
+                            className="w-full rounded-xl bg-black aspect-video"
+                          />
+                        ))}
 
                         {embed && (
                           <div className="relative w-full rounded-xl overflow-hidden bg-black" style={{ paddingBottom: '56.25%' }}>
