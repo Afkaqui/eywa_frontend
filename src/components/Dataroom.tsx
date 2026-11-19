@@ -126,24 +126,6 @@ export function Dataroom({ orgId }: { orgId?: string } = {}) {
         </div>
       </div>
 
-      {/* Aviso de privacidad (solo al dueño) */}
-      {!readOnly && (
-        <div className="flex items-start gap-2.5 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
-          <Lock className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
-          <p>
-            Todos los documentos son <strong>privados</strong> por defecto. Solo tú (y el equipo de EYWA
-            para soporte) pueden verlos. Nada se publica salvo que lo marques explícitamente.
-          </p>
-        </div>
-      )}
-
-      {/* Perfil público (solo el dueño lo gestiona) */}
-      {!readOnly && <LandingPanel publicDocs={publicDocsCount} orgId={orgId} />}
-
-      {/* Invitaciones a terceros. Solo el DUEÑO: un gestor con acceso delegado
-          tiene permiso de lectura, no de repartir accesos a documentos ajenos. */}
-      {!readOnly && <DataroomInvitations orgId={orgId} />}
-
       {/* Vista rápida de carpetas (maqueta "Dataroom"): avance de cada una y acceso directo */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {data.folders.map(folder => {
@@ -170,6 +152,24 @@ export function Dataroom({ orgId }: { orgId?: string } = {}) {
           );
         })}
       </div>
+
+      {/* Aviso de privacidad (solo al dueño) */}
+      {!readOnly && (
+        <div className="flex items-start gap-2.5 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+          <Lock className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+          <p>
+            Todos los documentos son <strong>privados</strong> por defecto. Solo tú (y el equipo de EYWA
+            para soporte) pueden verlos. Nada se publica salvo que lo marques explícitamente.
+          </p>
+        </div>
+      )}
+
+      {/* Perfil público (solo el dueño lo gestiona) */}
+      {!readOnly && <LandingPanel publicDocs={publicDocsCount} orgId={orgId} />}
+
+      {/* Invitaciones a terceros. Solo el DUEÑO: un gestor con acceso delegado
+          tiene permiso de lectura, no de repartir accesos a documentos ajenos. */}
+      {!readOnly && <DataroomInvitations orgId={orgId} />}
 
       {/* Carpetas */}
       <div className="space-y-3">
