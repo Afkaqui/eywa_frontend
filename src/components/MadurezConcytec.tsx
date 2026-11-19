@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, Gauge, ExternalLink, Loader2 } from 'lucide-react';
 import { ValidatorRepository, type ProjectPlanRow } from '@/lib/repositories/validator-repository';
-import { CALCULADORA_CONCYTEC_URL } from '@/lib/constants/concytec';
+import { CALCULADORA_CONCYTEC_URL, NIVELES_CONCYTEC_URL } from '@/lib/constants/concytec';
 
 const repo = new ValidatorRepository();
 const NIVELES = [1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -59,9 +59,11 @@ export function MadurezConcytec({ plan, onActualizar }: { plan: ProjectPlanRow; 
         <div className="px-4 pb-4 space-y-4">
           <div className="text-xs text-gray-600 bg-gray-50 rounded-lg p-3 space-y-2">
             <p>
-              El nivel de madurez se calcula con la <b>metodología del CONCYTEC</b>: su calculadora (plataforma
-              Vincúlate) mide el <b>TRL</b> y, como complemento para proyectos con un TRL elevado, el <b>CRL</b>.
-              Su resultado es referencial.
+              El nivel de madurez se calcula con la <b>escala del CONCYTEC para el SINACYT</b> (R. P. 020-2022-CONCYTEC-P):
+              el <b>TRL</b> va de 1 a 9 (investigación básica → aplicada → desarrollo tecnológico → innovación) y el
+              <b>CRL</b>, también de 1 a 9, es un complemento <b>opcional</b> para emprendimientos con un TRL elevado
+              e información de mercado. Su resultado es orientador y referencial.{' '}
+              <a href={NIVELES_CONCYTEC_URL} target="_blank" rel="noopener noreferrer" className="underline text-emerald-700">Ver los niveles</a>
             </p>
             <ol className="list-decimal ml-4 space-y-0.5">
               <li>Abre la calculadora, registra tu proyecto y responde sus preguntas.</li>
