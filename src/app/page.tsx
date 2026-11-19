@@ -37,6 +37,9 @@ export default function Page() {
   const [showLogin, setShowLogin] = useState(false);
   const [currentView, setCurrentView] = useState<ViewType>('hero');
   const [diagnosticResult, setDiagnosticResult] = useState<DiagnosticResult | null>(null);
+  // Mientras llega el último diagnóstico NO se sabe si existe: sin esto el panel
+  // mostraba "Sin diagnóstico aún" un instante antes del puntaje real.
+  const [diagCargando, setDiagCargando] = useState(true);
   const [orgTab, setOrgTab] = useState<'perfil' | 'esg' | 'dataroom'>('perfil');
 
   // Enlace profundo: ?vista=dataroom|diagnostico|validador|academia (lo usa EYWA
@@ -85,9 +88,11 @@ export default function Page() {
     if (!user) return;
     let cancelled = false;
 
+    setDiagCargando(true);
     diagnosticService.getLatestResult(user.id, getOrgActivaId())
       .then(result => { if (!cancelled) setDiagnosticResult(result); })
-      .catch(() => { /* table may not exist */ });
+      .catch(() => { /* table may not exist */ })
+      .finally(() => { if (!cancelled) setDiagCargando(false); });
 
     return () => { cancelled = true; };
   }, [user, diagnosticService]);
@@ -126,7 +131,7 @@ export default function Page() {
       />
 
       <div key={currentView} className="ey-app ey-view flex-1 min-w-0 ml-0 md:ml-[var(--ey-sidebar,5rem)] pb-20 md:pb-0 transition-all duration-300">
-        {currentView === 'hero' && <HeroDashboard diagnosticResult={diagnosticResult} onStartDiagnostic={() => setCurrentView('diagnostic')} onOpenDataroom={() => { setOrgTab('dataroom'); setCurrentView('organization'); }} onOpenAcademia={() => setCurrentView('edutech')} />}
+        {currentView === 'hero' && <HeroDashboard diagnosticResult={diagnosticResult} cargandoDiagnostico={diagCargando} onStartDiagnostic={() => setCurrentView('diagnostic')} onOpenDataroom={() => { setOrgTab('dataroom'); setCurrentView('organization'); }} onOpenAcademia={() => setCurrentView('edutech')} />}
         {currentView === 'diagnostic' && (
           diagnosticResult && showDiagnosticSummary ? (
             <DiagnosticCompleted

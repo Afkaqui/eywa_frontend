@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getOrgActivaId } from '@/lib/repositories/organization-repository';
 import { TrendingUp, TrendingDown, Activity, Landmark, Award, ArrowRight, User, Mail, Briefcase, Crown, Sparkles, Stethoscope, FolderLock, AlertCircle } from 'lucide-react';
-import { ProfessionalTrustGauge } from './ProfessionalTrustGauge';
 import { TrustScorePanel } from './TrustScorePanel';
 import { useAuth } from '@/contexts/AuthContext';
 import { calculatePercentage, getGenesBand, getGenesBandClasses } from '@/lib/constants/scoring';
@@ -17,9 +16,10 @@ interface HeroDashboardProps {
   onStartDiagnostic?: () => void;
   onOpenDataroom?: () => void;
   onOpenAcademia?: () => void;
+  cargandoDiagnostico?: boolean;
 }
 
-export function HeroDashboard({ diagnosticResult, onStartDiagnostic, onOpenDataroom, onOpenAcademia }: HeroDashboardProps) {
+export function HeroDashboard({ diagnosticResult, onStartDiagnostic, onOpenDataroom, onOpenAcademia, cargandoDiagnostico = false }: HeroDashboardProps) {
   const { profile } = useAuth();
   const accountPlan = profile?.plan || 'free';
   const userEmail = profile?.email || '';
@@ -73,25 +73,39 @@ export function HeroDashboard({ diagnosticResult, onStartDiagnostic, onOpenDatar
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 md:-mt-32 relative z-20 pb-8 md:pb-16">
         {/* Trust Score - Central Element */}
         <div className="mb-6 md:mb-8">
-            {hasScore ? (
+            {cargandoDiagnostico && !hasScore ? (
+              // Esqueleto: mismo tamaño que la tarjeta real, sin afirmar nada todavía.
+              <div className="bg-white border border-gray-200 rounded-2xl shadow-xl p-6 md:p-8 lg:p-10" aria-busy="true" aria-label="Cargando tu Trust Score">
+                <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-8 lg:gap-10 animate-pulse">
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-48 h-48 rounded-full border-[10px] border-gray-100" />
+                    <div className="h-4 w-56 bg-gray-100 rounded-full" />
+                    <div className="h-7 w-32 bg-gray-100 rounded-full" />
+                  </div>
+                  <div className="space-y-3">
+                    {[0, 1, 2, 3].map(i => <div key={i} className="h-12 bg-gray-50 rounded-xl" />)}
+                  </div>
+                </div>
+              </div>
+            ) : hasScore ? (
               <TrustScorePanel result={diagnosticResult} onRepeat={onStartDiagnostic} onOpenDataroom={onOpenDataroom} />
             ) : (
           <div className="bg-white border border-gray-200 rounded-2xl shadow-xl p-6 md:p-8 lg:p-12">
               {/* Sin diagnóstico aún: CTA */}
               <div className="flex flex-col items-center text-center py-8">
-                <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-6">
-                  <ProfessionalTrustGauge score={0} />
+                <div className="w-20 h-20 rounded-2xl bg-emerald-50 flex items-center justify-center mb-6">
+                  <Stethoscope className="w-9 h-9 text-emerald-700" />
                 </div>
-                <h3 className="text-2xl md:text-3xl font-light text-gray-900 mb-3">Sin diagnóstico aún</h3>
+                <h3 className="text-2xl md:text-3xl font-semibold tracking-tight text-gray-900 mb-3">Sin diagnóstico aún</h3>
                 <p className="text-gray-500 mb-8 max-w-md">
                   Completa el cuestionario de diagnóstico ESG para obtener tu Trust Score y descubrir tu nivel de sostenibilidad.
                 </p>
                 <button
                   onClick={onStartDiagnostic}
-                  className="px-8 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-all font-medium text-sm flex items-center gap-2 shadow-lg"
+                  className="px-8 py-3 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 transition-all font-semibold text-sm flex items-center gap-2"
                 >
                   <Stethoscope className="w-4 h-4" />
-                  Iniciar Diagnóstico
+                  Iniciar diagnóstico
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
