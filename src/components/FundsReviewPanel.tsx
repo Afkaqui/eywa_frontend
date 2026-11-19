@@ -23,6 +23,8 @@ interface Pendiente {
   detected_deadline: string | null;
   detected_evidence: string | null;
   review_reason: string | null;
+  candidato?: boolean;       // fondo NUEVO descubierto por el bot, aún oculto
+  descubierto_en?: string | null;
 }
 
 interface Corrida {
@@ -61,7 +63,7 @@ export function FundsReviewPanel({ onEditar, onCambio }: {
 
   useEffect(() => { cargar(); }, [cargar]);
 
-  const resolver = async (p: Pendiente, accion: 'aceptar_fecha' | 'descartar') => {
+  const resolver = async (p: Pendiente, accion: 'aceptar_fecha' | 'descartar' | 'aprobar') => {
     setOcupado(p.id); setError(null);
     try {
       const r = await fetch(`/api/proxy/funds/${p.id}/revision`, {
@@ -108,7 +110,7 @@ export function FundsReviewPanel({ onEditar, onCambio }: {
       {abierto && (
         <div className="px-4 pb-4 space-y-2">
           <p className="text-xs text-gray-500">
-            El bot propone; tú decides. Ninguna fecha se aplica sin tu confirmación.
+            El bot propone; tú decides. Ninguna fecha se aplica ni ningún fondo nuevo se publica sin tu confirmación.
           </p>
 
           {error && (
@@ -150,6 +152,28 @@ export function FundsReviewPanel({ onEditar, onCambio }: {
                 </div>
               )}
 
+              {p.candidato ? (
+              <div className="flex flex-wrap items-center gap-2 mt-3">
+                <span className="text-[11px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Fondo nuevo · oculto</span>
+                <button
+                  onClick={() => resolver(p, 'aprobar')}
+                  disabled={ocupado === p.id}
+                  title="Lo publica en el catálogo. Después puedes completar tipo, montos y cierre."
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-medium hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  {ocupado === p.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                  Aprobar y publicar
+                </button>
+                <button
+                  onClick={() => resolver(p, 'descartar')}
+                  disabled={ocupado === p.id}
+                  title="No es un fondo para empresas: queda oculto y no se vuelve a proponer"
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-500 text-xs font-medium hover:bg-gray-50 disabled:opacity-50"
+                >
+                  <X className="w-3.5 h-3.5" /> Descartar
+                </button>
+              </div>
+              ) : (
               <div className="flex flex-wrap gap-2 mt-3">
                 {p.detected_deadline && (
                   <button
@@ -177,6 +201,7 @@ export function FundsReviewPanel({ onEditar, onCambio }: {
                   <X className="w-3.5 h-3.5" /> Descartar
                 </button>
               </div>
+              )}
             </div>
           ))}
         </div>
