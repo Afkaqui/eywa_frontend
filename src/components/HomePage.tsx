@@ -29,7 +29,6 @@ const RESPALDOS = [
   { nombre: 'Incuval Ventures · UNHEVAL', logo: '/respaldos/incuval.svg' },
   { nombre: 'Universidad Peruana Cayetano Heredia', logo: '/respaldos/upch.svg' },
   { nombre: 'GENES Perú', logo: '/respaldos/genes-peru.png' },
-  { nombre: 'ARS LAB', logo: '/respaldos/arslab.png' },
 ];
 
 const FAQ = [
