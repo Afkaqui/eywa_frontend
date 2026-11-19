@@ -63,7 +63,7 @@ PENDIENTES). Ninguna funcionalidad nueva mueve ese número por sí sola.
 | A6 | Descargar los **7 vídeos pendientes** del curso de Classroom | Angel | Se cortan en la pantalla de antivirus de Drive; descargarlos a mano y subirlos al VPS |
 | A7 | Eduardo envía la **definición oficial de problema** y el **glosario de taxonomía verde** del MINAM | Eduardo | Desbloquea C1 y C3 |
 | A8 | Recopilar **fichas de proyectos** formulados (con bases y criterios) | Equipo formulador | Desbloquea el emulador (C9) |
-| A9 | Averiguar el avance de la **nueva calculadora TRL/CRL** del Estado | Quien sigue esa consultoría | Desbloquea IMI/TRL (C5) |
+| A9 | ~~Averiguar el avance de la nueva calculadora TRL/CRL~~ → **existe** (2026-11-18): calculadora del CONCYTEC en Vincúlate, v1.1.21 en QA (`apps-qa.concytec.gob.pe/calculadora/regcalculadora/regconcurso`). Mide TRL y, como complemento, CRL; resultado referencial | — | Desbloquea TRL/CRL (C5): enlazarla desde el Validador; el IMI sigue esperando a Eduardo |
 
 ### Fase B — Funcional al 100 % (prioridad vigente desde el 2026-08-09)
 
