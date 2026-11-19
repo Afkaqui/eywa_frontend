@@ -464,7 +464,7 @@ export function ValidadorProyectos() {
                 />
               </div>
 
-              {/* Envío a la cartera de ARS LAB (§14). Va después del análisis
+              {/* Evaluación con MAVI (§14). Va después del análisis
                   propio: primero EYWA evalúa, luego se decide si se manda fuera. */}
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <MaviPanel

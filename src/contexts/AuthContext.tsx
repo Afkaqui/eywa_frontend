@@ -114,6 +114,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           password,
           full_name: metadata.full_name,
           company:   metadata.company,
+          // El formulario exige marcar la casilla de términos y privacidad para
+          // enviarse; queda registrado con fecha (único consentimiento, cubre MAVI).
+          acepta_terminos: true,
         }),
       });
 

@@ -1,17 +1,14 @@
 "use client";
 
 import { useState } from 'react';
-import { Send, Loader2, ExternalLink, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Send, Loader2, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { ValidatorRepository, type ProjectPlanRow } from '@/lib/repositories/validator-repository';
 
 const repo = new ValidatorRepository();
 
-// Envío de un proyecto a la cartera de ARS LAB para su prevalidación MAVII.
-//
-// El envío manda a un TERCERO el nombre, correo, teléfono, organización y RUC de
-// quien presenta el proyecto. Por eso la casilla no es un trámite: mientras no
-// esté marcada, el botón no existe. El backend además comprueba el consentimiento
-// registrado y no se fía de lo que llegue en la petición.
+// Evaluación del proyecto con MAVI, el modelo de evaluación de EYWA (no conserva
+// los datos). El consentimiento es UNO solo: el que la persona dio al aceptar los
+// términos al crear su cuenta (decisión 2026-11-19). Ya no hay casilla por proyecto.
 
 const SEMAFORO: Record<string, { fondo: string; texto: string; etiqueta: string }> = {
   verde:    { fondo: 'bg-emerald-50 border-emerald-200', texto: 'text-emerald-800', etiqueta: 'Viable' },
@@ -31,24 +28,10 @@ export function MaviPanel({ plan, onActualizar }: {
   onActualizar: (p: ProjectPlanRow) => void;
 }) {
   const mavi = plan.mavi;
-  const [acepta, setAcepta]     = useState(!!mavi?.consentido);
-  const [guardando, setGuard]   = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [error, setError]       = useState<string | null>(null);
 
   const yaEnviado = !!mavi?.id_proyecto;
-
-  const marcar = async (v: boolean) => {
-    setAcepta(v); setGuard(true); setError(null);
-    try {
-      await repo.setMaviConsent(plan.id, v);
-    } catch {
-      setAcepta(!v); // no se pudo registrar: la casilla vuelve donde estaba
-      setError('No se pudo guardar tu autorización');
-    } finally {
-      setGuard(false);
-    }
-  };
 
   const enviar = async () => {
     setEnviando(true); setError(null);
@@ -95,7 +78,7 @@ export function MaviPanel({ plan, onActualizar }: {
           )}
           {/* Es una prevalidación automática, no un dictamen: conviene decirlo. */}
           <p className="text-xs text-gray-500 mt-2">
-            Prevalidación automática de ARS LAB. El dictamen final lo emite su equipo.
+            Es una prevalidación automática de MAVI, no un dictamen final.
           </p>
         </div>
 
@@ -115,11 +98,11 @@ export function MaviPanel({ plan, onActualizar }: {
         )}
 
         {/* La referencia es lo ÚNICO accionable para quien presenta el proyecto:
-            es lo que cita al escribirle a ARS. */}
+            es lo que se cita al consultar por el proyecto. */}
         {mavi?.id_proyecto && (
           <div>
             <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">
-              Referencia en ARS LAB
+              Referencia en MAVI
             </div>
             <code className="text-xs font-mono text-gray-700 bg-gray-100 rounded-lg px-2.5 py-1.5 inline-block break-all">
               {mavi.id_proyecto}
@@ -127,19 +110,6 @@ export function MaviPanel({ plan, onActualizar }: {
           </div>
         )}
 
-        {/* El enlace que devuelve ARS NO lleva al proyecto: redirige a la portada
-            de su intranet y pide una cuenta de ARS LAB, que quien presenta el
-            proyecto no tiene. Se deja, pero diciendo lo que es: llamarlo "ver en
-            la cartera" hacía creer que se podía entrar. */}
-        {mavi?.seguimiento && (
-          <a
-            href={mavi.seguimiento} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 hover:underline"
-          >
-            Panel interno de ARS LAB (requiere cuenta suya)
-            <ExternalLink className="w-3 h-3" />
-          </a>
-        )}
       </div>
     );
   }
@@ -148,27 +118,11 @@ export function MaviPanel({ plan, onActualizar }: {
   return (
     <div className="border border-gray-200 rounded-2xl p-5 space-y-4">
       <div>
-        <h3 className="font-semibold text-gray-900">Enviar a ARS LAB</h3>
+        <h3 className="font-semibold text-gray-900">Evaluar con MAVI</h3>
         <p className="text-sm text-gray-500 mt-0.5">
-          Su metodología MAVII prevalida el proyecto y te dice si es postulable.
+          MAVI, el modelo de evaluación de EYWA, prevalida el proyecto y te dice si es postulable.
         </p>
       </div>
-
-      <label className="flex gap-3 items-start cursor-pointer bg-gray-50 border border-gray-200 rounded-xl p-4">
-        <input
-          type="checkbox"
-          checked={acepta}
-          disabled={guardando}
-          onChange={e => marcar(e.target.checked)}
-          className="mt-0.5 w-4 h-4 accent-emerald-600 shrink-0"
-        />
-        <span className="text-sm text-gray-700 leading-relaxed">
-          Autorizo a EYWA a compartir con <strong>ARS LAB</strong> los datos de este
-          proyecto y mis datos de contacto —nombre, correo, teléfono, organización
-          y RUC— para su evaluación. Puedo retirar esta autorización mientras el
-          proyecto no se haya enviado.
-        </span>
-      </label>
 
       {error && (
         <div className="flex gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl p-3">
@@ -179,8 +133,8 @@ export function MaviPanel({ plan, onActualizar }: {
 
       <button
         onClick={enviar}
-        disabled={!acepta || enviando || guardando}
-        className="w-full py-2.5 rounded-xl bg-gray-900 text-white text-sm font-medium
+        disabled={enviando}
+        className="w-full py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium
                    hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed
                    inline-flex items-center justify-center gap-2"
       >
@@ -188,11 +142,6 @@ export function MaviPanel({ plan, onActualizar }: {
         {enviando ? 'Enviando…' : 'Enviar a MAVI'}
       </button>
 
-      {!acepta && (
-        <p className="text-xs text-gray-400 text-center">
-          Marca la autorización para poder enviarlo.
-        </p>
-      )}
     </div>
   );
 }
