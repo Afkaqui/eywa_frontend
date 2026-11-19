@@ -60,6 +60,7 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
   const [tag, setTag] = useState('todos');
   const [onlyMine, setOnlyMine] = useState(false); // solo los que encajan con mi sector
   const [hideClosed, setHideClosed] = useState(false);
+  const [cierraPronto, setCierraPronto] = useState(false); // cierran en los próximos 30 días
   const [expanded, setExpanded] = useState<string | null>(null);
 
   // CRUD del catálogo (solo gestor/admin/superadmin)
@@ -133,6 +134,11 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
       if (tag !== 'todos' && !(f.sector_tags ?? []).includes(tag)) return false;
       if (onlyMine && !matchesMe(f, state.myTags)) return false;
       if (hideClosed && fmtDeadline(f).closed) return false;
+      if (cierraPronto) {
+        if (!f.deadline) return false;
+        const dias = (new Date(f.deadline).getTime() - Date.now()) / 86_400_000;
+        if (dias < 0 || dias > 30) return false;
+      }
       if (q && !(
         f.name.toLowerCase().includes(q) ||
         (f.sectors ?? '').toLowerCase().includes(q) ||
@@ -142,7 +148,7 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
       )) return false;
       return true;
     });
-  }, [state, search, scope, tipo, tag, onlyMine, hideClosed, matchesMe]);
+  }, [state, search, scope, tipo, tag, onlyMine, hideClosed, cierraPronto, matchesMe]);
 
   if (state.status === 'loading') {
     return (
@@ -179,7 +185,31 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
   }
 
   return (
-    <div className={embedded ? '' : 'bg-white border border-gray-200 rounded-xl p-6'}>
+    <div className={embedded ? '' : 'bg-white border border-gray-200 rounded-2xl p-4 md:p-6'}>
+      {/* Filtros rápidos (maqueta "Fondos y convocatorias") */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        {([
+          ...(state.myTags.length > 0 ? [['Encajan conmigo', onlyMine, () => setOnlyMine(v => !v)] as const] : []),
+          ['Todos', !onlyMine && scope === 'todos' && !cierraPronto, () => { setOnlyMine(false); setScope('todos'); setCierraPronto(false); }] as const,
+          ['Cierran en 30 días', cierraPronto, () => setCierraPronto(v => !v)] as const,
+          ['Nacionales', scope === 'nacional', () => setScope(scope === 'nacional' ? 'todos' : 'nacional')] as const,
+          ['Internacionales', scope === 'internacional', () => setScope(scope === 'internacional' ? 'todos' : 'internacional')] as const,
+        ]).map(([etiqueta, activo, accion]) => (
+          <button
+            key={etiqueta}
+            onClick={accion}
+            className={`px-3.5 py-1.5 rounded-full text-[13px] transition-colors ${
+              activo ? 'bg-gray-900 text-white font-semibold' : 'border border-gray-200 bg-white text-gray-600 hover:border-emerald-400'
+            }`}
+          >
+            {etiqueta}
+          </button>
+        ))}
+        <span className="ml-auto flex items-center gap-1.5 text-xs text-gray-500">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Verificados cada noche
+        </span>
+      </div>
+
       {/* Filtros */}
       <div className="flex flex-col lg:flex-row gap-3 mb-5">
         <div className="relative flex-1">
@@ -189,13 +219,13 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
             placeholder="Buscar fondo, sector, perfil…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
         <select
           value={scope}
           onChange={(e) => setScope(e.target.value as typeof scope)}
-          className="px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          className="px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
         >
           <option value="todos">Ámbito: todos</option>
           <option value="nacional">Nacional</option>
@@ -204,7 +234,7 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
         <select
           value={tipo}
           onChange={(e) => setTipo(e.target.value)}
-          className="px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          className="px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
         >
           <option value="todos">Instrumento: todos</option>
           {tipos.map(t => <option key={t} value={t}>{t}</option>)}
@@ -212,7 +242,7 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
         <select
           value={tag}
           onChange={(e) => setTag(e.target.value)}
-          className="px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          className="px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
         >
           <option value="todos">Tema: todos</option>
           {TAG_KEYS.filter(k => state.funds.some(f => (f.sector_tags ?? []).includes(k)))
@@ -280,7 +310,7 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
           const dl = fmtDeadline(f);
           const isOpen = expanded === f.id;
           return (
-            <div key={f.id} className="border border-gray-200 rounded-xl overflow-hidden">
+            <div key={f.id} className="border border-gray-200 rounded-2xl overflow-hidden bg-white hover:border-emerald-300 transition-colors">
               <button
                 onClick={() => setExpanded(isOpen ? null : f.id)}
                 className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
@@ -292,7 +322,7 @@ export function FundsDirectory({ embedded = false }: { embedded?: boolean }) {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-medium text-gray-900">{f.name}</span>
                     <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide flex items-center gap-1 ${
-                      f.scope === 'nacional' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'
+                      f.scope === 'nacional' ? 'bg-emerald-50 text-emerald-700' : 'bg-lime-50 text-lime-800'
                     }`}>
                       {f.scope === 'nacional' ? <MapPin className="w-2.5 h-2.5" /> : <Globe2 className="w-2.5 h-2.5" />}
                       {f.scope}
