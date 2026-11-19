@@ -237,11 +237,11 @@ export function LoginPage({ onBack }: LoginPageProps) {
                   />
                   <span className="text-sm text-gray-600">
                     Acepto los{' '}
-                    <a href="#" className="text-emerald-600 hover:text-emerald-700 font-medium">
+                    <a href="/terminos#terminos" target="_blank" rel="noopener" className="text-emerald-600 hover:text-emerald-700 font-medium underline">
                       términos y condiciones
                     </a>
                     {' '}y la{' '}
-                    <a href="#" className="text-emerald-600 hover:text-emerald-700 font-medium">
+                    <a href="/terminos#privacidad" target="_blank" rel="noopener" className="text-emerald-600 hover:text-emerald-700 font-medium underline">
                       política de privacidad
                     </a>
                   </span>
