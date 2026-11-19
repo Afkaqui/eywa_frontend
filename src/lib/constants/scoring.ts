@@ -61,3 +61,35 @@ export const GENES_CATEGORIES: Record<string, string> = {
   economico: 'Económico',
   general:   'General',
 };
+
+// Pesos oficiales de los 14 criterios GENES (criterios_GENES.json), por título.
+// Respaldo cuando no se tienen las preguntas cargadas: el breakdown guardado no
+// trae el peso. Fuente ÚNICA para el Panel y el resumen del Diagnóstico, que antes
+// promediaban distinto (uno simple, otro ponderado) y mostraban cifras diferentes.
+const PESOS_GENES: Record<string, number> = {
+  'formalización legal': .03, 'liderazgo femenino': .04, 'segmento de clientes': .07,
+  'potencial de crecimiento': .10, 'sistema de m&e': .10, 'sistema de monitoreo': .10,
+  'insumos sostenibles': .10, 'huella ecológica': .03, 'certificación': .03,
+  'comercio justo': .08, 'inclusión laboral': .07, 'reconocimientos': .10,
+  'economía circular': .07, 'apoyo financiero': .03, 'viabilidad económica': .15,
+};
+export function pesoGenes(label: string): number {
+  const l = label.trim().toLowerCase();
+  for (const [k, v] of Object.entries(PESOS_GENES)) if (l.includes(k)) return v;
+  return 0;
+}
+
+/** Promedio (0-100) de una categoría, ponderado por el peso de cada criterio. */
+export function promedioPonderado(items: { label: string; score: number; maxScore: number; peso?: number }[]): number {
+  if (!items.length) return 0;
+  const pct = (i: { score: number; maxScore: number }) => (i.maxScore > 0 ? (i.score / i.maxScore) * 100 : 0);
+  const w = items.reduce((s, i) => s + (i.peso ?? pesoGenes(i.label)), 0);
+  return Math.round(w > 0
+    ? items.reduce((s, i) => s + (i.peso ?? pesoGenes(i.label)) * pct(i), 0) / w
+    : items.reduce((s, i) => s + pct(i), 0) / items.length);
+}
+
+/** Color de barra según desempeño: verde ≥80, ámbar 50-79, gris <50. */
+export function colorDesempeno(pct: number): string {
+  return pct >= 80 ? 'bg-emerald-600' : pct >= 50 ? 'bg-amber-500' : 'bg-gray-300';
+}

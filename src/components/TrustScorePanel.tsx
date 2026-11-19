@@ -11,25 +11,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Award, ChevronDown, Stethoscope, ArrowRight, Upload, TrendingUp, TrendingDown, BadgeCheck } from 'lucide-react';
 import { ProfessionalTrustGauge } from './ProfessionalTrustGauge';
-import { calculatePercentage, getGenesBand, getGenesBandClasses, GENES_BANDS, GENES_CATEGORIES, GENES_SCALE } from '@/lib/constants/scoring';
+import { calculatePercentage, getGenesBand, getGenesBandClasses, GENES_BANDS, GENES_CATEGORIES, GENES_SCALE, pesoGenes, promedioPonderado, colorDesempeno } from '@/lib/constants/scoring';
 import { DiagnosticRepository, type DiagnosticHistoryEntry } from '@/lib/repositories/diagnostic-repository';
 import type { DiagnosticResult } from '@/lib/types/database';
 
-// Respaldo si las preguntas no cargan: pesos de criterios_GENES.json por título.
-const PESOS_GENES: Record<string, number> = {
-  'formalización legal': .03, 'liderazgo femenino': .04, 'segmento de clientes': .07,
-  'potencial de crecimiento': .10, 'sistema de m&e': .10, 'insumos sostenibles': .10,
-  'huella ecológica': .03, 'certificación': .03, 'comercio justo': .08,
-  'inclusión laboral': .07, 'reconocimientos': .10, 'economía circular': .07,
-  'apoyo financiero': .03, 'viabilidad económica': .15,
-};
 const norm = (s: string) => s.trim().toLowerCase();
-function pesoRespaldo(label: string): number {
-  const l = norm(label);
-  for (const [k, v] of Object.entries(PESOS_GENES)) if (l.startsWith(k) || l.includes(k)) return v;
-  return 0;
-}
-
 const fmt = (n: number) => n.toLocaleString('es-PE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const ORDEN_CAT = ['perfil', 'ambiental', 'social', 'economico', 'general'];
 // Bandas de menor a mayor para la escala visual.
@@ -38,11 +24,7 @@ const BANDA_COLOR: Record<string, string> = {
   'Marrón': 'bg-stone-300', 'Verde': 'bg-emerald-300', 'Plata': 'bg-slate-300', 'Oro': 'bg-amber-300', 'Fénix': 'bg-orange-600',
 };
 
-function colorBarra(pct: number) {
-  if (pct >= 80) return 'bg-emerald-600';
-  if (pct >= 50) return 'bg-amber-500';
-  return 'bg-gray-300';
-}
+const colorBarra = colorDesempeno;
 
 interface Props {
   result: DiagnosticResult;
@@ -76,7 +58,7 @@ export function TrustScorePanel({ result, onRepeat, onOpenDataroom }: Props) {
 
   const items = useMemo(() => result.breakdown.map(it => {
     const pct = it.maxScore > 0 ? Math.round((it.score / it.maxScore) * 100) : 0;
-    const peso = pesos[norm(it.label)] ?? pesoRespaldo(it.label);
+    const peso = pesos[norm(it.label)] ?? pesoGenes(it.label);
     return { ...it, pct, peso, cat: it.category || 'general' };
   }), [result.breakdown, pesos]);
 
@@ -89,12 +71,7 @@ export function TrustScorePanel({ result, onRepeat, onOpenDataroom }: Props) {
         cat,
         nombre: GENES_CATEGORIES[cat] ?? cat,
         peso: its.reduce((s, i) => s + i.peso, 0),
-        prom: (() => {
-          const w = its.reduce((s, i) => s + i.peso, 0);
-          return Math.round(w > 0
-            ? its.reduce((s, i) => s + i.peso * i.pct, 0) / w
-            : its.reduce((s, i) => s + i.pct, 0) / its.length);
-        })(),
+        prom: promedioPonderado(its),
         its,
       }));
   }, [items]);
