@@ -16,6 +16,8 @@ import {
   BookOpen, Download, AlertTriangle, RotateCcw, PartyPopper,
 } from 'lucide-react';
 import type { Course } from '@/lib/types/database';
+import { TareaCurso } from './TareaCurso';
+import { EntregasCurso } from './EntregasCurso';
 
 // Convierte cualquier URL de YouTube (watch, youtu.be, shorts) a formato embed
 function toYouTubeEmbed(url: string): string | null {
@@ -361,6 +363,9 @@ export function CourseViewer({ course, onBack }: CourseViewerProps) {
           </div>
         ) : (
           <>
+            {/* Entregas de tareas por revisar (solo gestor/admin) */}
+            {['gestor', 'admin', 'superadmin'].includes(profile?.role ?? '') && <EntregasCurso courseId={course.id} />}
+
             {/* Secciones */}
             <div className="space-y-4 mb-6">
               {content.sections.map((section, i) => {
@@ -425,6 +430,9 @@ export function CourseViewer({ course, onBack }: CourseViewerProps) {
                             />
                           </div>
                         )}
+
+                        {/* Tareas de la clase: el alumno entrega aquí y ve la revisión del docente. */}
+                        {(section.tareas ?? []).map(t => <TareaCurso key={t.id} tarea={t} />)}
 
                         {section.resources.length > 0 && (
                           <div>

@@ -19,6 +19,27 @@ export interface CourseSectionRow {
   video_url: string | null;
   completed: boolean;
   resources: SectionResource[];
+  tareas?: CourseTask[];
+}
+
+export interface TaskEntrega {
+  id: string;
+  texto: string | null;
+  estado: 'enviada' | 'revisada' | 'por_corregir';
+  comentario: string | null;
+  archivo: { nombre: string; tamano: number | null; url: string } | null;
+  revisada_at: string | null;
+  enviada_at: string;
+}
+
+export interface CourseTask {
+  id: string;
+  titulo: string;
+  instrucciones: string;
+  imagen_url: string | null;
+  permite_texto: boolean;
+  permite_archivo: boolean;
+  mi_entrega: TaskEntrega | null;
 }
 
 export interface CourseContent {
