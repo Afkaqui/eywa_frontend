@@ -9,6 +9,7 @@ import { AuditPanel } from '@/components/AuditPanel';
 import { AdminPasswordDialog } from '@/components/AdminPasswordDialog';
 import { ApiClientsPanel } from '@/components/ApiClientsPanel';
 import type { Profile, UserRole, UserPlan } from '@/lib/types/database';
+import { SolicitudesBaja } from './SolicitudesBaja';
 
 export function SuperAdminDashboard() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -99,6 +100,9 @@ export function SuperAdminDashboard() {
             </div>
           ))}
         </div>
+
+        {/* Solicitudes de baja de cuenta (Ley 29733) */}
+        <SolicitudesBaja />
 
         {/* Control y auditoría — exclusivo de superadmin */}
         <AuditPanel />

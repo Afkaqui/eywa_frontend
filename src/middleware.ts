@@ -30,6 +30,7 @@ const PUBLIC_EXACT = new Set([
   '/infraestructura',  // sustentación pública (EINCUS-1-P-233-26)
   '/eywa-sello.js',    // sello que las empresas pegan en SU web (§9): lo carga cualquier visitante
   '/ir-a-agro',        // entrada única a EYWA Agro: el handler comprueba la sesión él mismo
+  '/baja',             // pedir la baja de la cuenta (Ley 29733): debe poder hacerse sin entrar
 ]);
 
 /** Rutas públicas con sub-rutas dinámicas: coinciden por PREFIJO. */
@@ -52,6 +53,7 @@ const PUBLIC_PREFIX = [
   '/api/proxy/dataroom/invited',
   '/api/proxy/stats/public',
   '/api/proxy/stats/visit',       // se dispara en CADA carga de página
+  '/api/proxy/bajas',             // POST público; GET y acciones los valida el backend (superadmin)
 
   // API para sistemas de terceros: no hay sesión, se identifican con X-Api-Key
   // y la valida el backend (§15).

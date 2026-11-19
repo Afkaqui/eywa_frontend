@@ -323,6 +323,15 @@ export function SettingsDashboard() {
           </div>
         )}
 
+        {/* Baja de la cuenta (Ley 29733): lleva a la página de solicitud. */}
+        <div className="mt-8 border border-red-100 bg-red-50/40 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex-1">
+            <div className="text-sm font-semibold text-gray-900">Eliminar mi cuenta</div>
+            <p className="text-xs text-gray-600">Pide la baja definitiva de tu cuenta y sus datos. Un administrador la revisa y te avisa por correo.</p>
+          </div>
+          <a href="/baja" className="self-start sm:self-auto px-4 py-2 rounded-full border border-red-200 bg-white text-sm font-medium text-red-700 hover:bg-red-50">Solicitar la baja</a>
+        </div>
+
       </div>
     </div>
   );
