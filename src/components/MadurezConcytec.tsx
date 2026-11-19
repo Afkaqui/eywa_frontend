@@ -19,7 +19,7 @@ export function MadurezConcytec({ plan, onActualizar }: { plan: ProjectPlanRow; 
   const [abierto, setAbierto] = useState(false);
   const [trl, setTrl] = useState<string>(m?.trl != null ? String(m.trl) : '');
   const [crl, setCrl] = useState<string>(m?.crl != null ? String(m.crl) : '');
-  const [fecha, setFecha] = useState<string>(m?.fecha ? m.fecha.slice(0, 10) : new Date().toISOString().slice(0, 10));
+  const [fecha, setFecha] = useState<string>(m?.fecha ? m.fecha.slice(0, 10) : new Date().toLocaleDateString('en-CA')); // fecha LOCAL (Perú), no UTC
   const [nota, setNota] = useState<string>(m?.nota ?? '');
   const [guardando, setGuardando] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; t: string } | null>(null);
