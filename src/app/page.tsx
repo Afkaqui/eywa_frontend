@@ -11,7 +11,6 @@ import { HeroDashboard } from '@/components/HeroDashboard';
 import { getOrgActivaId } from '@/lib/repositories/organization-repository';
 import { DiagnosticInterface } from '@/components/DiagnosticInterface';
 import { InvestorPortfolio } from '@/components/InvestorPortfolio';
-import { MobileApp } from '@/components/MobileApp';
 import { NavigationSidebar } from '@/components/NavigationSidebar';
 import { ValidadorProyectos } from '@/components/ValidadorProyectos';
 import { SuperAdminDashboard } from '@/components/SuperAdminDashboard';
@@ -27,7 +26,7 @@ import { LoadingScreen } from '@/components/LoadingScreen';
 import type { DiagnosticResult } from '@/lib/types/database';
 
 type ViewType =
-  | 'hero' | 'diagnostic' | 'portfolio' | 'mobile' | 'validator' | 'edutech'
+  | 'hero' | 'diagnostic' | 'portfolio' | 'validator' | 'edutech'
   | 'organization' | 'simbiocreacion'
   | 'notifications' | 'settings'
   | 'superadmin' | 'admin' | 'gestor';
@@ -163,7 +162,6 @@ export default function Page() {
         {currentView === 'organization' && <OrganizationProfile key={orgTab} initialTab={orgTab} onNavigate={(view) => setCurrentView(view as ViewType)} />}
         {currentView === 'simbiocreacion' && <SimbiocreacionDashboard />}
         {currentView === 'portfolio' && <InvestorPortfolio />}
-        {currentView === 'mobile' && <MobileApp />}
         {currentView === 'edutech' && <EdutechDashboard />}
 
         {currentView === 'superadmin' && role === 'superadmin' && <SuperAdminDashboard />}
