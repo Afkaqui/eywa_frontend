@@ -64,6 +64,8 @@ export default function Page() {
       diagnostico: () => setCurrentView('diagnostic'),
       validador:   () => setCurrentView('validator'),
       academia:    () => setCurrentView('edutech'),
+      // Entrada única a EYWA Agro: tras iniciar sesión, vuelve a pedir el código.
+      agro:        () => { window.location.href = '/ir-a-agro'; },
     };
     if (v && destinos[v]) destinos[v]();
   }, [user]);

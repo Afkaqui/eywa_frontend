@@ -29,6 +29,7 @@ const PUBLIC_EXACT = new Set([
   '/fase1',
   '/infraestructura',  // sustentación pública (EINCUS-1-P-233-26)
   '/eywa-sello.js',    // sello que las empresas pegan en SU web (§9): lo carga cualquier visitante
+  '/ir-a-agro',        // entrada única a EYWA Agro: el handler comprueba la sesión él mismo
 ]);
 
 /** Rutas públicas con sub-rutas dinámicas: coinciden por PREFIJO. */
