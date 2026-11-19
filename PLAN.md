@@ -125,7 +125,7 @@ fiables para aplicar cambios solas.
 
 | # | Tarea | Depende de |
 |---|---|---|
-| E1 | `/match`: qué fondos encajan con cada empresa | Fase D (catálogo vigente) |
+| E1 | ~~`/match`~~ → ✅ **hecho (2026-11-19)**: `GET /organizaciones/{referencia}/fondos` (permiso `organizaciones:leer`); documentado en la guía y el OpenAPI de Katy | — |
 | E2 | Flujo para que el **dueño real reclame** una empresa dada de alta por API | Diseño |
 | E3 | `/esg-score` (Validador como servicio) | Decidir cómo se etiqueta un resultado de IA |
 | E4 | Puntaje GENES en el sello (opt-in del dueño) | Casilla de consentimiento |
