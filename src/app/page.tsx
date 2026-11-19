@@ -74,9 +74,11 @@ export default function Page() {
   const [showDiagnosticSummary, setShowDiagnosticSummary] = useState(false);
   const diagnosticResultRef = useRef<DiagnosticResult | null>(null);
   useEffect(() => { diagnosticResultRef.current = diagnosticResult; }, [diagnosticResult]);
+  // Se decide cuando ya se SABE si hay resultado (diagCargando=false): si no,
+  // entrar por ?vista=diagnostico abría el cuestionario aunque ya estuviera hecho.
   useEffect(() => {
-    if (currentView === 'diagnostic') setShowDiagnosticSummary(!!diagnosticResultRef.current);
-  }, [currentView]);
+    if (currentView === 'diagnostic' && !diagCargando) setShowDiagnosticSummary(!!diagnosticResultRef.current);
+  }, [currentView, diagCargando]);
 
   const diagnosticService = useMemo(
     () => new DiagnosticService(new DiagnosticRepository()),
@@ -141,7 +143,11 @@ export default function Page() {
       <div key={currentView} className="ey-app ey-view flex-1 min-w-0 ml-0 md:ml-[var(--ey-sidebar,5rem)] pb-20 md:pb-0 transition-all duration-300">
         {currentView === 'hero' && <HeroDashboard diagnosticResult={diagnosticResult} cargandoDiagnostico={diagCargando} onStartDiagnostic={() => setCurrentView('diagnostic')} onOpenDataroom={() => { setOrgTab('dataroom'); setCurrentView('organization'); }} onOpenAcademia={() => setCurrentView('edutech')} />}
         {currentView === 'diagnostic' && (
-          diagnosticResult && showDiagnosticSummary ? (
+          diagCargando ? (
+            <div className="min-h-[60vh] flex items-center justify-center" aria-busy="true">
+              <div className="w-8 h-8 rounded-full border-2 border-emerald-200 border-t-emerald-600 animate-spin" />
+            </div>
+          ) : diagnosticResult && showDiagnosticSummary ? (
             <DiagnosticCompleted
               result={diagnosticResult}
               onRetake={() => setShowDiagnosticSummary(false)}

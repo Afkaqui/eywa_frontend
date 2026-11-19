@@ -132,7 +132,7 @@ export function EdutechDashboard() {
             </div>
             <div>
               <h1 className="ey-blur-in text-2xl md:text-3xl font-semibold tracking-tight text-gray-900">Academia EYWA</h1>
-              <p className="text-sm text-gray-500">Capacitacion para emprendedores sostenibles</p>
+              <p className="text-sm text-gray-500">Capacitación para emprendedores sostenibles</p>
             </div>
           </div>
         </div>
