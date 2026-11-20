@@ -61,7 +61,7 @@ PENDIENTES). Ninguna funcionalidad nueva mueve ese número por sí sola.
 | A4 | Qory: confirmar presupuesto y duración reales, alcance de saponinas (DIGEMID) y huito (Decisión CAN 516) | Qory | Hoy son estimaciones de EYWA |
 | A5 | Revisar el examen del programa de Classroom, en especial las 3 preguntas sobre Ley BIC | Quien dictó el programa | Lo redactó EYWA y ya emite certificado |
 | A6 | Descargar los **7 vídeos pendientes** del curso de Classroom | Angel | Se cortan en la pantalla de antivirus de Drive; descargarlos a mano y subirlos al VPS |
-| A7 | Eduardo envía la **definición oficial de problema** y el **glosario de taxonomía verde** del MINAM | Eduardo | Desbloquea C1 y C3 |
+| A7 | ~~Eduardo envía la definición de problema y el glosario~~ → Eduardo no validará (2026-11-19): glosario revisado contra fuentes oficiales, con fuente por término. La taxonomía verde oficial del Perú aún no se aprueba (comisión MEF-MINAM); enlazarla al publicarse | — | — |
 | A8 | Recopilar **fichas de proyectos** formulados (con bases y criterios) | Equipo formulador | Desbloquea el emulador (C9) |
 | A9 | ~~Averiguar el avance de la nueva calculadora TRL/CRL~~ → **existe** (2026-11-18): calculadora del CONCYTEC en Vincúlate, v1.1.21 en QA (`apps-qa.concytec.gob.pe/calculadora/regcalculadora/regconcurso`). Mide TRL y, como complemento, CRL; resultado referencial | — | Desbloquea TRL/CRL (C5): enlazarla desde el Validador; el IMI sigue esperando a Eduardo |
 
@@ -90,7 +90,7 @@ presenta a terceros como hecho tiene que existir.
 |---|---|---|
 | C1 | **Definición del problema** | Sección en el Validador: actor, dolor, causa raíz, urgencia, consecuencia, unidad de validación. Sale en el reporte y alimenta a la IA. El texto oficial de Eduardo se enlaza al llegar (A7) |
 | C2 | **Máximo Producto Posible (MPP)** | En el Validador: insumo principal → subproductos (uso, sector comprador, actual/potencial). Sale en el reporte |
-| C3 | **Glosario** | En la Academia: MPP, IMI, TRL/CRL, quíntuple hélice, brecha sectorial, océano azul/rojo, blended finance, innovación/obras por impuestos, SbN, NDC, OKR, debida diligencia. Definiciones de EYWA marcadas "por validar con Eduardo"; el del MINAM se enlaza al llegar |
+| C3 | **Glosario** | En la Academia: MPP, IMI, TRL/CRL, quíntuple hélice, brecha sectorial, océano azul/rojo, blended finance, innovación/obras por impuestos, SbN, NDC, OKR, debida diligencia. Hecho (2026-11-19): 33 términos con fuente oficial; la taxonomía verde del Perú se enlaza cuando se apruebe |
 | C4 | **Observaciones del consultor** (el "30 % humano") | Campo visible solo para gestor/admin en cada proyecto |
 
 **Con dependencia (no se inventan):**
