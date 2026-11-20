@@ -6,7 +6,7 @@ import { BookOpen, Search, ChevronDown, ChevronUp } from 'lucide-react';
 // Glosario (PLAN C3). La fuente es la API (/api/public/v1/glosario), la misma que
 // usa EYWA Agro: un término se corrige en un solo lugar.
 
-interface Termino { termino: string; sigla?: string; categoria: string; definicion: string }
+interface Termino { termino: string; sigla?: string; categoria: string; definicion: string; fuente?: { nombre: string; url?: string } }
 
 export function GlosarioPanel() {
   const [datos, setDatos] = useState<{ estado: string; terminos: Termino[] } | null>(null);
@@ -31,7 +31,7 @@ export function GlosarioPanel() {
         <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center"><BookOpen className="w-4 h-4 text-emerald-600" /></div>
         <div className="flex-1">
           <div className="font-semibold text-gray-900">Glosario</div>
-          <div className="text-xs text-gray-500">{datos.terminos.length} términos: MPP, IMI, TRL, quíntuple hélice, financiamiento combinado, EUDR…</div>
+          <div className="text-xs text-gray-500">{datos.terminos.length} términos: TRL, ODS, ESG, alcances de emisiones, financiamiento combinado, EUDR… con su fuente oficial</div>
         </div>
         {abierto ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
       </button>
@@ -51,6 +51,14 @@ export function GlosarioPanel() {
                   <div key={t.termino}>
                     <dt className="text-sm font-medium text-gray-900">{t.termino}{t.sigla ? <span className="text-emerald-700"> · {t.sigla}</span> : null}</dt>
                     <dd className="text-sm text-gray-600">{t.definicion}</dd>
+                    {t.fuente && (
+                      <dd className="text-xs text-gray-400 mt-0.5">
+                        Fuente:{' '}
+                        {t.fuente.url
+                          ? <a href={t.fuente.url} target="_blank" rel="noopener noreferrer" className="text-emerald-700 hover:underline">{t.fuente.nombre}</a>
+                          : t.fuente.nombre}
+                      </dd>
+                    )}
                   </div>
                 ))}
               </dl>
