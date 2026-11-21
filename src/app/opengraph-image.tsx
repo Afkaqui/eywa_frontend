@@ -11,26 +11,12 @@ const CACAO = '#2B1A10';
 const BOSQUE = '#1E7A4C';
 const BROTE = '#DCEFE3';
 
+// Estandarte (blanco y bosque) como SVG: el mismo dibujo de public/logo-invertido.svg.
+const ESTANDARTE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 260"><rect x="6" y="5" width="12" height="247" fill="#FFFFFF"/><rect x="26" y="20" width="130" height="28" fill="${BOSQUE}"/><rect x="26" y="56" width="130" height="21" fill="${BOSQUE}"/><rect x="26" y="85" width="130" height="21" fill="${BOSQUE}"/><polygon points="26,114 156,114 156,165 91,140 26,165" fill="${BOSQUE}"/></svg>`;
+
 function Estandarte({ alto }: { alto: number }) {
-  const s = alto / 260;
-  const r = (x: number, y: number, w: number, h: number, c: string) => (
-    <div style={{ position: 'absolute', left: x * s, top: y * s, width: w * s, height: h * s, background: c, display: 'flex' }} />
-  );
-  return (
-    <div style={{ position: 'relative', width: 160 * s, height: alto, display: 'flex' }}>
-      {r(6, 5, 12, 247, '#FFFFFF')}
-      {r(26, 20, 130, 28, BOSQUE)}
-      {r(26, 56, 130, 21, BOSQUE)}
-      {r(26, 85, 130, 21, BOSQUE)}
-      {/* Punta en V: bloque con un triángulo cacao recortado abajo */}
-      {r(26, 114, 130, 51, BOSQUE)}
-      <div style={{
-        position: 'absolute', left: 26 * s, top: 140 * s, width: 0, height: 0, display: 'flex',
-        borderLeft: `${65 * s}px solid transparent`, borderRight: `${65 * s}px solid transparent`,
-        borderBottom: `${25 * s}px solid ${CACAO}`,
-      }} />
-    </div>
-  );
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={`data:image/svg+xml,${encodeURIComponent(ESTANDARTE_SVG)}`} width={(160 * alto) / 260} height={alto} alt="" />;
 }
 
 export default function Image() {
