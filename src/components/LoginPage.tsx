@@ -75,9 +75,9 @@ export function LoginPage({ onBack }: LoginPageProps) {
           </button>
 
           <div className="flex items-center gap-3 mb-12">
-            <img src={logo} alt="EYWA Logo" className="w-12 h-12 object-contain" />
+            <img src={logo} alt="UNANCHA" className="w-12 h-12 object-contain" />
             <div>
-              <div className="text-gray-900 font-bold text-2xl tracking-tight">{BRAND.name}</div>
+              <div className="font-marca text-gray-900 font-extrabold text-2xl tracking-tight">{BRAND.name}</div>
               <div className="text-emerald-600 text-xs font-medium uppercase tracking-wider">{BRAND.tagline}</div>
             </div>
           </div>

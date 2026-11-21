@@ -3,7 +3,7 @@ import { BRAND } from '@/lib/brand';
 
 // Términos y condiciones + Política de privacidad: lo que acepta quien crea una
 // cuenta (único consentimiento; cubre también la evaluación con MAVI).
-// Fuente: borrador "EYWA · Términos y Política de privacidad" (claude.ai doc),
+// Fuente: borrador "UNANCHA · Términos y Política de privacidad" (claude.ai doc),
 // pendiente de revisión legal. Si el texto cambia, cambiar TERMINOS_VERSION.
 const TERMINOS_VERSION = '2026-11-19';
 

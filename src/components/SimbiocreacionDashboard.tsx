@@ -37,7 +37,7 @@ interface RankingEntry {
 interface GraphNode {
   id: string; label: string; type: 'center' | 'category' | 'group' | 'person' | 'institution';
   x: number; y: number; vx: number; vy: number; r: number; color: string;
-  userId?: string;  // vínculo opcional a usuario EYWA (nodos person)
+  userId?: string;  // vínculo opcional a usuario UNANCHA (nodos person)
   actorId?: string; // vínculo opcional a Actor del directorio (nodos institution)
 }
 interface GraphEdge { from: string; to: string }
@@ -79,12 +79,12 @@ const ODS_LIST = [
 
 const NODE_PRESETS = [
   { type: 'category'    as const, label: 'Categoría',   color: '#f59e0b', r: 30 },
-  { type: 'group'       as const, label: 'Grupo',        color: '#047857', r: 22 },
+  { type: 'group'       as const, label: 'Grupo',        color: '#18643E', r: 22 },
   { type: 'institution' as const, label: 'Institución',  color: '#8b5cf6', r: 26 },
   { type: 'person'      as const, label: 'Persona',      color: '#94a3b8', r: 12 },
 ];
 
-const NODE_COLORS = ['#059669','#f59e0b','#84cc16','#8b5cf6','#3b82f6','#ef4444','#10b981','#f97316'];
+const NODE_COLORS = ['#1E7A4C','#f59e0b','#84cc16','#8b5cf6','#3b82f6','#ef4444','#2A8F5C','#f97316'];
 
 const EMPTY_FORM = {
   nombre: '', lugar: '', fecha: '', horaInicio: '', descripcion: '',
@@ -129,7 +129,7 @@ function buildGraph(item: Simbiocreacion, width: number, height: number): { node
   const edges: GraphEdge[] = [];
 
   nodes.push({ id: 'root', label: item.nombre.toUpperCase(), type: 'center',
-    x: cx, y: cy, vx: 0, vy: 0, r: 52, color: '#059669' });
+    x: cx, y: cy, vx: 0, vy: 0, r: 52, color: '#1E7A4C' });
 
   const cats = item.ods.length > 0
     ? item.ods.slice(0, 4).map((o, i) => ({
@@ -138,7 +138,7 @@ function buildGraph(item: Simbiocreacion, width: number, height: number): { node
       }))
     : [
         { id: 'cat-0', label: 'Categoría 1', color: '#f59e0b' },
-        { id: 'cat-1', label: 'Categoría 2', color: '#047857' },
+        { id: 'cat-1', label: 'Categoría 2', color: '#18643E' },
         { id: 'cat-2', label: 'Categoría 3', color: '#8b5cf6' },
       ];
 
@@ -161,7 +161,7 @@ function buildGraph(item: Simbiocreacion, width: number, height: number): { node
       const gDist  = Math.min(width, height) * 0.44;
       nodes.push({ id: gId, label: gLabel, type: 'group',
         x: cx + Math.cos(gAngle) * gDist, y: cy + Math.sin(gAngle) * gDist,
-        vx: 0, vy: 0, r: 22, color: '#047857' });
+        vx: 0, vy: 0, r: 22, color: '#18643E' });
       edges.push({ from: cat.id, to: gId });
     });
   });
@@ -405,14 +405,14 @@ export const NetworkGraph = forwardRef<GraphHandle, NetworkGraphProps>(function 
               {/* selection ring */}
               {(isSelected || isConnFrom) && (
                 <circle cx={n.x} cy={n.y} r={n.r+6}
-                  fill="none" stroke={isConnFrom ? '#f59e0b' : '#059669'}
+                  fill="none" stroke={isConnFrom ? '#f59e0b' : '#1E7A4C'}
                   strokeWidth={2.5} strokeDasharray={isConnFrom ? '6 3' : '0'} />
               )}
               {/* hit area */}
               <circle cx={n.x} cy={n.y} r={n.r+8} fill="transparent" />
               {/* node */}
               <circle cx={n.x} cy={n.y} r={n.r}
-                fill={n.type==='person' && n.userId ? '#059669' : n.color}
+                fill={n.type==='person' && n.userId ? '#1E7A4C' : n.color}
                 fillOpacity={n.type==='person' ? (n.userId ? 0.85 : 0.45) : 0.92}
                 stroke={n.type==='center' ? '#fff' : (n.userId || n.actorId) ? '#fff' : 'transparent'}
                 strokeWidth={n.type==='center' ? 3 : (n.userId || n.actorId) ? 1.5 : 0} />
@@ -668,7 +668,7 @@ export function SimbiocreacionDashboard() {
       const anchor = stored.nodes.find(n => n.type === 'center') ?? stored.nodes[0];
       const nodeId = `grp-${Date.now()}`;
       payload.graphData = {
-        nodes: [...stored.nodes, { id: nodeId, label: nombre.slice(0, 12), type: 'group', color: '#047857' }],
+        nodes: [...stored.nodes, { id: nodeId, label: nombre.slice(0, 12), type: 'group', color: '#18643E' }],
         edges: [...stored.edges, { from: anchor.id, to: nodeId }],
       };
     }
@@ -1145,11 +1145,11 @@ export function SimbiocreacionDashboard() {
                           </div>
                         </div>
 
-                        {/* Link EYWA user (only for person nodes) */}
+                        {/* Link UNANCHA user (only for person nodes) */}
                         {editSelectedNode.type==='person'&&(
                           <div>
                             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                              Vincular usuario EYWA
+                              Vincular usuario UNANCHA
                             </label>
                             {editSelectedNode.userId?(
                               <div className="flex items-center gap-2 p-2 bg-emerald-50 border border-emerald-200 rounded-xl">
@@ -1510,7 +1510,7 @@ export function SimbiocreacionDashboard() {
                                           <div className="min-w-0 flex-1">
                                             <div className="flex items-center gap-1.5">
                                               <span className="text-sm font-semibold text-gray-800 truncate">{name}</span>
-                                              {n.userId&&<span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">EYWA</span>}
+                                              {n.userId&&<span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">UNANCHA</span>}
                                               {n.actorId&&<span className="text-[10px] bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">Directorio</span>}
                                             </div>
                                             <div className="text-xs text-gray-400 truncate">en {parent}</div>

@@ -31,7 +31,7 @@ async function reenviar(req: NextRequest, ruta: string[]) {
       cache:   'no-store',
     });
   } catch {
-    return NextResponse.json({ error: 'EYWA no está disponible en este momento. Reintenta más tarde.' }, { status: 502 });
+    return NextResponse.json({ error: 'UNANCHA no está disponible en este momento. Reintenta más tarde.' }, { status: 502 });
   }
 
   // Se reenvían las cabeceras que el cliente necesita para gestionar el límite.

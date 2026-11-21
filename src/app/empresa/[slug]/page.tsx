@@ -39,19 +39,19 @@ export default function EmpresaLandingPage({ params }: { params: Promise<{ slug:
   }, [slug]);
 
   useEffect(() => {
-    if (state.status === 'ok') document.title = `${state.data.organization.name} · EYWA`;
+    if (state.status === 'ok') document.title = `${state.data.organization.name} · UNANCHA`;
   }, [state]);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Marca EYWA */}
+      {/* Marca UNANCHA */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between">
           <a href="/" className="flex items-center gap-2 md:gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="EYWA Logo" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
+            <img src="/logo.png" alt="UNANCHA" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
             <div>
-              <div className="text-gray-900 font-bold text-base md:text-xl tracking-tight">EYWA</div>
+              <div className="font-marca text-gray-900 font-extrabold text-base md:text-xl tracking-tight">UNANCHA</div>
               <div className="text-emerald-600 text-[10px] md:text-xs tracking-wider hidden sm:block">ORQUESTACIÓN DE ECOSISTEMAS</div>
             </div>
           </a>
@@ -79,7 +79,7 @@ export default function EmpresaLandingPage({ params }: { params: Promise<{ slug:
               El enlace puede haber cambiado, o su perfil público fue desactivado.
             </p>
             <a href="/" className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-colors">
-              Conocer EYWA
+              Conocer UNANCHA
             </a>
           </div>
         )}
@@ -144,7 +144,7 @@ export default function EmpresaLandingPage({ params }: { params: Promise<{ slug:
                       <div className={`h-2 rounded-full ${pct === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: `${pct}%` }} />
                     </div>
                     <p className="text-xs text-gray-400 mt-2">
-                      Documentación corporativa organizada y verificable en EYWA.
+                      Documentación corporativa organizada y verificable en UNANCHA.
                     </p>
                   </div>
                 </div>
@@ -192,7 +192,7 @@ export default function EmpresaLandingPage({ params }: { params: Promise<{ slug:
               <div className="mt-6 rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-800 p-6 md:p-8 text-center">
                 <h2 className="text-lg md:text-xl font-bold text-white mb-2">Ordena tu empresa y ábrele la puerta a la inversión</h2>
                 <p className="text-emerald-100 text-sm mb-5 max-w-lg mx-auto">
-                  Con EYWA organizas tu documentación, mides tu impacto ESG y generas confianza ante inversores y bancos.
+                  Con UNANCHA organizas tu documentación, mides tu impacto ESG y generas confianza ante inversores y bancos.
                 </p>
                 <a href="/" className="inline-flex items-center gap-2 px-6 py-3 bg-white text-emerald-700 rounded-xl text-sm font-semibold hover:bg-emerald-50 transition-colors">
                   Crear mi dataroom <ArrowRight className="w-4 h-4" />

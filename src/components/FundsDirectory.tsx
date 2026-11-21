@@ -12,7 +12,7 @@ import { FundsReviewPanel } from '@/components/FundsReviewPanel';
 // Catálogo de Fondos (matriz Neo) — solo Premium o gestor+.
 // Los free ven un teaser honesto con los conteos reales (GET /summary).
 
-// Etiquetas temáticas (taxonomía EYWA). Espejo de lib/sector-tags.ts del backend.
+// Etiquetas temáticas (taxonomía UNANCHA). Espejo de lib/sector-tags.ts del backend.
 const TAG_LABELS: Record<string, string> = {
   clima: 'Clima y carbono', ambiente: 'Medio ambiente y biodiversidad', agua: 'Agua y océanos',
   agro: 'Agro y alimentación', energia: 'Energía', circular: 'Economía circular',

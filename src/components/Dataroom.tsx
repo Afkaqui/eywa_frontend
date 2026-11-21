@@ -158,7 +158,7 @@ export function Dataroom({ orgId }: { orgId?: string } = {}) {
         <div className="flex items-start gap-2.5 text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
           <Lock className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
           <p>
-            Todos los documentos son <strong>privados</strong> por defecto. Solo tú (y el equipo de EYWA
+            Todos los documentos son <strong>privados</strong> por defecto. Solo tú (y el equipo de UNANCHA
             para soporte) pueden verlos. Nada se publica salvo que lo marques explícitamente.
           </p>
         </div>
@@ -361,7 +361,7 @@ function SelloWeb({ slug }: { slug: string }) {
     <div className="bg-white border border-gray-200 rounded-lg p-3 mb-3">
       <div className="text-xs font-semibold text-gray-700 mb-1">Sello para tu web</div>
       <p className="text-xs text-gray-500 mb-2">
-        Pega este código en tu página. Muestra tu perfil en EYWA y cuánto tienes documentado, con enlace a tu
+        Pega este código en tu página. Muestra tu perfil en UNANCHA y cuánto tienes documentado, con enlace a tu
         página pública. No es una certificación y no muestra tu puntaje.
       </p>
       <div className="flex items-center gap-2 mb-2">

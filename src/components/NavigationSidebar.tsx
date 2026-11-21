@@ -155,7 +155,7 @@ export function NavigationSidebar({ currentView, userRole, userName, userEmail, 
             <img src={logo} alt={`${BRAND.name} logo`} className="w-10 h-10 object-contain flex-shrink-0" />
             {isExpanded && (
               <div className="overflow-hidden">
-                <div className="text-gray-900 font-bold text-xl tracking-tight">{BRAND.name}</div>
+                <div className="font-marca text-gray-900 font-extrabold text-xl tracking-tight">{BRAND.name}</div>
                 <div className="text-emerald-600 text-[11px] leading-tight">{BRAND.tagline}</div>
               </div>
             )}

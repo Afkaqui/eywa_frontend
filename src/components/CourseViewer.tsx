@@ -64,7 +64,7 @@ export function CourseViewer({ course, onBack }: CourseViewerProps) {
   const [error, setError] = useState<string | null>(null);
   const [enrolling, setEnrolling] = useState(false);
 
-  const holderName = profile?.fullName || profile?.email || 'Participante EYWA';
+  const holderName = profile?.fullName || profile?.email || 'Participante UNANCHA';
 
   const loadContent = useCallback(async () => {
     try {

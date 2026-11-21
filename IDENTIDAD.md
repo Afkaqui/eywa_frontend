@@ -1,4 +1,4 @@
-# EYWA — Identidad visual y de marca
+# UNANCHA (antes EYWA) — Identidad visual y de marca
 
 > **Fuente de verdad del diseño.** Todo el proyecto (frontend, documentos, PDFs,
 > correos) debe respetar esta identidad. Derivada de los **módulos fundacionales**
@@ -6,40 +6,57 @@
 > LoginPage, NavigationSidebar, ValidadorProyectos, ProfessionalTrustGauge.
 >
 > Si un componente nuevo contradice este documento, gana este documento.
-> Última actualización: 2026-07-13
+> Última actualización: 2026-11-21
 
 ---
 
 ## 1. Marca
 
-- **Nombre:** EYWA (siempre en mayúsculas).
-- **Descriptor:** "Plataforma de Orquestación Ecosistémica y Sostenibilidad".
-- **Concepto:** conectar y orquestar ecosistemas (gobierno, empresas, inversores,
-  sociedad civil) con datos para una **sostenibilidad medible**.
-- **Símbolo:** un árbol formado por una red de nodos (naturaleza + datos). El verde
-  de sus hojas es el color primario de la marca.
-- **Métrica insignia:** el **Trust Score** (medidor de confianza). La confianza y lo
-  *medible/verificable* son el ADN — nada de datos inventados (ver §7).
+> **Cambio de marca (2026-11-21):** EYWA pasa a llamarse **UNANCHA** en toda la
+> plataforma (web, Agro, correos, PDFs). Fuente: `../branding/unancha/Dossier_UNANCHA_001.docx`.
+> El nombre está sujeto a verificación en INDECOPI y la EUIPO: se lee siempre de
+> `src/lib/brand.ts` (BRAND) para poder cambiarlo en un solo lugar. Los recursos de
+> la marca anterior están en `../branding/eywa_anterior/`.
 
----
+- **Nombre:** UNANCHA (siempre en mayúsculas). Producto agro: **UNANCHA Agro**.
+- **Significado:** en quechua, *unancha* es estandarte, insignia o marca distintiva:
+  lo que da fe de quién es alguien o de dónde viene algo.
+- **Descriptor:** "Plataforma de Orquestación Ecosistémica y Sostenibilidad".
+  Eslogan agro: "Unancha: el sello de origen de tu cacao" / "proof of origin, from plot to sack".
+- **Símbolo:** un estandarte. El mástil es el origen (parcela y productor); las tres
+  franjas, la trazabilidad (parcela, cosecha y lote) y las terrazas; la punta en V,
+  el sello verificable. Archivos: `public/logo.png` (cacao, fondo claro),
+  `public/logo.svg`, `public/logo-invertido.svg` (blanco y bosque, fondo cacao).
+- **Firma:** símbolo + "UNANCHA" en Archivo ExtraBold (`font-marca font-extrabold`)
+  + tagline. El símbolo puede usarse solo; por debajo de 16 px, solo el símbolo.
+- **Tipografía:** Archivo (logotipo y titulares h1/h2) e IBM Plex Sans (interfaz y datos),
+  cargadas en `layout.tsx`.
+- **Métrica insignia:** el **Trust Score**. Lo *medible/verificable* es el ADN: nada de
+  datos inventados (ver §7).
 
 ## 2. Color
 
-### Primario — Emerald (verde EYWA)
-Es EL color de la marca (176 usos en los módulos fundacionales; **cero teal**).
+### Paleta UNANCHA (cerrada)
+| Nombre | Hex | Uso |
+|-------|-----|-----|
+| Cacao  | `#2B1A10` | Marca y textos. En Tailwind: `cacao`, y `gray-900`/`gray-800` reasignados. |
+| Bosque | `#1E7A4C` | Verificado, EUDR y la acción principal. En Tailwind: `bosque` y toda la escala `emerald-*` reasignada (`emerald-600` = bosque). |
+| Brote  | `#DCEFE3` | Fondos de estado. `brote` = `emerald-100`. |
+| Neutro | `#F7F7F5` | Base. `neutro` = `gray-50`. |
 
+La reasignación vive en `src/app/globals.css` (`@theme`) y, para Agro, en el
+`tailwind.config` de `agro-web/index.html`. Por eso las clases `emerald-*` de abajo
+siguen siendo válidas: ya pintan en bosque. Regla del dossier: el verde aparece
+sobre todo cuando algo está verificado; en piezas nuevas, preferir cacao para la marca.
+
+### Escala verde (emerald → bosque)
 | Token | Uso |
 |-------|-----|
-| `emerald-600` | **Acción primaria**: botones, enlaces, foco. El más usado. |
-| `emerald-700` | Hover de la acción primaria; texto verde sobre claro (contraste WCAG). |
+| `emerald-600` | **Acción primaria**: botones, enlaces, foco. |
+| `emerald-700` | Hover de la acción primaria; texto verde sobre claro. |
 | `emerald-500` | Íconos y acentos; inicio de gradientes. |
-| `emerald-100` | Fondos suaves (chips activos, badges, halos de ícono). |
-| `emerald-50`  | Fondos muy suaves (paneles destacados). |
-| `emerald-400 / 900` | Apoyo (gradiente claro / texto muy oscuro puntual). |
-
-**Gradiente de marca:** `bg-gradient-to-br from-emerald-500 to-emerald-700`
-(variante clara `from-emerald-400 to-emerald-600`). Se usa en el mark del logo,
-avatares y CTAs destacados.
+| `emerald-100` | Fondos suaves (brote). |
+| `emerald-50`  | Fondos muy suaves. |
 
 ### Neutrales — Gray
 | Token | Uso |

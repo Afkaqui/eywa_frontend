@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 const API_URL = process.env.BACKEND_URL ?? 'http://localhost:4001';
 
 // Verificación PÚBLICA de certificados (sin sesión): cualquier tercero
-// (empleador, inversor) puede validar un certificado EYWA por su código.
+// (empleador, inversor) puede validar un certificado UNANCHA por su código.
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
   try {

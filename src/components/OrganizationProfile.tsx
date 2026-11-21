@@ -54,7 +54,7 @@ const ORG_TYPES: {
     icon: GraduationCap,
     label: 'ACADEMIA / ONG',
     sublabel: 'Academia',
-    description: 'Uso EYWA con fines educativos o de investigación',
+    description: 'Uso UNANCHA con fines educativos o de investigación',
     color: 'bg-purple-50 border-purple-200 hover:border-purple-400 hover:bg-purple-100',
     activeColor: 'bg-purple-500 border-purple-500',
     textColor: 'text-purple-700',
@@ -107,7 +107,7 @@ const labelCls = 'block text-xs font-semibold text-gray-500 uppercase tracking-w
 
 export function OrganizationProfile({ onNavigate, initialTab = 'perfil' }: {
   onNavigate?: (view: string) => void;
-  /** Pestaña inicial (p. ej. 'dataroom' al llegar desde EYWA Agro). */
+  /** Pestaña inicial (p. ej. 'dataroom' al llegar desde UNANCHA Agro). */
   initialTab?: 'perfil' | 'esg' | 'dataroom';
 } = {}) {
   const { profile } = useAuth();

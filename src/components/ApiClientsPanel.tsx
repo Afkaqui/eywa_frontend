@@ -5,7 +5,7 @@ import { KeyRound, Plus, RefreshCw, Ban, Copy, Check, Loader2, AlertTriangle, X 
 
 // Clientes de la API externa (§15) — proceso de claves sin tocar la BD a mano.
 //
-// La clave en claro solo existe en la respuesta de "emitir" o "rotar": EYWA guarda
+// La clave en claro solo existe en la respuesta de "emitir" o "rotar": UNANCHA guarda
 // su sha256. Por eso se muestra en un recuadro aparte con aviso explícito, y al
 // cerrarlo se pierde. Si alguien la pierde, se ROTA (mismo cliente, mismas
 // empresas), no se emite un cliente nuevo.

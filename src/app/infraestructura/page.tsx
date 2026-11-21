@@ -122,9 +122,9 @@ export default function InfraestructuraPage() {
         <div className="max-w-6xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between gap-3">
           <a href="/" className="flex items-center gap-2 md:gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="EYWA Logo" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
+            <img src="/logo.png" alt="UNANCHA" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
             <div>
-              <div className="text-gray-900 font-bold text-base md:text-xl tracking-tight">EYWA</div>
+              <div className="font-marca text-gray-900 font-extrabold text-base md:text-xl tracking-tight">UNANCHA</div>
               <div className="text-emerald-600 text-[10px] md:text-xs tracking-wider hidden sm:block">
                 ORQUESTACIÓN DE ECOSISTEMAS
               </div>
@@ -219,7 +219,7 @@ export default function InfraestructuraPage() {
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-10">
-          EYWA Agro · Proyecto EINCUS-1-P-233-26 · Cifras leídas en vivo de la plataforma
+          UNANCHA Agro · Proyecto EINCUS-1-P-233-26 · Cifras leídas en vivo de la plataforma
         </p>
       </main>
     </div>

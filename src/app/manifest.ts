@@ -2,14 +2,14 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "EYWA - Plataforma de Orquestación Ecosistémica",
-    short_name: "EYWA",
+    name: "UNANCHA - Plataforma de Orquestación Ecosistémica",
+    short_name: "UNANCHA",
     description:
       "Plataforma inteligente de gestión de datos para impulsar la sostenibilidad medible.",
     start_url: "/",
     display: "standalone",
-    background_color: "#ffffff",
-    theme_color: "#030213",
+    background_color: "#F7F7F5",
+    theme_color: "#2B1A10",
     icons: [
       {
         src: "/icon-192.png",

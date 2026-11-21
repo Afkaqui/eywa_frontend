@@ -1,5 +1,38 @@
 @import "tailwindcss";
 
+/* ── Identidad UNANCHA (Dossier_UNANCHA_001, §1.5) ─────────────────────────────
+   Paleta cerrada: el cacao lleva la marca y los textos; el verde (bosque) aparece
+   cuando algo está verificado o es la acción principal.
+   · Cacao  #2B1A10  marca y textos        · Bosque #1E7A4C  verificado, EUDR
+   · Brote  #DCEFE3  fondos de estado      · Neutro #F7F7F5  base
+   La escala "emerald" de Tailwind se reasigna al bosque y gray-800/900 al cacao, así
+   todas las pantallas toman la identidad sin reescribir cada clase. */
+@theme {
+  --color-cacao: #2B1A10;
+  --color-bosque: #1E7A4C;
+  --color-brote: #DCEFE3;
+  --color-neutro: #F7F7F5;
+
+  --color-emerald-50:  #EEF7F1;
+  --color-emerald-100: #DCEFE3;
+  --color-emerald-200: #B8E0C8;
+  --color-emerald-300: #86C9A3;
+  --color-emerald-400: #4FAA7A;
+  --color-emerald-500: #2A8F5C;
+  --color-emerald-600: #1E7A4C;
+  --color-emerald-700: #18643E;
+  --color-emerald-800: #134F31;
+  --color-emerald-900: #0E3B25;
+  --color-emerald-950: #082516;
+
+  --color-gray-50:  #F7F7F5;
+  --color-gray-800: #3D2A1E;
+  --color-gray-900: #2B1A10;
+
+  --font-sans: var(--font-plex), "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-marca: var(--font-archivo), "Archivo", var(--font-plex), system-ui, sans-serif;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -10,14 +43,14 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: #030213;
+  --primary: #2B1A10;
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.95 0.0058 264.53);
-  --secondary-foreground: #030213;
+  --secondary-foreground: #2B1A10;
   --muted: #ececf0;
   --muted-foreground: #717182;
   --accent: #e9ebef;
-  --accent-foreground: #030213;
+  --accent-foreground: #2B1A10;
   --destructive: #d4183d;
   --destructive-foreground: #ffffff;
   --border: rgba(0, 0, 0, 0.1);
@@ -35,7 +68,7 @@
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: #030213;
+  --sidebar-primary: #2B1A10;
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.97 0 0);
   --sidebar-accent-foreground: oklch(0.205 0 0);
@@ -127,7 +160,7 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -183,6 +216,9 @@ html {
   font-size: var(--font-size);
 }
 
+/* Titulares y logotipo en Archivo (marca); el resto en IBM Plex Sans. */
+h1, h2, .font-marca { font-family: var(--font-marca); letter-spacing: -0.01em; }
+
 /* ── Movimiento de la identidad v2 (ver IDENTIDAD.md §9) ─────────────────── */
 @keyframes ey-blur-in { from { opacity: 0; filter: blur(10px); transform: translateY(10px); } to { opacity: 1; filter: blur(0); transform: none; } }
 @keyframes ey-fade-up { from { opacity: 0; transform: translateY(36px); } to { opacity: 1; transform: none; } }
@@ -231,38 +267,38 @@ html {
 @keyframes fx-rotate-in { from { opacity: 0; filter: blur(8px); transform: translateY(40%); } to { opacity: 1; filter: blur(0); transform: none; } }
 
 /* Insignia: borde en degradado que gira + brillo en el texto */
-.fx-badge { background: linear-gradient(#ecfdf5, #ecfdf5) padding-box, conic-gradient(from var(--fx-angle), #a7f3d0, #10b981, #fde68a, #10b981, #a7f3d0) border-box; border: 1.5px solid transparent; color: #047857; animation: fx-spin 5s linear infinite; }
-.fx-shine { background: linear-gradient(110deg, #047857 40%, #6ee7b7 50%, #047857 60%) 0 0 / 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: fx-shine 3.2s linear infinite; }
+.fx-badge { background: linear-gradient(#EEF7F1, #EEF7F1) padding-box, conic-gradient(from var(--fx-angle), #a7f3d0, #2A8F5C, #fde68a, #2A8F5C, #a7f3d0) border-box; border: 1.5px solid transparent; color: #18643E; animation: fx-spin 5s linear infinite; }
+.fx-shine { background: linear-gradient(110deg, #18643E 40%, #86C9A3 50%, #18643E 60%) 0 0 / 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: fx-shine 3.2s linear infinite; }
 
 /* Texto rotativo */
 .fx-rotate { animation: fx-rotate-in .55s cubic-bezier(.2,.7,.2,1) both; }
 
 /* Haz que recorre el borde */
-.fx-beam { padding: 2px; background: conic-gradient(from var(--fx-angle), transparent 0 75%, #34d399 85%, #a7f3d0 90%, transparent 100%); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; animation: fx-spin 4s linear infinite; }
+.fx-beam { padding: 2px; background: conic-gradient(from var(--fx-angle), transparent 0 75%, #4FAA7A 85%, #a7f3d0 90%, transparent 100%); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; animation: fx-spin 4s linear infinite; }
 
 /* Foco que sigue al cursor */
 .fx-spot { --fx-x: 70%; --fx-y: 20%; }
-.fx-spot::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(520px circle at var(--fx-x) var(--fx-y), rgba(16,185,129,.13), transparent 70%); transition: background .2s; }
+.fx-spot::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(520px circle at var(--fx-x) var(--fx-y), rgba(42, 143, 92,.13), transparent 70%); transition: background .2s; }
 
 /* Marquesina con bordes difuminados */
 .fx-marquee-mask { -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
 
 @media (prefers-reduced-motion: reduce) {
   .fx-badge, .fx-beam { animation-duration: 12s; }
-  .fx-shine { animation: none; color: #047857; background: none; }
+  .fx-shine { animation: none; color: #18643E; background: none; }
   .fx-rotate { animation: ey-fade .4s ease both; }
 }
 
 /* Línea de tiempo de pasos (StepsTimeline) */
-@keyframes fx-ping { 0% { box-shadow: 0 0 0 0 rgba(16,185,129,.45); } 100% { box-shadow: 0 0 0 14px rgba(16,185,129,0); } }
+@keyframes fx-ping { 0% { box-shadow: 0 0 0 0 rgba(42, 143, 92,.45); } 100% { box-shadow: 0 0 0 14px rgba(42, 143, 92,0); } }
 .fx-steps-line { position: absolute; left: 19px; top: 28px; bottom: 28px; width: 2px; background: #e5e7eb; border-radius: 2px; }
-.fx-steps-line > i { display: block; width: 100%; height: calc(var(--p, 0) * 100%); background: linear-gradient(#6ee7b7, #059669); border-radius: 2px; transition: height .15s linear; }
+.fx-steps-line > i { display: block; width: 100%; height: calc(var(--p, 0) * 100%); background: linear-gradient(#86C9A3, #1E7A4C); border-radius: 2px; transition: height .15s linear; }
 .fx-step { opacity: .35; transform: translateX(28px); transition: opacity .6s ease, transform .6s cubic-bezier(.2,.7,.2,1), border-color .4s; }
 .fx-step.is-in { opacity: 1; transform: none; border-color: #a7f3d0; }
 .fx-step-num { transition: background-color .4s, color .4s, border-color .4s; }
-.fx-step.is-in .fx-step-num { background: #10b981; border-color: #10b981; color: #fff; animation: fx-ping 1s ease-out 1; }
+.fx-step.is-in .fx-step-num { background: #2A8F5C; border-color: #2A8F5C; color: #fff; animation: fx-ping 1s ease-out 1; }
 .fx-num { transition: background-color .5s, color .5s, border-color .5s; }
-.fx-num.is-in { background: #10b981; border-color: #10b981; color: #fff; animation: fx-ping 1s ease-out 1; }
+.fx-num.is-in { background: #2A8F5C; border-color: #2A8F5C; color: #fff; animation: fx-ping 1s ease-out 1; }
 @media (prefers-reduced-motion: reduce) { .fx-step { transform: none; } }
 
 /* Órbitas de puntos (Orbits) */
@@ -291,11 +327,11 @@ html {
 .ey-app :is([class~="grid"], [class~="space-y-4"], [class~="space-y-6"]) > *:nth-child(5) { animation-delay: .2s; }
 .ey-app :is([class~="grid"], [class~="space-y-4"], [class~="space-y-6"]) > *:nth-child(n+6) { animation-delay: .25s; }
 
-/* Botones de acción en píldora (verde EYWA o el oscuro de los CTA) */
+/* Botones de acción en píldora (verde de la marca o el oscuro de los CTA) */
 .ey-app :is(button, a):is([class~="bg-emerald-600"], [class~="bg-emerald-500"], [class~="bg-gray-900"]) {
   border-radius: 9999px; transition: transform .2s ease, background-color .2s ease, box-shadow .2s ease;
 }
-.ey-app :is(button, a):is([class~="bg-emerald-600"], [class~="bg-emerald-500"], [class~="bg-gray-900"]):not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(5,150,105,.18); }
+.ey-app :is(button, a):is([class~="bg-emerald-600"], [class~="bg-emerald-500"], [class~="bg-gray-900"]):not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(30, 122, 76,.18); }
 
 /* Tarjetas: sombra suave al pasar el cursor */
 .ey-app [class~="bg-white"][class~="border"]:is([class~="rounded-xl"], [class~="rounded-2xl"]) { transition: box-shadow .3s ease, border-color .3s ease; }

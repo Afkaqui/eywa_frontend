@@ -88,7 +88,7 @@ export function HomePage({ onGetStarted }: HomePageProps) {
           <a href="#inicio" className="flex items-center gap-2.5">
             <img src={BRAND.logo} alt={BRAND.name} className="h-9 w-9 object-contain md:h-10 md:w-10" />
             <span className="leading-tight">
-              <span className="block text-lg font-bold tracking-wide">{BRAND.name}</span>
+              <span className="font-marca block text-lg font-extrabold tracking-wide">{BRAND.name}</span>
               <span className="hidden text-[10px] font-medium uppercase tracking-wider text-emerald-600 sm:block">{BRAND.tagline}</span>
             </span>
           </a>
@@ -152,7 +152,7 @@ export function HomePage({ onGetStarted }: HomePageProps) {
                     <img src={BRAND.logo} alt="" className="h-5 w-5 object-contain" />Sello {BRAND.name}
                   </div>
                   <div className="flex flex-col items-center gap-2 rounded-2xl bg-gray-50 p-4">
-                    <div className="flex h-28 w-28 items-center justify-center rounded-full" style={{ background: 'conic-gradient(#10b981 0 72%, #e5e7eb 72% 100%)' }}>
+                    <div className="flex h-28 w-28 items-center justify-center rounded-full" style={{ background: 'conic-gradient(#2A8F5C 0 72%, #e5e7eb 72% 100%)' }}>
                       <div className="flex h-[86px] w-[86px] flex-col items-center justify-center rounded-full bg-white">
                         <span className="text-xs font-semibold text-gray-500">Trust Score</span>
                       </div>
@@ -378,7 +378,7 @@ export function HomePage({ onGetStarted }: HomePageProps) {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm sm:px-6 md:flex-row">
           <div className="flex flex-wrap items-center justify-center gap-3">
             <img src={BRAND.logo} alt={BRAND.name} className="h-8 w-8 rounded-lg bg-white object-contain" />
-            <span className="font-semibold text-white">{BRAND.name}</span>
+            <span className="font-marca font-extrabold text-white">{BRAND.name}</span>
             <span>· Sostenibilidad medible, verificable y trazable</span>
           </div>
           <span className="text-xs">&copy; {new Date().getFullYear()} {BRAND.name}. Todos los derechos reservados.</span>

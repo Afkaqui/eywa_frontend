@@ -41,7 +41,7 @@ export default function Page() {
   const [diagCargando, setDiagCargando] = useState(true);
   const [orgTab, setOrgTab] = useState<'perfil' | 'esg' | 'dataroom'>('perfil');
 
-  // Enlace profundo: ?vista=dataroom|diagnostico|validador|academia (lo usa EYWA
+  // Enlace profundo: ?vista=dataroom|diagnostico|validador|academia (lo usa UNANCHA
   // Agro). Se guarda en sessionStorage para sobrevivir al login: si la persona no
   // tenía sesión en este dominio, llega a la sección pedida después de entrar.
   useEffect(() => {
@@ -63,7 +63,7 @@ export default function Page() {
       diagnostico: () => setCurrentView('diagnostic'),
       validador:   () => setCurrentView('validator'),
       academia:    () => setCurrentView('edutech'),
-      // Entrada única a EYWA Agro: tras iniciar sesión, vuelve a pedir el código.
+      // Entrada única a UNANCHA Agro: tras iniciar sesión, vuelve a pedir el código.
       agro:        () => { window.location.href = '/ir-a-agro'; },
     };
     if (v && destinos[v]) destinos[v]();

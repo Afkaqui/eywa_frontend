@@ -53,7 +53,7 @@ export default function BajaPage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={BRAND.logo} alt="" className="w-10 h-10 object-contain" />
           <div>
-            <div className="text-xl font-bold text-gray-900 tracking-tight">{BRAND.name}</div>
+            <div className="font-marca text-xl font-extrabold text-gray-900 tracking-tight">{BRAND.name}</div>
             <div className="text-xs text-emerald-600">{BRAND.tagline}</div>
           </div>
         </div>

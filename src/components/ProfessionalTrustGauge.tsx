@@ -29,8 +29,8 @@ export function ProfessionalTrustGauge({ score }: ProfessionalTrustGaugeProps) {
         {/* Middle ring with gradient - progress */}
         <defs>
           <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#10B981" />
-            <stop offset="100%" stopColor="#064E3B" />
+            <stop offset="0%" stopColor="#2A8F5C" />
+            <stop offset="100%" stopColor="#0E3B25" />
           </linearGradient>
           
           {/* Metallic shimmer effect */}

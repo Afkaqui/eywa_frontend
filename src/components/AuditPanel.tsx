@@ -252,7 +252,7 @@ export function AuditPanel() {
         ) : (
           <>
             <p className="text-xs text-gray-500 mb-3">
-              Personas sin cuenta en EYWA que ahora mismo pueden abrir el dataroom
+              Personas sin cuenta en UNANCHA que ahora mismo pueden abrir el dataroom
               completo de una empresa. Solo el dueño de cada dataroom puede revocarlas.
             </p>
             <div className="space-y-2">

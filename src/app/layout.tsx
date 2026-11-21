@@ -1,17 +1,23 @@
 import type { Metadata } from "next";
+import { Archivo, IBM_Plex_Sans } from "next/font/google";
 import { Suspense } from "react";
 import { SessionProvider } from "next-auth/react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import VisitTracker from "@/components/VisitTracker";
 import "./globals.css";
 
+// Tipografías de la marca (Dossier UNANCHA §1.5): Archivo para el logotipo y los
+// titulares; IBM Plex Sans para la interfaz y los datos.
+const archivo = Archivo({ subsets: ["latin"], weight: ["600", "700", "800"], variable: "--font-archivo", display: "swap" });
+const plex = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-plex", display: "swap" });
+
 export const metadata: Metadata = {
   title: {
-    default: "EYWA - Plataforma de Orquestación Ecosistémica y Sostenibilidad",
-    template: "%s | EYWA",
+    default: "UNANCHA - Plataforma de Orquestación Ecosistémica y Sostenibilidad",
+    template: "%s | UNANCHA",
   },
   description:
-    "EYWA conecta y orquesta los ecosistemas de gobierno, empresas, inversores y sociedad civil a través de una plataforma inteligente de gestión de datos para impulsar la sostenibilidad medible.",
+    "UNANCHA conecta y orquesta los ecosistemas de gobierno, empresas, inversores y sociedad civil a través de una plataforma inteligente de gestión de datos para impulsar la sostenibilidad medible.",
   keywords: [
     "sostenibilidad",
     "ESG",
@@ -26,11 +32,11 @@ export const metadata: Metadata = {
     "economía circular",
     "deep tech",
     "sustainability platform",
-    "EYWA",
+    "UNANCHA",
   ],
-  authors: [{ name: "EYWA Platform" }],
-  creator: "EYWA",
-  publisher: "EYWA Platform",
+  authors: [{ name: "UNANCHA" }],
+  creator: "UNANCHA",
+  publisher: "UNANCHA",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://eywa-hazel.vercel.app"),
   alternates: {
     canonical: "/",
@@ -41,14 +47,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "es_ES",
-    siteName: "EYWA",
-    title: "EYWA - Plataforma de Orquestación Ecosistémica y Sostenibilidad",
+    siteName: "UNANCHA",
+    title: "UNANCHA - Plataforma de Orquestación Ecosistémica y Sostenibilidad",
     description:
       "Conectamos gobierno, empresas e inversores en un único flujo de trabajo colaborativo basado en datos verificables para impulsar decisiones sostenibles.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "EYWA - Plataforma de Sostenibilidad",
+    title: "UNANCHA - Plataforma de Sostenibilidad",
     description:
       "Orquestación de ecosistemas a través de datos inteligentes para la sostenibilidad medible.",
   },
@@ -84,7 +90,7 @@ const jsonLd = {
     {
       "@type": "Organization",
       "@id": `${siteUrl}/#organization`,
-      name: "EYWA",
+      name: "UNANCHA",
       url: siteUrl,
       logo: `${siteUrl}/logo.png`,
       description:
@@ -95,13 +101,13 @@ const jsonLd = {
       "@type": "WebSite",
       "@id": `${siteUrl}/#website`,
       url: siteUrl,
-      name: "EYWA",
+      name: "UNANCHA",
       inLanguage: "es",
       publisher: { "@id": `${siteUrl}/#organization` },
     },
     {
       "@type": "SoftwareApplication",
-      name: "EYWA",
+      name: "UNANCHA",
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
       url: siteUrl,
@@ -118,7 +124,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es">
+    <html lang="es" className={`${archivo.variable} ${plex.variable}`}>
       <head>
         <script
           type="application/ld+json"

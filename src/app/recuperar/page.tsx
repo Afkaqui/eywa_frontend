@@ -40,7 +40,7 @@ export default function RecuperarPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <div className="text-2xl font-bold text-gray-900 tracking-tight">EYWA</div>
+          <div className="font-marca text-2xl font-extrabold text-gray-900 tracking-tight">UNANCHA</div>
           <div className="text-sm text-gray-500 mt-1">Plataforma de sostenibilidad e impacto</div>
         </div>
 

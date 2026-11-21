@@ -156,7 +156,7 @@ export function StepNumber({ n }: { n: number }) {
 
 /** Órbitas de puntos que giran en sentidos opuestos (hero "vivo"). Determinista:
  *  mismos puntos en servidor y cliente. Decorativo: aria-hidden. */
-const ORBIT_COLORS = ['#10b981', '#6ee7b7', '#047857', '#fbbf24', '#34d399', '#065f46', '#a7f3d0'];
+const ORBIT_COLORS = ['#2A8F5C', '#86C9A3', '#18643E', '#fbbf24', '#4FAA7A', '#134F31', '#a7f3d0'];
 export function Orbits({ size = 560, rings = 4, className = '' }: { size?: number; rings?: number; className?: string }) {
   const anillos = Array.from({ length: rings }, (_, k) => {
     const radio = size / 2 - k * (size / (rings * 2.6));

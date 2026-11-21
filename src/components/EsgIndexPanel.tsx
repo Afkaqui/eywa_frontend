@@ -242,12 +242,12 @@ function EsgHistoryChart({ history }: { history: DiagnosticHistoryEntry[] }) {
           );
         })}
 
-        <path d={area} fill="#10b981" fillOpacity="0.08" />
-        <path d={line} fill="none" stroke="#10b981" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+        <path d={area} fill="#2A8F5C" fillOpacity="0.08" />
+        <path d={line} fill="none" stroke="#2A8F5C" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
 
         {pts.map((p, i) => (
           <g key={p.h.id}>
-            <circle cx={p.x} cy={p.y} r={i === pts.length - 1 ? 5 : 3.5} fill="#fff" stroke="#059669" strokeWidth="2" />
+            <circle cx={p.x} cy={p.y} r={i === pts.length - 1 ? 5 : 3.5} fill="#fff" stroke="#1E7A4C" strokeWidth="2" />
             <title>
               {`${new Date(p.h.created_at).toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' })} · ${p.idx5.toFixed(2)}/5 · ${p.h.level}`}
             </title>

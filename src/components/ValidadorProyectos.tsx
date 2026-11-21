@@ -456,7 +456,7 @@ export function ValidadorProyectos() {
                 />
               </div>
 
-              {/* TRL/CRL con la metodología del CONCYTEC (EYWA registra, no calcula). */}
+              {/* TRL/CRL con la metodología del CONCYTEC (UNANCHA registra, no calcula). */}
               <div className="mt-3">
                 <MadurezConcytec
                   plan={project}
@@ -465,7 +465,7 @@ export function ValidadorProyectos() {
               </div>
 
               {/* Evaluación con MAVI (§14). Va después del análisis
-                  propio: primero EYWA evalúa, luego se decide si se manda fuera. */}
+                  propio: primero UNANCHA evalúa, luego se decide si se manda fuera. */}
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <MaviPanel
                   plan={project}
@@ -1117,7 +1117,7 @@ function NewProjectModal({ onClose, onCreated }: { onClose: () => void; onCreate
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-                <p className="text-emerald-100">Desbloquea todas las funcionalidades de EYWA</p>
+                <p className="text-emerald-100">Desbloquea todas las funcionalidades de UNANCHA</p>
               </div>
 
               <div className="p-8">

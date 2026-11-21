@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { BookOpen, Search, ChevronDown, ChevronUp } from 'lucide-react';
 
 // Glosario (PLAN C3). La fuente es la API (/api/public/v1/glosario), la misma que
-// usa EYWA Agro: un término se corrige en un solo lugar.
+// usa UNANCHA Agro: un término se corrige en un solo lugar.
 
 interface Termino { termino: string; sigla?: string; categoria: string; definicion: string; fuente?: { nombre: string; url?: string } }
 

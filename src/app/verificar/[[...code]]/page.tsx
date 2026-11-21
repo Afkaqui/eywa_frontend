@@ -5,9 +5,9 @@ import {
   ShieldCheck, ShieldX, Loader2, Search, ArrowRight, GraduationCap, Calendar, User,
 } from 'lucide-react';
 
-// Verificación PÚBLICA de certificados de la Academia EYWA por código.
+// Verificación PÚBLICA de certificados de la Academia UNANCHA por código.
 // /verificar            → formulario para escribir el código
-// /verificar/EYWA-XXXX  → verifica directo (enlace del PDF)
+// /verificar/UNANCHA-XXXX  → verifica directo (enlace del PDF)
 
 interface VerifyResult {
   valid: boolean;
@@ -56,14 +56,14 @@ export default function VerificarCertificadoPage({ params }: { params: Promise<{
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Marca EYWA */}
+      {/* Marca UNANCHA */}
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-2xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between">
           <a href="/" className="flex items-center gap-2 md:gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="EYWA Logo" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
+            <img src="/logo.png" alt="UNANCHA" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
             <div>
-              <div className="text-gray-900 font-bold text-base md:text-xl tracking-tight">EYWA</div>
+              <div className="font-marca text-gray-900 font-extrabold text-base md:text-xl tracking-tight">UNANCHA</div>
               <div className="text-emerald-600 text-[10px] md:text-xs tracking-wider hidden sm:block">ORQUESTACIÓN DE ECOSISTEMAS</div>
             </div>
           </a>
@@ -80,7 +80,7 @@ export default function VerificarCertificadoPage({ params }: { params: Promise<{
           </div>
           <h1 className="text-2xl md:text-3xl font-light text-gray-900 mb-2">Verificación de certificados</h1>
           <p className="text-sm text-gray-500 max-w-md mx-auto">
-            Ingresa el código que aparece en el certificado de la Academia EYWA para comprobar su autenticidad.
+            Ingresa el código que aparece en el certificado de la Academia UNANCHA para comprobar su autenticidad.
           </p>
         </div>
 
@@ -93,7 +93,7 @@ export default function VerificarCertificadoPage({ params }: { params: Promise<{
             type="text"
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            placeholder="Código de verificación (ej. EYWA-XXXXXXXX)"
+            placeholder="Código de verificación (ej. UNANCHA-XXXXXXXX)"
             className="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
           />
           <button
@@ -118,7 +118,7 @@ export default function VerificarCertificadoPage({ params }: { params: Promise<{
             <ShieldX className="w-10 h-10 text-rose-500 mx-auto mb-3" />
             <h2 className="text-lg font-semibold text-gray-900 mb-1">Certificado no válido</h2>
             <p className="text-sm text-gray-600">
-              El código ingresado no corresponde a ningún certificado emitido por la Academia EYWA.
+              El código ingresado no corresponde a ningún certificado emitido por la Academia UNANCHA.
               Revisa que esté escrito exactamente como aparece en el documento.
             </p>
           </div>
@@ -130,7 +130,7 @@ export default function VerificarCertificadoPage({ params }: { params: Promise<{
               <ShieldCheck className="w-6 h-6 text-white" />
               <div>
                 <h2 className="text-white font-semibold">Certificado auténtico</h2>
-                <p className="text-emerald-100 text-xs">Emitido por la Academia EYWA</p>
+                <p className="text-emerald-100 text-xs">Emitido por la Academia UNANCHA</p>
               </div>
             </div>
             <div className="p-6 space-y-4">

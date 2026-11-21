@@ -34,7 +34,7 @@ export async function generateCertificatePdf(data: CertificatePdfData): Promise<
   const cx = W / 2;
 
   const TEAL: [number, number, number]  = [6, 95, 70];
-  const GREEN: [number, number, number] = [16, 185, 129];
+  const GREEN: [number, number, number] = [42, 143, 92];
   const GREY: [number, number, number]  = [107, 114, 128];
   const DARK: [number, number, number]  = [17, 24, 39];
 
@@ -58,7 +58,7 @@ export async function generateCertificatePdf(data: CertificatePdfData): Promise<
   doc.setTextColor(...TEAL);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(24);
-  doc.text('EYWA', cx, logo ? 47 : 34, { align: 'center' });
+  doc.text('UNANCHA', cx, logo ? 47 : 34, { align: 'center' });
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...GREY);
@@ -120,7 +120,7 @@ export async function generateCertificatePdf(data: CertificatePdfData): Promise<
   doc.setFontSize(10);
   doc.setTextColor(...DARK);
   doc.setFont('helvetica', 'bold');
-  doc.text(data.instructor || 'EYWA Academy', cx, sigY + 6, { align: 'center' });
+  doc.text(data.instructor || 'Academia UNANCHA', cx, sigY + 6, { align: 'center' });
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(...GREY);
@@ -133,5 +133,5 @@ export async function generateCertificatePdf(data: CertificatePdfData): Promise<
   doc.text(`Código de verificación: ${data.code}`, 16, H - 16);
   doc.text(`Verifícalo en ${origin}/verificar/${data.code}`, W - 16, H - 16, { align: 'right' });
 
-  doc.save(`EYWA_Certificado_${data.code}.pdf`);
+  doc.save(`UNANCHA_Certificado_${data.code}.pdf`);
 }

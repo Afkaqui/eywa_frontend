@@ -1,9 +1,9 @@
 /*
- * Sello EYWA para la web de una empresa (PENDIENTES §9).
+ * Sello UNANCHA para la web de una empresa (PENDIENTES §9).
  *
  *   <script src="https://eywa-hazel.vercel.app/eywa-sello.js" data-empresa="SLUG" async></script>
  *
- * Muestra el perfil público de la empresa en EYWA y cuánto tiene documentado en
+ * Muestra el perfil público de la empresa en UNANCHA y cuánto tiene documentado en
  * su dataroom, con enlace a la página pública. Nada más: no muestra el puntaje
  * GENES (la página pública tampoco) ni dice "certificado", porque no lo es.
  *
@@ -62,16 +62,16 @@
     a.rel = 'noopener';
     a.title = d.aviso || '';
 
-    // Marca: logo + wordmark + tagline (identidad EYWA).
+    // Marca: logo + wordmark + tagline (identidad UNANCHA).
     var logo = el('img', 'width:30px;height:30px;object-fit:contain;flex-shrink:0');
     logo.src = origen + '/logo.png';
-    logo.alt = 'EYWA';
+    logo.alt = 'UNANCHA';
     a.appendChild(logo);
 
     var col = el('span', 'display:flex;flex-direction:column;min-width:0');
     var marca = el('span', 'display:flex;align-items:baseline;gap:6px');
-    marca.appendChild(el('span', 'font-weight:800;font-size:13px;letter-spacing:.3px', 'EYWA'));
-    marca.appendChild(el('span', 'font-size:8px;font-weight:600;letter-spacing:1px;color:#059669', 'ORQUESTACIÓN DE ECOSISTEMAS'));
+    marca.appendChild(el('span', 'font-weight:800;font-size:13px;letter-spacing:.3px', 'UNANCHA'));
+    marca.appendChild(el('span', 'font-size:8px;font-weight:600;letter-spacing:1px;color:#1E7A4C', 'ORQUESTACIÓN DE ECOSISTEMAS'));
     col.appendChild(marca);
 
     col.appendChild(el('span',
@@ -79,10 +79,10 @@
       'Perfil verificable de ' + nombre));
 
     var barra = el('span', 'display:flex;align-items:center;gap:6px;margin-top:5px');
-    var fondo = el('span', 'display:inline-block;width:90px;height:5px;border-radius:999px;background:#d1fae5;overflow:hidden');
-    fondo.appendChild(el('span', 'display:block;height:100%;width:' + pct + '%;background:#059669'));
+    var fondo = el('span', 'display:inline-block;width:90px;height:5px;border-radius:999px;background:#DCEFE3;overflow:hidden');
+    fondo.appendChild(el('span', 'display:block;height:100%;width:' + pct + '%;background:#1E7A4C'));
     barra.appendChild(fondo);
-    barra.appendChild(el('span', 'font-size:11px;color:#065f46;font-weight:600', pct + '% documentado'));
+    barra.appendChild(el('span', 'font-size:11px;color:#134F31;font-weight:600', pct + '% documentado'));
     col.appendChild(barra);
 
     a.appendChild(col);
