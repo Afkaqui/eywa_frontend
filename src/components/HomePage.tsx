@@ -23,7 +23,8 @@ interface PublicStats {
 
 // Respaldos reales, con sus logos oficiales (public/respaldos).
 const RESPALDOS = [
-  { nombre: 'BioInnova San Martín', logo: '/respaldos/bioinnova-san-martin.png' },
+  // Logo casi cuadrado: necesita más alto para leerse como los apaisados.
+  { nombre: 'BioInnova San Martín', logo: '/respaldos/bioinnova-san-martin.png', alto: 'h-16 md:h-20 -my-3 md:-my-4' },
   { nombre: 'ProInnóvate', logo: '/respaldos/proinnovate.png' },
   { nombre: 'Innovandes Cusco · DER Cusco', logo: '/respaldos/innovandes-cusco.png' },
   { nombre: 'Cámara de Comercio del Cusco', logo: '/respaldos/camara-cusco.png' },
@@ -177,7 +178,7 @@ export function HomePage({ onGetStarted }: HomePageProps) {
         <Marquee>
           {RESPALDOS.map(r => (
             <img key={r.nombre} src={r.logo} alt={r.nombre} title={r.nombre} loading="lazy"
-              className="mx-9 h-10 w-auto max-w-[170px] object-contain opacity-70 grayscale transition hover:opacity-100 hover:grayscale-0 md:h-12" />
+              className={`mx-9 w-auto max-w-[170px] object-contain opacity-70 grayscale transition hover:opacity-100 hover:grayscale-0 ${r.alto ?? 'h-10 md:h-12'}`} />
           ))}
         </Marquee>
       </section>
