@@ -24,7 +24,7 @@ interface PublicStats {
 // Respaldos reales, con sus logos oficiales (public/respaldos).
 const RESPALDOS = [
   // Logo casi cuadrado: necesita más alto para leerse como los apaisados.
-  { nombre: 'BioInnova San Martín', logo: '/respaldos/bioinnova-san-martin.png', alto: 'h-16 md:h-20 -my-3 md:-my-4' },
+  { nombre: 'BioInnova San Martín', logo: '/respaldos/bioinnova-san-martin.png', alto: 'h-14 md:h-16' },
   { nombre: 'ProInnóvate', logo: '/respaldos/proinnovate.png' },
   { nombre: 'Innovandes Cusco · DER Cusco', logo: '/respaldos/innovandes-cusco.png' },
   { nombre: 'Cámara de Comercio del Cusco', logo: '/respaldos/camara-cusco.png' },
