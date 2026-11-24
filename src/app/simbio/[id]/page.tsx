@@ -36,7 +36,7 @@ export default function SimbioPublicPage({ params }: { params: Promise<{ id: str
   }, [id]);
 
   useEffect(() => {
-    if (state.status === 'ok') document.title = `${state.item.nombre} · UNANCHA Simbiocreación`;
+    if (state.status === 'ok') document.title = `${state.item.nombre} · EYWA Simbiocreación`;
   }, [state]);
 
   return (
@@ -46,10 +46,10 @@ export default function SimbioPublicPage({ params }: { params: Promise<{ id: str
         <div className="max-w-5xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between">
           <a href="/" className="flex items-center gap-2 md:gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="UNANCHA" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
+            <img src="/logo.png" alt="EYWA" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
             <div>
               <div className="font-marca text-gray-900 font-extrabold text-base md:text-xl tracking-tight">
-                UNANCHA <span className="text-gray-300 font-normal">·</span> <span className="text-sm text-gray-500 font-normal">Simbiocreación</span>
+                EYWA <span className="text-gray-300 font-normal">·</span> <span className="text-sm text-gray-500 font-normal">Simbiocreación</span>
               </div>
               <div className="text-emerald-600 text-[10px] md:text-xs tracking-wider hidden sm:block">ORQUESTACIÓN DE ECOSISTEMAS</div>
             </div>
@@ -84,7 +84,7 @@ export default function SimbioPublicPage({ params }: { params: Promise<{ id: str
                 : 'Ocurrió un problema al obtener el contenido. Intenta de nuevo más tarde.'}
             </p>
             <a href="/" className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition-colors">
-              Conocer UNANCHA
+              Conocer EYWA
             </a>
           </div>
         )}
@@ -139,10 +139,10 @@ export default function SimbioPublicPage({ params }: { params: Promise<{ id: str
               <div className="mt-6 rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-800 p-6 md:p-8 text-center">
                 <h2 className="text-lg md:text-xl font-bold text-white mb-2">Crea y dimensiona tus propios proyectos</h2>
                 <p className="text-emerald-100 text-sm mb-5 max-w-lg mx-auto">
-                  UNANCHA te ayuda a maquetar proyectos sostenibles, mapear a sus actores y medir su impacto.
+                  EYWA te ayuda a maquetar proyectos sostenibles, mapear a sus actores y medir su impacto.
                 </p>
                 <a href="/" className="inline-flex items-center gap-2 px-6 py-3 bg-white text-emerald-700 rounded-xl text-sm font-semibold hover:bg-emerald-50 transition-colors">
-                  Empezar en UNANCHA <ArrowRight className="w-4 h-4" />
+                  Empezar en EYWA <ArrowRight className="w-4 h-4" />
                 </a>
               </div>
             </>

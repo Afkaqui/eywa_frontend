@@ -51,7 +51,7 @@ export async function generateDiagnosticReportPdf(data: DiagnosticReportData): P
   doc.setTextColor(...TEAL);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(16);
-  doc.text('UNANCHA', logo ? M + 18 : M, y + 6);
+  doc.text('EYWA', logo ? M + 18 : M, y + 6);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(...GREY);
@@ -186,11 +186,11 @@ export async function generateDiagnosticReportPdf(data: DiagnosticReportData): P
     doc.setFontSize(7.5);
     doc.setTextColor(...GREY);
     doc.text(
-      'Autoevaluación generada en la plataforma UNANCHA con la metodología GENES Perú. No constituye una auditoría ni una certificación de terceros.',
+      'Autoevaluación generada en la plataforma EYWA con la metodología GENES Perú. No constituye una auditoría ni una certificación de terceros.',
       M, H - 12
     );
     doc.text(`Página ${p} de ${pages}`, W - M, H - 12, { align: 'right' });
   }
 
-  doc.save(`UNANCHA_Diagnostico_ESG_${new Date(data.completedAt).toISOString().slice(0, 10)}.pdf`);
+  doc.save(`EYWA_Diagnostico_ESG_${new Date(data.completedAt).toISOString().slice(0, 10)}.pdf`);
 }

@@ -335,7 +335,7 @@ export function DiagnosticInterface({ onScoreComplete }: DiagnosticInterfaceProp
                 <div className="text-sm text-gray-500 uppercase tracking-wider mb-1">Diagnóstico Completado</div>
                 <h1 className="text-3xl font-light text-gray-900">Resultados de Sostenibilidad</h1>
               </div>
-              <img src={logo} alt="UNANCHA" className="h-10" />
+              <img src={logo} alt="EYWA" className="h-10" />
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
 // Metodología oficial de madurez (TRL/CRL) del CONCYTEC — plataforma Vincúlate.
-// UNANCHA se apoya en ella: no calcula su propia escala, registra el resultado.
+// EYWA se apoya en ella: no calcula su propia escala, registra el resultado.
 // Hoy (2026-11) la última versión solo está publicada en el entorno de pruebas
 // (apps-qa); cuando salga a producción, cambiar SOLO esta constante.
 export const CALCULADORA_CONCYTEC_URL = 'https://apps-qa.concytec.gob.pe/calculadora/regcalculadora/regconcurso';

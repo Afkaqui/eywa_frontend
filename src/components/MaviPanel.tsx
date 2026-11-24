@@ -6,7 +6,7 @@ import { ValidatorRepository, type ProjectPlanRow } from '@/lib/repositories/val
 
 const repo = new ValidatorRepository();
 
-// Evaluación del proyecto con MAVI, el modelo de evaluación de UNANCHA (no conserva
+// Evaluación del proyecto con MAVI, el modelo de evaluación de EYWA (no conserva
 // los datos). El consentimiento es UNO solo: el que la persona dio al aceptar los
 // términos al crear su cuenta (decisión 2026-11-19). Ya no hay casilla por proyecto.
 
@@ -120,7 +120,7 @@ export function MaviPanel({ plan, onActualizar }: {
       <div>
         <h3 className="font-semibold text-gray-900">Evaluar con MAVI</h3>
         <p className="text-sm text-gray-500 mt-0.5">
-          MAVI, el modelo de evaluación de UNANCHA, prevalida el proyecto y te dice si es postulable.
+          MAVI, el modelo de evaluación de EYWA, prevalida el proyecto y te dice si es postulable.
         </p>
       </div>
 

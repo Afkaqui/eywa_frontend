@@ -113,7 +113,7 @@ const TOOLS: Tool[] = [
     color: '#3b82f6',
     name: 'Mi Organización',
     tagline: 'Perfil, índice ESG, dataroom y mini-landing pública',
-    what: 'El centro de la empresa en UNANCHA: perfil completo con logo, su Índice ESG (del diagnóstico), y un Dataroom con 10 carpetas y 50 documentos requeridos con % de completitud — el sello de confianza ante inversores. Puede activar una mini-landing pública en /empresa/[slug].',
+    what: 'El centro de la empresa en EYWA: perfil completo con logo, su Índice ESG (del diagnóstico), y un Dataroom con 10 carpetas y 50 documentos requeridos con % de completitud — el sello de confianza ante inversores. Puede activar una mini-landing pública en /empresa/[slug].',
     how: [
       'Completa el perfil de tu organización y sube tu logo',
       'Organiza tu documentación corporativa en el Dataroom (todo nace privado)',
@@ -121,7 +121,7 @@ const TOOLS: Tool[] = [
       'Activa tu mini-landing pública para compartir con inversores y bancos',
     ],
     why: 'Una empresa ordenada y verificable genera confianza. El dataroom con completitud medible le abre la puerta a inversión y financiamiento.',
-    forWho: 'Cualquier organización que use UNANCHA: el perfil es el punto de partida.',
+    forWho: 'Cualquier organización que use EYWA: el perfil es el punto de partida.',
   },
   {
     id: 'validator',
@@ -243,7 +243,7 @@ function EcosystemGraph() {
           fill="url(#rootGrad)"
           stroke="white" strokeWidth={3}
           filter="url(#glow2)"/>
-        <text x={cx} y={cy - 7} textAnchor="middle" fill="white" fontSize={15} fontWeight="800">UNANCHA</text>
+        <text x={cx} y={cy - 7} textAnchor="middle" fill="white" fontSize={15} fontWeight="800">EYWA</text>
         <text x={cx} y={cy + 9} textAnchor="middle" fill="white" fontSize={8} opacity={0.85}>Plataforma</text>
         <text x={cx} y={cy + 20} textAnchor="middle" fill="white" fontSize={8} opacity={0.85}>Sostenible</text>
       </g>
@@ -356,7 +356,7 @@ export default function ResumenPage() {
             <span className="bg-white/20 border border-white/30 text-white text-xs font-bold px-3 py-1 rounded-full tracking-wider">
               FASE 1
             </span>
-            <span className="text-sm font-medium opacity-90">MVP funcional · Plataforma UNANCHA en producción</span>
+            <span className="text-sm font-medium opacity-90">MVP funcional · Plataforma EYWA en producción</span>
           </div>
           <CopyButton url={url}/>
         </div>
@@ -369,10 +369,10 @@ export default function ResumenPage() {
             <Globe className="w-3.5 h-3.5"/> Plataforma de Sostenibilidad
           </div>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 tracking-tight mb-4">
-            ¿Qué es <span className="text-emerald-600">UNANCHA</span>?
+            ¿Qué es <span className="text-emerald-600">EYWA</span>?
           </h1>
           <p className="text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed mb-8">
-            UNANCHA es una plataforma integrada que acompaña a organizaciones en su camino hacia la sostenibilidad.
+            EYWA es una plataforma integrada que acompaña a organizaciones en su camino hacia la sostenibilidad.
             Combina diagnóstico, medición, colaboración, formación y gestión de impacto en un solo ecosistema digital.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
@@ -395,7 +395,7 @@ export default function ResumenPage() {
         {/* ── ECOSYSTEM GRAPH ── */}
         <section>
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">El ecosistema UNANCHA</h2>
+            <h2 className="text-2xl font-bold text-gray-900">El ecosistema EYWA</h2>
             <p className="text-gray-500 mt-1.5">7 herramientas conectadas, un único objetivo: organizaciones más sostenibles</p>
           </div>
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
@@ -602,7 +602,7 @@ export default function ResumenPage() {
           </div>
           <h2 className="text-2xl font-extrabold mb-3">Explora la plataforma</h2>
           <p className="text-emerald-100 mb-7 max-w-xl mx-auto">
-            Accede al MVP funcional de UNANCHA. Todas las herramientas de Fase 1 están disponibles y corriendo en producción.
+            Accede al MVP funcional de EYWA. Todas las herramientas de Fase 1 están disponibles y corriendo en producción.
           </p>
           <a href="/"
             className="inline-flex items-center gap-2 bg-white text-emerald-700 font-bold px-7 py-3.5 rounded-2xl hover:bg-emerald-50 transition-colors shadow-lg">
@@ -611,7 +611,7 @@ export default function ResumenPage() {
         </section>
 
         <p className="text-center text-xs text-gray-400 pb-2">
-          {url.replace(/^https?:\/\//, '')}/fase1 · UNANCHA Fase 1 · 2026
+          {url.replace(/^https?:\/\//, '')}/fase1 · EYWA Fase 1 · 2026
         </p>
       </div>
     </div>

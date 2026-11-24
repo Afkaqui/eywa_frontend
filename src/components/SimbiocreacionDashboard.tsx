@@ -37,7 +37,7 @@ interface RankingEntry {
 interface GraphNode {
   id: string; label: string; type: 'center' | 'category' | 'group' | 'person' | 'institution';
   x: number; y: number; vx: number; vy: number; r: number; color: string;
-  userId?: string;  // vínculo opcional a usuario UNANCHA (nodos person)
+  userId?: string;  // vínculo opcional a usuario EYWA (nodos person)
   actorId?: string; // vínculo opcional a Actor del directorio (nodos institution)
 }
 interface GraphEdge { from: string; to: string }
@@ -1145,11 +1145,11 @@ export function SimbiocreacionDashboard() {
                           </div>
                         </div>
 
-                        {/* Link UNANCHA user (only for person nodes) */}
+                        {/* Link EYWA user (only for person nodes) */}
                         {editSelectedNode.type==='person'&&(
                           <div>
                             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                              Vincular usuario UNANCHA
+                              Vincular usuario EYWA
                             </label>
                             {editSelectedNode.userId?(
                               <div className="flex items-center gap-2 p-2 bg-emerald-50 border border-emerald-200 rounded-xl">
@@ -1510,7 +1510,7 @@ export function SimbiocreacionDashboard() {
                                           <div className="min-w-0 flex-1">
                                             <div className="flex items-center gap-1.5">
                                               <span className="text-sm font-semibold text-gray-800 truncate">{name}</span>
-                                              {n.userId&&<span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">UNANCHA</span>}
+                                              {n.userId&&<span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">EYWA</span>}
                                               {n.actorId&&<span className="text-[10px] bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">Directorio</span>}
                                             </div>
                                             <div className="text-xs text-gray-400 truncate">en {parent}</div>

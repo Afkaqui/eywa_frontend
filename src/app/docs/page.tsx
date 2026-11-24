@@ -23,7 +23,7 @@ interface DocSection {
 }
 
 const sections: DocSection[] = [
-  { id: 'intro', title: 'Introducción a UNANCHA', icon: Leaf, category: 'general' },
+  { id: 'intro', title: 'Introducción a EYWA', icon: Leaf, category: 'general' },
   { id: 'vision', title: 'Visión y Misión', icon: Leaf, category: 'general' },
   { id: 'registro', title: 'Registro de Cuenta', icon: UserPlus, category: 'usuario' },
   { id: 'login', title: 'Inicio de Sesión', icon: LogIn, category: 'usuario' },
@@ -53,7 +53,7 @@ function SectionContent({ sectionId }: { sectionId: SectionId }) {
       return (
         <div className="space-y-6">
           <p className="text-gray-700 leading-relaxed">
-            <strong>UNANCHA</strong> es una plataforma digital de orquestación ecosistémica diseñada para
+            <strong>EYWA</strong> es una plataforma digital de orquestación ecosistémica diseñada para
             catalizar el desarrollo sostenible y regenerativo en la región andino-amazónica. Funciona como
             un <em>Ecosistema como Servicio (EaaS)</em>, conectando gobierno, empresas, inversores, academia
             y sociedad civil en un único flujo de trabajo colaborativo basado en datos verificables.
@@ -104,7 +104,7 @@ function SectionContent({ sectionId }: { sectionId: SectionId }) {
           </div>
           <h3 className="text-lg font-semibold text-gray-900">Modelo Ecosistémico: Quíntuple Hélice</h3>
           <p className="text-gray-700">
-            UNANCHA articula cinco actores fundamentales del desarrollo sostenible:
+            EYWA articula cinco actores fundamentales del desarrollo sostenible:
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {[
@@ -203,7 +203,7 @@ function SectionContent({ sectionId }: { sectionId: SectionId }) {
       return (
         <div className="space-y-6">
           <p className="text-gray-700">
-            El Panel Principal es tu vista central al ingresar a UNANCHA. Muestra un resumen de tu estado
+            El Panel Principal es tu vista central al ingresar a EYWA. Muestra un resumen de tu estado
             en la plataforma, incluyendo tu resultado de diagnóstico más reciente con su sello de
             sostenibilidad.
           </p>
@@ -253,7 +253,7 @@ function SectionContent({ sectionId }: { sectionId: SectionId }) {
       return (
         <div className="space-y-6">
           <p className="text-gray-700">
-            El módulo de Diagnóstico Integral es el corazón de la evaluación de UNANCHA. Permite a los
+            El módulo de Diagnóstico Integral es el corazón de la evaluación de EYWA. Permite a los
             emprendimientos completar un cuestionario estructurado que evalúa su madurez, sostenibilidad
             y preparación para la inversión.
           </p>
@@ -532,7 +532,7 @@ function SectionContent({ sectionId }: { sectionId: SectionId }) {
       return (
         <div className="space-y-6">
           <p className="text-gray-700">
-            UNANCHA implementa un sistema jerárquico de 4 roles con permisos crecientes. Cada usuario
+            EYWA implementa un sistema jerárquico de 4 roles con permisos crecientes. Cada usuario
             tiene exactamente un rol y un plan asignados.
           </p>
           <h3 className="text-lg font-semibold text-gray-900">Jerarquía de Roles</h3>
@@ -585,7 +585,7 @@ function SectionContent({ sectionId }: { sectionId: SectionId }) {
       return (
         <div className="space-y-6">
           <p className="text-gray-700">
-            UNANCHA está construida con una arquitectura limpia (Clean Architecture) que separa responsabilidades
+            EYWA está construida con una arquitectura limpia (Clean Architecture) que separa responsabilidades
             en capas bien definidas, facilitando el mantenimiento y la escalabilidad.
           </p>
           <h3 className="text-lg font-semibold text-gray-900">Stack Tecnológico</h3>
@@ -657,7 +657,7 @@ function SectionContent({ sectionId }: { sectionId: SectionId }) {
       return (
         <div className="space-y-6">
           <p className="text-gray-700">
-            La seguridad en UNANCHA opera en múltiples capas: autenticación JWT con Supabase Auth,
+            La seguridad en EYWA opera en múltiples capas: autenticación JWT con Supabase Auth,
             Row Level Security (RLS) en PostgreSQL, y validación de roles en API Routes del servidor.
           </p>
           <h3 className="text-lg font-semibold text-gray-900">Capas de Seguridad</h3>
@@ -754,7 +754,7 @@ export default function DocsPage() {
               <Book className="w-4 h-4 text-emerald-600" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold text-gray-900">Documentación UNANCHA</h1>
+              <h1 className="text-lg font-semibold text-gray-900">Documentación EYWA</h1>
               <p className="text-xs text-gray-500">Guía de usuario y documentación técnica</p>
             </div>
           </div>

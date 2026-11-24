@@ -41,7 +41,7 @@ export default function Page() {
   const [diagCargando, setDiagCargando] = useState(true);
   const [orgTab, setOrgTab] = useState<'perfil' | 'esg' | 'dataroom'>('perfil');
 
-  // Enlace profundo: ?vista=dataroom|diagnostico|validador|academia (lo usa UNANCHA
+  // Enlace profundo: ?vista=dataroom|diagnostico|validador|academia (lo usa EYWA
   // Agro). Se guarda en sessionStorage para sobrevivir al login: si la persona no
   // tenía sesión en este dominio, llega a la sección pedida después de entrar.
   useEffect(() => {

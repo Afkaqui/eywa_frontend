@@ -39,7 +39,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ ruta
       cache:   'no-store',
     });
   } catch {
-    return NextResponse.json({ error: 'UNANCHA no está disponible en este momento' }, { status: 502, headers: CORS });
+    return NextResponse.json({ error: 'EYWA no está disponible en este momento' }, { status: 502, headers: CORS });
   }
 
   const salida = new Headers({ ...CORS, 'Content-Type': res.headers.get('Content-Type') ?? 'application/json' });

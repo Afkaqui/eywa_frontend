@@ -2,7 +2,7 @@
 // Constantes de negocio: Scoring & Niveles
 // ════════════════════════════════════════
 //
-// La escala oficial de UNANCHA es GENES (más abajo). Aquí vivía además una escala
+// La escala oficial de EYWA es GENES (más abajo). Aquí vivía además una escala
 // genérica —`getScoreLevel` (Excelente/Bueno/Moderado) y `getSealLabel`
 // (Gold/Silver/Bronze Seal)— que se contradecía con ella: un mismo puntaje era
 // "Oro" en el Diagnóstico y "Silver Seal" en el dashboard. Se eliminó junto con

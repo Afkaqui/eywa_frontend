@@ -1,7 +1,7 @@
 "use client";
 
 // Madurez tecnológica y comercial del proyecto según la metodología del CONCYTEC.
-// UNANCHA NO calcula su propia escala: la calculadora oficial (Vincúlate) se basa en
+// EYWA NO calcula su propia escala: la calculadora oficial (Vincúlate) se basa en
 // una metodología adaptada de NYSERDA, Horizonte 2020 y la NASA y en consultorías
 // del CONCYTEC. Aquí se abre la calculadora y se registra el resultado, que
 // alimenta el análisis del Validador. El CONCYTEC lo presenta como referencial.

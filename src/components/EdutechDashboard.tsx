@@ -56,7 +56,7 @@ export function EdutechDashboard() {
     []
   );
   const academyRepo = useMemo(() => new AcademyRepository(), []);
-  const profileName = profile?.fullName || profile?.email || 'Participante UNANCHA';
+  const profileName = profile?.fullName || profile?.email || 'Participante EYWA';
 
   // Load courses, enrollments and certificates via service
   useEffect(() => {
@@ -131,7 +131,7 @@ export function EdutechDashboard() {
               <GraduationCap className="w-5 h-5 text-emerald-700" />
             </div>
             <div>
-              <h1 className="ey-blur-in text-2xl md:text-3xl font-semibold tracking-tight text-gray-900">Academia UNANCHA</h1>
+              <h1 className="ey-blur-in text-2xl md:text-3xl font-semibold tracking-tight text-gray-900">Academia EYWA</h1>
               <p className="text-sm text-gray-500">Capacitación para emprendedores sostenibles</p>
             </div>
           </div>
@@ -289,7 +289,7 @@ export function EdutechDashboard() {
                       <Award className="w-5 h-5 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-bold text-gray-900 line-clamp-2">{cert.course_title ?? 'Curso UNANCHA'}</h3>
+                      <h3 className="text-sm font-bold text-gray-900 line-clamp-2">{cert.course_title ?? 'Curso EYWA'}</h3>
                       <p className="text-xs text-gray-500 mt-0.5">
                         {cert.percentage}% · {new Date(cert.issued_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </p>
@@ -299,7 +299,7 @@ export function EdutechDashboard() {
                   <button
                     onClick={() => generateCertificatePdf({
                       holderName: profileName,
-                      courseTitle: cert.course_title ?? 'Curso UNANCHA',
+                      courseTitle: cert.course_title ?? 'Curso EYWA',
                       instructor: cert.instructor,
                       percentage: cert.percentage,
                       code: cert.code,

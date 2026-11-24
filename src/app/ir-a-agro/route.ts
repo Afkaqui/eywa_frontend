@@ -4,11 +4,11 @@ import { BRAND } from '@/lib/brand';
 
 const API_URL = process.env.BACKEND_URL ?? 'http://localhost:4001';
 
-// Entrada única UNANCHA → UNANCHA Agro.
-// Con sesión de UNANCHA: pide al backend un código de un solo uso (60 s) y redirige
+// Entrada única EYWA → UNANCHA Agro.
+// Con sesión de EYWA: pide al backend un código de un solo uso (60 s) y redirige
 // a Agro con él en el FRAGMENTO (#c=…): no viaja a ningún servidor ni queda en
 // logs, y Agro lo canjea por su token. Sin sesión: manda a iniciar sesión en
-// UNANCHA y, al entrar, page.tsx vuelve aquí (destino 'agro' de ?vista=).
+// EYWA y, al entrar, page.tsx vuelve aquí (destino 'agro' de ?vista=).
 export async function GET(req: NextRequest) {
   // Solo rutas internas de Agro (evita usar esto como redirección abierta).
   const pedido = req.nextUrl.searchParams.get('a') ?? '/';

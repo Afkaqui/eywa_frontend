@@ -1,8 +1,8 @@
-// Marca en un solo lugar. UNANCHA (antes EYWA) es el nombre propuesto en el
-// Dossier_UNANCHA_001 y aún está sujeto a verificación en INDECOPI y la EUIPO: todo
-// texto nuevo que nombre la marca debe leerlo de aquí en vez de escribirlo a mano.
+// Marca en un solo lugar. La plataforma es EYWA; el producto agro se llama
+// UNANCHA Agro (Dossier_UNANCHA_001, nombre sujeto a INDECOPI/EUIPO). Todo texto
+// nuevo que nombre una marca debe leerla de aquí en vez de escribirla a mano.
 export const BRAND = {
-  name: 'UNANCHA',
+  name: 'EYWA',
   tagline: 'Orquestación de ecosistemas',
   logo: '/logo.png',
   agro: 'UNANCHA Agro',

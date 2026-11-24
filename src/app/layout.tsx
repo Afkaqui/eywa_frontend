@@ -6,18 +6,18 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import VisitTracker from "@/components/VisitTracker";
 import "./globals.css";
 
-// Tipografías de la marca (Dossier UNANCHA §1.5): Archivo para el logotipo y los
+// Tipografías de la marca (Dossier EYWA §1.5): Archivo para el logotipo y los
 // titulares; IBM Plex Sans para la interfaz y los datos.
 const archivo = Archivo({ subsets: ["latin"], weight: ["600", "700", "800"], variable: "--font-archivo", display: "swap" });
 const plex = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-plex", display: "swap" });
 
 export const metadata: Metadata = {
   title: {
-    default: "UNANCHA - Plataforma de Orquestación Ecosistémica y Sostenibilidad",
-    template: "%s | UNANCHA",
+    default: "EYWA - Plataforma de Orquestación Ecosistémica y Sostenibilidad",
+    template: "%s | EYWA",
   },
   description:
-    "UNANCHA conecta y orquesta los ecosistemas de gobierno, empresas, inversores y sociedad civil a través de una plataforma inteligente de gestión de datos para impulsar la sostenibilidad medible.",
+    "EYWA conecta y orquesta los ecosistemas de gobierno, empresas, inversores y sociedad civil a través de una plataforma inteligente de gestión de datos para impulsar la sostenibilidad medible.",
   keywords: [
     "sostenibilidad",
     "ESG",
@@ -32,11 +32,11 @@ export const metadata: Metadata = {
     "economía circular",
     "deep tech",
     "sustainability platform",
-    "UNANCHA",
+    "EYWA",
   ],
-  authors: [{ name: "UNANCHA" }],
-  creator: "UNANCHA",
-  publisher: "UNANCHA",
+  authors: [{ name: "EYWA" }],
+  creator: "EYWA",
+  publisher: "EYWA",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://eywa-hazel.vercel.app"),
   alternates: {
     canonical: "/",
@@ -47,14 +47,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "es_ES",
-    siteName: "UNANCHA",
-    title: "UNANCHA - Plataforma de Orquestación Ecosistémica y Sostenibilidad",
+    siteName: "EYWA",
+    title: "EYWA - Plataforma de Orquestación Ecosistémica y Sostenibilidad",
     description:
       "Conectamos gobierno, empresas e inversores en un único flujo de trabajo colaborativo basado en datos verificables para impulsar decisiones sostenibles.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "UNANCHA - Plataforma de Sostenibilidad",
+    title: "EYWA - Plataforma de Sostenibilidad",
     description:
       "Orquestación de ecosistemas a través de datos inteligentes para la sostenibilidad medible.",
   },
@@ -90,7 +90,7 @@ const jsonLd = {
     {
       "@type": "Organization",
       "@id": `${siteUrl}/#organization`,
-      name: "UNANCHA",
+      name: "EYWA",
       url: siteUrl,
       logo: `${siteUrl}/logo.png`,
       description:
@@ -101,13 +101,13 @@ const jsonLd = {
       "@type": "WebSite",
       "@id": `${siteUrl}/#website`,
       url: siteUrl,
-      name: "UNANCHA",
+      name: "EYWA",
       inLanguage: "es",
       publisher: { "@id": `${siteUrl}/#organization` },
     },
     {
       "@type": "SoftwareApplication",
-      name: "UNANCHA",
+      name: "EYWA",
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
       url: siteUrl,
